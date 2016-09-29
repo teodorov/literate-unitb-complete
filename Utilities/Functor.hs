@@ -52,10 +52,23 @@ class Functor2 f where
 
 class Functor3 f where
     fmap3 :: (a -> b) -> f a c d e -> f b c d e
-    default fmap3 :: (Traversable3 f)
-                  => (a0 -> a1)
-                  -> f a0 b c d -> f a1 b c d
-    fmap3 f = runIdentity . traverse3 (Identity . f)
+    fmap3 f = fmapOn3 f id id id
+    fmapOn3 :: (a -> a') 
+            -> (b -> b') 
+            -> (c -> c') 
+            -> (d -> d') 
+            -> f a b c d -> f a' b' c' d'
+    default fmapOn3 :: (Traversable3 f)
+                    => (a -> a') 
+                    -> (b -> b') 
+                    -> (c -> c') 
+                    -> (d -> d') 
+                    -> f a b c d -> f a' b' c' d'
+    fmapOn3 f g h p = runIdentity . traverseOn3
+                        (Identity . f)
+                        (Identity . g)
+                        (Identity . h)
+                        (Identity . p)
 
 class Functor4 f where
     fmap4 :: (a -> b) -> f a c d e g -> f b c d e g

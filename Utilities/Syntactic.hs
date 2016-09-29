@@ -8,11 +8,11 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.Either
 
+import Data.Bytes.Serial
 import Data.List
 import Data.List.NonEmpty as NE (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import Data.List.Ordered
-import Data.Serialize hiding (get)
 import Data.Typeable
 import qualified Data.String.Lines as L
 
@@ -178,7 +178,7 @@ instance ZoomEq a => ZoomEq (TokenStream a) where
 instance PrettyPrintable LineInfo where
     pretty (LI _ i j) = [printf|(li:%d:%d)|] i j
 instance PrettyPrintable a => PrettyPrintable (TokenStream a) where
-    pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (map fst xs)
+    pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (map fst xs)
 
 instance Syntactic (TokenStream a) where
     line_info (StringLi xs li) = headDef li (map snd xs)
@@ -244,4 +244,4 @@ errorTrace fs stack msg = [MLError msg $ nonEmpty' $ loc & mapped._2 %~ locToLI]
 instance NFData Error 
 instance NFData LineInfo
 instance NFData a => NFData (TokenStream a)
-instance Serialize LineInfo where
+instance Serial LineInfo where
