@@ -13,10 +13,10 @@ name:                show-with
 version:             0.1.0.0
 
 -- A short (one-line) description of the package.
--- synopsis:            
+synopsis:            showWith on `f a` lets you decide how to show every `a`
 
 -- A longer description of the package.
--- description:         
+description:         showWith on `f a` lets you decide how to show every `a`
 
 -- The license under which the package is released.
 license:             MIT
@@ -45,6 +45,9 @@ build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+source-repository head
+  type:     git
+  location: https://github.com/literate-unitb/show-with
 
 library
   -- Modules exported by the library.
@@ -57,13 +60,13 @@ library
   default-extensions:    TypeSynonymInstances, FlexibleInstances
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <4.9, transformers >=0.4 && <0.5, generic-instances
+  build-depends:       base >=4.8 && <5, transformers >=0.4 && <0.6, generic-instances, prelude-extras
   
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
          -fwarn-missing-methods
          -fno-ignore-asserts
-         -fwarn-tabs -Werror
+         -fwarn-tabs
          -j8
 
   -- Directories containing source files.

@@ -1,8 +1,12 @@
+{-# LANGUAGE CPP #-}
 module Text.Show.With where
 
+#if MIN_VERSION_transformers(0,5,0)
+import Prelude.Extras
+#else
 import Data.Functor.Classes
-
 import GHC.Generics.Instances
+#endif
 
 newtype ShowString' a = ShowString a
 type ShowString = ShowString' String
