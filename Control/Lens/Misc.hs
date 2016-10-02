@@ -6,16 +6,16 @@ import Control.Monad.State
 import Data.Default
 import Data.Either.Validation
 import Data.Foldable as F
-import Data.Map.Class as M
+import Data.Map as M
 import Data.Semigroup
 
 
 {-# INLINE withKey #-}
-withKey :: IsMap map => Iso (map a b) (map c d) (map a (a,b)) (map c d)
+withKey :: Iso (Map a b) (Map c d) (Map a (a,b)) (Map c d)
 withKey = iso (M.mapWithKey (,)) id
 
 {-# INLINE withKey' #-}
-withKey' :: IsMap map => Getter (map a b) (map a (a,b))
+withKey' :: Getter (Map a b) (Map a (a,b))
 withKey' = to (M.mapWithKey (,))
 
 create :: Default a => State a b -> a
