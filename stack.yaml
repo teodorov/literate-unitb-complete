@@ -43,15 +43,29 @@ resolver: lts-6.20
 # A package marked 'extra-dep: true' will only be built if demanded by a
 # non-dependency (i.e. a user package), and its test suites and benchmarks
 # will not be run. This is useful for tweaking upstream packages.
-packages: []
+packages: 
 # The following packages have been ignored due to incompatibility with the
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
-#- .
+- .
+- location:
+    git: https://github.com/literate-unitb/axiomatic-classes.git
+    commit: 643c833aa8836b23d8057cbbf410a9deedc76026
+- location:
+    git: https://github.com/literate-unitb/printf-th.git
+    commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
+- location:
+    git: https://github.com/literate-unitb/invariants.git
+    commit: fe80d6e750e8cffba3a9d8cf2b4d34650aca4059
+- location:
+    git: https://github.com/literate-unitb/th-lift-deriving.git
+    commit: 3efb6a9358cae2bd47606b59a97dad3ddd84ffae
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps: 
+    - assert-0.0.1.2
+    - portable-lines-0.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}

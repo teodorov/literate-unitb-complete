@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell,RankNTypes #-}
+{-# LANGUAGE TemplateHaskell,RankNTypes,CPP #-}
 module Data.String.Lines where
 
 import Control.Applicative
@@ -155,9 +155,12 @@ prop_concat_lines'_cancel_regression = regression prop_concat_lines'_cancel case
 newtype Lines = Lines (NonEmpty String)
     deriving (Show)
 
+#if MIN_VERSION_QuickCheck(2,9,0)
+#else
 instance Arbitrary a => Arbitrary (NonEmpty a) where
     arbitrary = (:|) <$> arbitrary <*> arbitrary
     shrink = mapMaybe NE.nonEmpty . shrink . NE.toList
+#endif
 
 instance Arbitrary Lines where
     arbitrary = do
