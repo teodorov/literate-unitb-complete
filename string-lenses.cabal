@@ -13,10 +13,10 @@ name:                string-lenses
 version:             0.1.0.0
 
 -- A short (one-line) description of the package.
--- synopsis:            
+synopsis:            Lenses for lines and indentations in strings
 
 -- A longer description of the package.
--- description:         
+description:         Lenses for lines and indentations in strings
 
 -- The license under which the package is released.
 license:             MIT
@@ -45,6 +45,9 @@ build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+source-repository head
+  type:     git
+  location: https://github.com/literate-unitb/string-lenses
 
 library
   -- Modules exported by the library.
@@ -63,7 +66,7 @@ library
          -fwarn-incomplete-uni-patterns
          -fwarn-missing-methods
          -fno-ignore-asserts
-         -fwarn-tabs -Werror
+         -fwarn-tabs
          -j8
 
   -- Directories containing source files.
