@@ -1,4 +1,5 @@
-{-# LANGUAGE ExistentialQuantification, ImplicitParams #-} 
+{-# LANGUAGE ExistentialQuantification
+        , ImplicitParams, CPP #-} 
 module Test.UnitTest 
     ( TestCase(..)
     , run_quickCheck_suite
@@ -44,13 +45,14 @@ import           Data.Tuple
 import           Data.Typeable
 
 import GHC.Stack
+#if !(MIN_VERSION_base(4,9,0))
 import GHC.SrcLoc
+#endif
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
 
 import Prelude
-import PseudoMacros
 
 import System.Directory
 import System.FilePath
@@ -182,7 +184,7 @@ take_failure_number = do
     put n
 
 callStackLineInfo :: CallStack -> [String]
-callStackLineInfo cs = reverse $ map f $ filter (($__FILE__ /=) . srcLocFile) $ map snd $ getCallStack cs
+callStackLineInfo cs = reverse $ map f $ filter ((__FILE__ /=) . srcLocFile) $ map snd $ getCallStack cs
     where
         f c = [printf|%s:%d:%d|] (srcLocFile c) (srcLocStartLine c) (srcLocStartCol c)
 
