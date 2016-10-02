@@ -17,7 +17,7 @@ synopsis:            A way of QuickCheck IO programs
 
 -- A longer description of the package.
 description:         A way of QuickCheck IO programs
-
+ 
 -- The license under which the package is released.
 license:             MIT
 
