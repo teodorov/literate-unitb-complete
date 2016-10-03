@@ -67,13 +67,9 @@ makePolyClass recName = do
               zV = L.map varT zT
               fv = freeVars (snd f)
               t = [t| Lens $(appsT $ fV : xV) $(appsT $ fV : zV) 
-                -- | hasVars (snd f) 
                                             $(return $ substVars mX $ snd f) 
                                             $(return $ substVars mY $ snd f) |]
-                -- | otherwise       = [t| Lens' $(appsT $ fV : xV) $(return $ snd f) |]
               typeVars = L.map PlainTV $ fT : (nubSort $ xT++zT)
-                -- | hasVars (snd f) 
-                -- | otherwise       = L.map PlainTV $ fT : xT
           in 
           sigD (fieldName f) $ forallT typeVars
             (cxt [appT (conT className) (varT fT)]) t            

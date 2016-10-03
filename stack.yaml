@@ -59,7 +59,7 @@ packages:
     commit: f1672a380d7f069ccc080c2380554acf0b2bf258
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
-    commit: 8c6033262eeb073165e08e52e6b0b6fff37d0a3c
+    commit: 9c45c7caff4e93d0df96622ffb5238f04fa8b5af
 - location:
     git: https://github.com/literate-unitb/axiomatic-classes.git
     commit: 643c833aa8836b23d8057cbbf410a9deedc76026
