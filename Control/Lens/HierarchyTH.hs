@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, ViewPatterns #-}
 module Control.Lens.HierarchyTH where
 
 import Control.Applicative
@@ -161,8 +161,8 @@ typeKind :: Name -> Q Int
 typeKind n = do
         i <- reify n
         case i of 
-            TyConI (DataD _ _ args _ _) -> return $ length args
-            TyConI (NewtypeD _ _ args _ _) -> return $ length args
+            TyConI (preview _DataD' -> Just (_,_,args,_)) -> return $ length args
+            TyConI (preview _NewtypeD' -> Just (_,_,args,_)) -> return $ length args
             TyConI (TySynD _ _ t) -> do
                 n <- degree t
                 return n
@@ -186,8 +186,8 @@ freeVars t = nubSort $ getConst $ gfoldl f (const $ Const []) t
 typeOf :: Name -> TypeQ
 typeOf n = do
     t <- reify n
-    case t of
-        VarI _ t _ _ -> return t
+    case t^?_VarI'._2 of
+        Just t -> return t
         _ -> error "not a variable"
 
 lensDecl :: Name -> Name -> ExpQ

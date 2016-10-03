@@ -13,10 +13,10 @@ name:                classy-lens-hierarchy
 version:             0.1.0.0
 
 -- A short (one-line) description of the package.
--- synopsis:            
+synopsis:            Like classy lenses from the lens library except that subclasses can be formed.
 
 -- A longer description of the package.
--- description:         
+description:         Like classy lenses from the lens library except that subclasses can be formed. Also, Data.MakeTable forms constructors for records made of Maps.
 
 -- The license under which the package is released.
 license:             MIT
@@ -45,6 +45,9 @@ build-type:          Simple
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+source-repository head
+  type:     git
+  location: https://github.com/literate-unitb/classy-lens-hierarchy
 
 library
   -- Modules exported by the library.
@@ -60,13 +63,13 @@ library
   default-extensions:    QuasiQuotes, ConstraintKinds, TypeOperators, TemplateHaskell, RankNTypes, TupleSections, FlexibleInstances, TypeSynonymInstances, FlexibleContexts
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <4.9, lens >=4.13 && <4.14, data-default >=0.5 && <0.6, containers >=0.5 && <0.6, data-ordlist >=0.4 && <0.5, template-haskell >=2.10 && <2.11, mtl >=2.2 && <2.3, data-map-class, bipartite-graph, unordered-containers, invariants
+  build-depends:       base >=4.8 && <5, lens >=4.12 && <4.15, data-default >=0.5 && <0.8, containers >=0.5 && <0.6, data-ordlist >=0.4 && <0.5, template-haskell >=2.10 && <2.12, mtl >=2.2 && <2.3, data-map-class, bipartite-graph, unordered-containers, invariants
   
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
          -fwarn-missing-methods
          -fno-ignore-asserts
-         -fwarn-tabs -Werror
+         -fwarn-tabs
          -j8
   -- Directories containing source files.
   hs-source-dirs:      .

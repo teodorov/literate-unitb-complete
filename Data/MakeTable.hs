@@ -1,4 +1,8 @@
-{-# LANGUAGE ConstraintKinds, TypeOperators #-}
+{-# LANGUAGE 
+        ConstraintKinds
+        , TypeOperators
+        , CPP
+        , ViewPatterns #-}
 module Data.MakeTable where
 
 import Control.Lens
@@ -31,6 +35,14 @@ expandTySyn n = maybe (return n) expandTySyn . getTySyn =<< reify n
     where
         getTySyn = preview (_TyConI . _TySynD . _3 . to constructor)
 
+
+nonStrict :: TypeQ -> StrictTypeQ
+#if MIN_VERSION_template_haskell(2,11,0)
+nonStrict = bangType $ bang noSourceUnpackedness noSourceStrictness
+#else
+nonStrict = strictType notStrict
+#endif
+
 makeRecordConstrAs :: String -> Name -> DecsQ
 makeRecordConstrAs makeName' n = do
     let makeName = mkName makeName'
@@ -51,15 +63,14 @@ makeRecordConstrAs makeName' n = do
             where
                 x' = nameBase x
         withUpper = changeCap toUpper . mkName . dropWhile (== '_') . nameBase
-        fieldCons (n,(t,t'),_) = normalC (withUpper n) [strictType notStrict $ pure t,strictType notStrict $ pure t']
+        fieldCons (n,(t,t'),_) = normalC (withUpper n) [nonStrict $ pure t,nonStrict $ pure t']
     fields'' <- mapM (uncurry isMapType) fields
     let fields' = rights fields''
         params  = lefts fields''
     params' <- forM params $ \v -> (v,) <$> newName "p"
-    let fieldType = dataD (cxt []) typeName 
+    let fieldType = dataD' (cxt []) typeName 
                 (map PlainTV args) 
                 (map fieldCons fields') 
-                []
         fieldInit (n,(_t,_t'),_) = (n,) <$> [e| fromList (concatMap $(varE $ prefix "_" n) $(varE xs)) |]
         fieldGetter (n,(_t,_t'),_) = funD (prefix "_" n) 
                 [ clause [conP (withUpper n) [varP x,varP y]] 
