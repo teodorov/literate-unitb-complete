@@ -58,7 +58,7 @@ import Data.Serialize
 import qualified Data.Traversable as T
 import Data.Tuple
 
-import GHC.Generics (Generic)
+import GHC.Generics.Instances
 
 import Prelude hiding (lookup)
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude  #-}
-{-# LANGUAGE TypeOperators      #-}
+{-# LANGUAGE TypeOperators,CPP  #-}
 module Data.Relation where
 
     -- Libraries
@@ -187,6 +187,11 @@ mapMaybeRan p (Rel m) = Rel $ cleanup $ M.map (M.fromList . mapMaybe p' . M.toLi
     where
         p' (x,y) = p x >>= \x -> return (x,y)
 
+#if !(MIN_VERSION_QuickCheck(2,8,2))
+instance (Ord a,Arbitrary a) => Arbitrary (S.Set a) where
+    arbitrary = S.fromList `liftM` arbitrary
+    shrink = fmap S.fromList . genericShrink . S.toList
+#endif
 instance (Ord a,Ord b,Arbitrary a,Arbitrary b) => Arbitrary (Relation a b) where
     arbitrary = fromList `liftM` arbitrary
     shrink = fmap fromList . genericShrink . toList
