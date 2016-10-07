@@ -4,14 +4,6 @@
 # For advanced use and comprehensive documentation of the format, please see:
 # http://docs.haskellstack.org/en/stable/yaml_configuration/
 
-# A warning or info to be displayed to the user on config load.
-user-message: ! 'Warning (added by new or init): Some packages were found to be incompatible
-  with the resolver and have been left commented out in the packages section.
-
-  You can suppress this message by removing it from stack.yaml
-
-'
-
 # Resolver to choose a 'specific' stackage snapshot or a compiler version.
 # A snapshot resolver dictates the compiler version and the set of packages
 # to be used for project dependencies. For example:
@@ -50,16 +42,13 @@ packages:
 - .
 - location:
     git: https://github.com/literate-unitb/axiomatic-classes.git
-    commit: 643c833aa8836b23d8057cbbf410a9deedc76026
+    commit: fab4912ab0811d784c841509dbfbb208864403d2
+- location:
+    git: https://github.com/literate-unitb/invariants.git
+    commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
 - location:
     git: https://github.com/literate-unitb/printf-th.git
     commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
-- location:
-    git: https://github.com/literate-unitb/invariants.git
-    commit: fe80d6e750e8cffba3a9d8cf2b4d34650aca4059
-- location:
-    git: https://github.com/literate-unitb/th-lift-deriving.git
-    commit: 3efb6a9358cae2bd47606b59a97dad3ddd84ffae
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
