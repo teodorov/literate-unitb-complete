@@ -45,13 +45,13 @@ packages:
     commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
 - location:
     git: https://github.com/literate-unitb/bipartite-graph.git
-    commit: 1f1b74f2ea9b7017cf9d2722cfde5c36eb41a215
+    commit: 15ae5699c24d3741c3f36b9ad2057d5f69afc119
 - location:
     git: https://github.com/literate-unitb/data-map-class.git
-    commit: 8e67843d4d087583af350f960739d540f816f9f4
+    commit: 507c80af3aa4ab396ebc47a4bed1f50a88627cbf
 - location:
-    git: https://github.com/literate-unitb/generic-instances.git
-    commit: 9c45c7caff4e93d0df96622ffb5238f04fa8b5af
+    git: https://github.com/literate-unitb/serialize-instances.git
+    commit: b79b6cfc7c7828225d25969814977d25192a1aba
 - location:
     git: https://github.com/literate-unitb/axiomatic-classes.git
     commit: fab4912ab0811d784c841509dbfbb208864403d2
