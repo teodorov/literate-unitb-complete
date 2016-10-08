@@ -45,7 +45,7 @@ packages:
     commit: b79b6cfc7c7828225d25969814977d25192a1aba
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
-    commit: c2d070043a15bdd4149f26e3294532b6401f0f1f
+    commit: 7d7b13cf7a757862a540c71868ac973774128763
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
