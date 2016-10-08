@@ -58,6 +58,7 @@ library
         Latex.Scanner
         -- TEST CASES
         Latex.Test
+        Utilities.Syntactic
   
   -- Modules included in this library but not exported.
   -- other-modules:       
