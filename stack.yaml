@@ -60,7 +60,7 @@ packages:
     commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
 - location:
     git: https://github.com/literate-unitb/classy-lens-hierarchy.git
-    commit: 27ae58b990cb5c2693d5b0033f01b77d0f9392e9
+    commit: 33764edf18159e5eac4059371e66efffc6d03fd5
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
