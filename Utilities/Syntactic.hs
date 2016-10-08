@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections,FunctionalDependencies #-}
+{-# LANGUAGE TupleSections,FunctionalDependencies,CPP #-}
 module Utilities.Syntactic where
 
 import Control.DeepSeq
