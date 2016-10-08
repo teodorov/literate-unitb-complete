@@ -16,7 +16,7 @@ version:             0.1.0.0
 synopsis:            Supporting modules for Literate Unit-B
 
 -- A longer description of the package.
--- description:         
+description:         Various supporting modules for Literate Unit-B
 
 -- The license under which the package is released.
 license:             MIT
