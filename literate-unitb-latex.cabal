@@ -16,7 +16,7 @@ version:             0.1.0.0
 synopsis:            LaTeX modules for Literate Unit-B
 
 -- A longer description of the package.
--- description:         
+description:         Parsing LaTeX and generating LaTeX syntax tree.
 
 -- The license under which the package is released.
 license:             MIT
