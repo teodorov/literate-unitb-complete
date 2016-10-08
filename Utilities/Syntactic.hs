@@ -19,7 +19,11 @@ import qualified Data.String.Lines as L
 
 import GHC.Generics.Instances
 import GHC.Read
+#if MIN_VERSION_base(4,9,0)
+import GHC.Stack
+#else
 import GHC.SrcLoc
+#endif
 import GHC.Stack.Utils
 
 import Safe
