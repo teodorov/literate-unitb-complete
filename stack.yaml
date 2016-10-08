@@ -24,7 +24,7 @@ packages:
     commit: 818b4a4145357c636c2bce48f6e864956a67c5ae
 - location:
     git: https://github.com/literate-unitb/show-with.git
-    commit: e6670f40bd815b26ad88b49200d1f30f478a458e
+    commit: 6be72dbe945cae0945dd18a835f56c7a807937a7
 - location:
     git: https://github.com/literate-unitb/invariants.git
     commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
@@ -48,7 +48,7 @@ packages:
     commit: a3a166811723e2be8a21570f9aa7596a33750d78
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
-    commit: c2d070043a15bdd4149f26e3294532b6401f0f1f
+    commit: 7d7b13cf7a757862a540c71868ac973774128763
 - location:
     git: https://github.com/literate-unitb/serialize-instances.git
     commit: b79b6cfc7c7828225d25969814977d25192a1aba
