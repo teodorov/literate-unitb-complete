@@ -25,8 +25,10 @@ import Data.Semigroup
 import Data.Serialize as Ser
 import Data.String
 
+import GHC.Generics hiding (from,to)
 import GHC.Generics.Instances
 
+import Language.Haskell.TH.Lift
 import Language.Haskell.TH.Syntax
 
 import Test.QuickCheck
@@ -128,8 +130,8 @@ instance Monoid NullTerminatedString where
     mempty = genericMEmpty
     mconcat = genericMConcat
 
-instance Lift1 f => Lift (NullTerminated f) where
-    lift x = [e| NullTerm $(lift1 $ getNullString x) |]
+instance Lift (f Char) => Lift (NullTerminated f) where
+    lift (NullTerm x) = [e| NullTerm $(lift x) |]
 
 instance (Arbitrary a,Serialize a) => Arbitrary (Packaged a) where
     arbitrary = arbitrary & mapped %~ view packaged
