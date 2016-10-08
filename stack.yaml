@@ -4,14 +4,6 @@
 # For advanced use and comprehensive documentation of the format, please see:
 # http://docs.haskellstack.org/en/stable/yaml_configuration/
 
-# A warning or info to be displayed to the user on config load.
-user-message: ! 'Warning (added by new or init): Some packages were found to be incompatible
-  with the resolver and have been left commented out in the packages section.
-
-  You can suppress this message by removing it from stack.yaml
-
-'
-
 # Resolver to choose a 'specific' stackage snapshot or a compiler version.
 # A snapshot resolver dictates the compiler version and the set of packages
 # to be used for project dependencies. For example:
@@ -49,8 +41,11 @@ packages:
 # or unsatisfied dependencies.
 - .
 - location:
+    git: https://github.com/literate-unitb/serialize-instances.git
+    commit: b79b6cfc7c7828225d25969814977d25192a1aba
+- location:
     git: https://github.com/literate-unitb/generic-instances.git
-    commit: 8c6033262eeb073165e08e52e6b0b6fff37d0a3c
+    commit: c2d070043a15bdd4149f26e3294532b6401f0f1f
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
