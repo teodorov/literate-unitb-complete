@@ -41,20 +41,20 @@ packages:
 # or unsatisfied dependencies.
 - .
 - location:
-    git: https://github.com/literate-unitb/axiomatic-classes.git
-    commit: fab4912ab0811d784c841509dbfbb208864403d2
+    git: https://github.com/literate-unitb/serialize-instances.git
+    commit: b79b6cfc7c7828225d25969814977d25192a1aba
 - location:
     git: https://github.com/literate-unitb/data-map-class.git
-    commit: 8e67843d4d087583af350f960739d540f816f9f4
+    commit: 507c80af3aa4ab396ebc47a4bed1f50a88627cbf
+- location:
+    git: https://github.com/literate-unitb/axiomatic-classes.git
+    commit: fab4912ab0811d784c841509dbfbb208864403d2
 - location:
     git: https://github.com/literate-unitb/invariants.git
     commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
 - location:
     git: https://github.com/literate-unitb/printf-th.git
     commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
-- location:
-    git: https://github.com/literate-unitb/generic-instances.git
-    commit: 9c45c7caff4e93d0df96622ffb5238f04fa8b5af
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)

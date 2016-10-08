@@ -55,10 +55,11 @@ import Data.Map   as M hiding (fromList,empty,traverseWithKey,lookup,member,(!))
 import qualified Data.Map   as M hiding ((!))
 import Data.Semigroup
 import Data.Serialize
+import Data.Serialize.Instances
 import qualified Data.Traversable as T
 import Data.Tuple
 
-import GHC.Generics.Instances
+import GHC.Generics hiding (from,to)
 
 import Prelude hiding (lookup)
 
