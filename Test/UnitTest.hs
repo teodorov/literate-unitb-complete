@@ -468,10 +468,12 @@ makeTestSuite title = do
 path :: QuasiQuoter
 path = QuasiQuoter 
     { quoteExp = \xs -> do
-            xs' <- runIO $ canonicalizePath xs 
+            dir <- runIO getCurrentDirectory
+            loc <- location
+            let xs' = dir </> xs
             exists <- runIO (doesFileExist xs')  
-            when (not exists) $ fail $ "file " ++ show xs' ++ " does not exist" 
-            stringE xs
+            when (not exists) $ fail $ "file " ++ show xs ++ " does not exist in " ++ show dir
+            stringE xs'
     , quotePat  = undefined
     , quoteType = undefined
     , quoteDec  = undefined
