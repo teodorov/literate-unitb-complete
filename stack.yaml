@@ -41,16 +41,16 @@ packages:
     commit: 643c833aa8836b23d8057cbbf410a9deedc76026
 - location:
     git: https://github.com/literate-unitb/invariants.git
-    commit: fe80d6e750e8cffba3a9d8cf2b4d34650aca4059
+    commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
+- location:
+    git: https://github.com/literate-unitb/serialize-instances.git
+    commit: b79b6cfc7c7828225d25969814977d25192a1aba
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
-    commit: 7d7b13cf7a757862a540c71868ac973774128763
+    commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
 - location:
     git: https://github.com/literate-unitb/data-map-class.git
     commit: f1672a380d7f069ccc080c2380554acf0b2bf258
-- location:
-    git: https://github.com/literate-unitb/th-lift-deriving.git
-    commit: 3efb6a9358cae2bd47606b59a97dad3ddd84ffae
 - location:
     git: https://github.com/literate-unitb/pretty-printable.git
     commit: 742ac9f6e4f369881b4354906c19e65ea75d97b1
