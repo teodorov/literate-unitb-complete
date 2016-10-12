@@ -42,7 +42,7 @@ packages:
 - .
 - location:
     git: https://github.com/literate-unitb/invariants.git
-    commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
+    commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
 - location:
     git: https://github.com/literate-unitb/bipartite-graph.git
     commit: 7ab97d0f1c5bc1e62a835438fd5e6e1171eb31cd
