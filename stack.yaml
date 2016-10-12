@@ -44,9 +44,6 @@ packages:
     git: https://github.com/literate-unitb/serialize-instances.git
     commit: b79b6cfc7c7828225d25969814977d25192a1aba
 - location:
-    git: https://github.com/literate-unitb/data-map-class.git
-    commit: 507c80af3aa4ab396ebc47a4bed1f50a88627cbf
-- location:
     git: https://github.com/literate-unitb/axiomatic-classes.git
     commit: fab4912ab0811d784c841509dbfbb208864403d2
 - location:
