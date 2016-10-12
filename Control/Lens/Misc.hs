@@ -57,3 +57,24 @@ unzipped = iso unzip (uncurry zip)
 
 zipped :: Iso ([a],[b]) ([c],[d]) [(a,b)] [(c,d)]
 zipped = from unzipped
+
+asListWith :: Ord k'
+           => (a' -> a' -> a')
+           -> Iso (Map k a) (Map k' a')
+                  [(k,a)] [(k',a')]
+asListWith f = iso M.toList (M.fromListWith f)
+
+uncurryMap :: (Ord a,Ord b)
+           => Map a (Map b c)
+           -> Map (a,b) c
+uncurryMap m = fromList [ ((x,y),k) | (x,xs) <- M.toList m, (y,k) <- M.toList xs ]
+
+curryMap :: (Ord a,Ord b)
+         => Map (a,b) c
+         -> Map a (Map b c)
+curryMap m = fromList <$> fromListWith (++) [ (x,[(y,k)]) | ((x,y),k) <- M.toList m ]
+
+curriedMap :: (Ord a,Ord b,Ord x,Ord y)
+           => Iso (Map (a,b) c) (Map (x,y) z) 
+                  (Map a (Map b c)) (Map x (Map y z))
+curriedMap = iso curryMap uncurryMap
