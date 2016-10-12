@@ -6,7 +6,7 @@ import Control.Lens
 import Data.Function
 import Data.List 
 import Data.List.Ordered
-import qualified Data.Map.Class as M
+import qualified Data.Map as M
 import Data.Proxy.TH
 import Data.Tuple.Generics
 
@@ -49,7 +49,7 @@ opposite (Comp GT) = Comp LT
 opposite (Comp LT) = Comp GT
 opposite x = x
 
-class PreOrd a where
+class Eq a => PreOrd a where
     partCompare :: a -> a -> PartOrdering
     leq :: a -> a -> Bool
     leq x y = partCompare x y `elem` [Comp LT,Comp EQ]
@@ -114,6 +114,9 @@ instance Ord a => PreOrd (Unordered a) where
         where
             zs = xunionBy (compare `on` fst) ((,True) <$> sort xs) ((,False) <$> sort ys)
             (l,r) = partition snd zs
+
+instance PreOrd Int where
+    partCompare = fmap Comp . compare
 
 instance (Ord k,Eq a) => PreOrd (M.Map k a) where
     partCompare x y = case compare nX nY of
