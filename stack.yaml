@@ -41,9 +41,6 @@ packages:
 # or unsatisfied dependencies.
 - .
 - location:
-    git: https://github.com/literate-unitb/data-map-class.git
-    commit: 507c80af3aa4ab396ebc47a4bed1f50a88627cbf
-- location:
     git: https://github.com/literate-unitb/generic-instances.git
     commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
 - location:
