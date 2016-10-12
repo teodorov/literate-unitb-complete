@@ -2,6 +2,7 @@
         ConstraintKinds
         , TypeOperators
         , CPP
+        , MultiParamTypeClasses
         , ViewPatterns #-}
 module Data.MakeTable where
 
@@ -12,7 +13,7 @@ import Data.Char
 import Data.Either
 import Data.List as L
 import Data.HashMap.Strict (HashMap)
-import Data.Map.Class as M (Map,fromList,union,IsMap)
+import Data.Map as M (Map,fromList,union)
 
 import GHC.Generics hiding (from,to)
 import GHC.Generics.Lens
@@ -112,34 +113,36 @@ makeRecordConstrAs makeName' n = do
         , setter]
 
 
-class GAllTables a where
-    gAllTables :: (Applicative f)
-               => (forall map k a. (Show k, Show a,IsMap map) => String -> map k a -> f (map k a))
+class GAllMaps map a where
+    gAllMaps :: (Applicative f)
+               => (forall k a. (Show k, Show a) 
+                        => String -> map k a -> f (map k a))
                -> Maybe String -> a p -> f (a p)
 
-instance (GAllTables c, Selector s) => GAllTables (S1 s c) where
-    gAllTables f _ m@(M1 x) = M1 <$> gAllTables f (Just $ selName m) x
+instance (GAllMaps map c, Selector s) => GAllMaps map (S1 s c) where
+    gAllMaps f _ m@(M1 x) = M1 <$> gAllMaps f (Just $ selName m) x
 
-instance (GAllTables c) => GAllTables (D1 d c) where
-    gAllTables f tag (M1 x) = M1 <$> gAllTables f tag x
+instance (GAllMaps map c) => GAllMaps map (D1 d c) where
+    gAllMaps f tag (M1 x) = M1 <$> gAllMaps f tag x
 
-instance (GAllTables c) => GAllTables (C1 d c) where
-    gAllTables f tag (M1 x) = M1 <$> gAllTables f tag x
+instance (GAllMaps map c) => GAllMaps map (C1 d c) where
+    gAllMaps f tag (M1 x) = M1 <$> gAllMaps f tag x
 
-instance (Show k,Show b) => GAllTables (K1 a (HashMap k b)) where
-    gAllTables f (Just tag) (K1 x) = K1 <$> f tag x
-    gAllTables _ Nothing (K1 x) = K1 <$> pure x
+instance (Show k,Show b) => GAllMaps HashMap (K1 a (HashMap k b)) where
+    gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
+    gAllMaps _ Nothing (K1 x) = K1 <$> pure x
 
-instance (Show k,Show b) => GAllTables (K1 a (Map k b)) where
-    gAllTables f (Just tag) (K1 x) = K1 <$> f tag x
-    gAllTables _ Nothing (K1 x) = K1 <$> pure x
+instance (Show k,Show b) => GAllMaps Map (K1 a (Map k b)) where
+    gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
+    gAllMaps _ Nothing (K1 x) = K1 <$> pure x
 
-instance (GAllTables a, GAllTables b) 
-        => GAllTables (a :*: b) where
-    gAllTables f tag (x :*: y) = (:*:) <$> gAllTables f tag x <*> gAllTables f tag y
+instance (GAllMaps map a, GAllMaps map b) 
+        => GAllMaps map (a :*: b) where
+    gAllMaps f tag (x :*: y) = (:*:) <$> gAllMaps f tag x <*> gAllMaps f tag y
 
-allTables :: (Applicative f, Generic x, GAllTables (Rep x))
-          => (forall k a map. (Show k,Show a,IsMap map) => String -> map k a -> f (map k a))
+allMaps :: (Applicative f, Generic x, GAllMaps map (Rep x))
+          => (forall k a. (Show k,Show a) 
+                    => String -> map k a -> f (map k a))
           -> x -> f x
-allTables f = generic $ gAllTables f Nothing
+allMaps f = generic $ gAllMaps f Nothing
 

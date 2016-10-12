@@ -45,10 +45,7 @@ packages:
     commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
 - location:
     git: https://github.com/literate-unitb/bipartite-graph.git
-    commit: 15ae5699c24d3741c3f36b9ad2057d5f69afc119
-- location:
-    git: https://github.com/literate-unitb/data-map-class.git
-    commit: 507c80af3aa4ab396ebc47a4bed1f50a88627cbf
+    commit: 7ab97d0f1c5bc1e62a835438fd5e6e1171eb31cd
 - location:
     git: https://github.com/literate-unitb/serialize-instances.git
     commit: b79b6cfc7c7828225d25969814977d25192a1aba
