@@ -16,7 +16,7 @@ version:             0.1.0.0
 synopsis:            Supporting modules for Literate Unit-B
 
 -- A longer description of the package.
--- description:         
+description:         Various supporting modules for Literate Unit-B
 
 -- The license under which the package is released.
 license:             MIT
@@ -40,11 +40,14 @@ build-type:          Simple
 
 -- Extra files to be distributed with the package, such as examples or a 
 -- README.
-extra-source-files:  README.txt
+extra-source-files:  README.md
 
 -- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.10
 
+source-repository head
+  type:     git
+  location: https://github.com/literate-unitb/literate-unitb-utils
 
 library
   -- Modules exported by the library.
@@ -59,7 +62,6 @@ library
         Utilities.GraphSpec
         Utilities.Language
         Utilities.MapSyntax
-        Utilities.Syntactic
         Utilities.Table
         Utilities.Table.BucketTable
         Utilities.Table.HashKey
@@ -77,11 +79,11 @@ library
          -fwarn-incomplete-uni-patterns
          -fwarn-missing-methods
          -fno-ignore-asserts
-         -fwarn-tabs -Werror
+         -fwarn-tabs
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal, containers, data-default, data-map-class, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, invariants, lens, mtl, parsec, printf-th, process, QuickCheck, reactive-banana, safe, semigroups, string-lenses, template-haskell, time, transformers, zlib, axiomatic-classes, pretty-printable, bytes
+  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-map-class, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, invariants, lens, mtl, parsec, printf-th, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, axiomatic-classes, pretty-printable, literate-unitb-latex, bytes
 
   -- Directories containing source files.
   hs-source-dirs:      .
