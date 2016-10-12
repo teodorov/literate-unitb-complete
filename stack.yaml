@@ -48,7 +48,7 @@ packages:
     commit: fab4912ab0811d784c841509dbfbb208864403d2
 - location:
     git: https://github.com/literate-unitb/invariants.git
-    commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
+    commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
 - location:
     git: https://github.com/literate-unitb/printf-th.git
     commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
