@@ -29,7 +29,6 @@ import GHC.Generics hiding (from,to)
 import GHC.Generics.Instances
 
 import Language.Haskell.TH.Lift
-import Language.Haskell.TH.Syntax
 
 import Test.QuickCheck
 
