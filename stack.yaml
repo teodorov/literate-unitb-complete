@@ -41,7 +41,7 @@ packages:
     commit: 643c833aa8836b23d8057cbbf410a9deedc76026
 - location:
     git: https://github.com/literate-unitb/invariants.git
-    commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
+    commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
 - location:
     git: https://github.com/literate-unitb/serialize-instances.git
     commit: b79b6cfc7c7828225d25969814977d25192a1aba
