@@ -21,13 +21,13 @@ packages:
 - '.'
 - location:
     git: https://github.com/literate-unitb/literate-unitb-latex.git
-    commit: 818b4a4145357c636c2bce48f6e864956a67c5ae
+    commit: 45e3be4a3026f7e72dd8a088dd5483cb13a53409
 - location:
     git: https://github.com/literate-unitb/show-with.git
     commit: 6be72dbe945cae0945dd18a835f56c7a807937a7
 - location:
     git: https://github.com/literate-unitb/invariants.git
-    commit: adf1145cdcab415698dd7d3c179f6d0a1a0948ff
+    commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
 - location:
     git: https://github.com/literate-unitb/axiomatic-classes.git
     commit: fab4912ab0811d784c841509dbfbb208864403d2

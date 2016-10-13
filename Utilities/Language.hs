@@ -59,7 +59,7 @@ instance Applicative Gen' where
 instance Monad Gen' where
     return x = Gen $ return $ (return x) :| []
     Gen xs >>= f = Gen $ do
-            (r,w) <- runWriter <$> (elements' =<< xs)
+            (r,w) <- runWriter <$> (elements' =<< xs)
             fmap (fmap (tell w >>)) . getGen . f $ r
 
 instance IsLanguage (P.Parsec [Char] ()) where

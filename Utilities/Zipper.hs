@@ -123,7 +123,7 @@ instance (Eq a, Zippable a) => Eq (Zipper a) where
 instance GZippable (Rep a) a => Eq (ZipperT a) where
     ZipperT x == ZipperT y = gZipperEq x y
 
-instance (GZippable (Rep a) b,GZippable (Rep b) a) => Eq (MZipperT a b) where
+instance (GZippable (Rep a) b,GZippable (Rep b) a) => Eq (MZipperT a b) where
     MZipperT x0 x1 == MZipperT y0 y1 = gZipperEq x0 y0 && gZipperEq x1 y1
 
 gZippers :: GZippable a b => a p -> [(b,GZipper a b)] 
