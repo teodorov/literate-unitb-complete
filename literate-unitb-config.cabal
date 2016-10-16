@@ -29,7 +29,7 @@ library
 
 executable unitb-option
   -- .hs or .lhs file containing the Main module.
-  main-is:  options.hs
+  main-is:  Options.hs
   hs-source-dirs: app
   default-language:    Haskell2010
 

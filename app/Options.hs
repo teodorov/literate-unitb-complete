@@ -7,11 +7,9 @@ import Control.Lens as L
 
 import Data.ConfigFile hiding (set)
 import Data.Maybe
-import Data.Semigroup hiding (option)
+import Data.Monoid
 
 import Options.Applicative 
-
-import System.Environment 
 
 import Z3.Version
 
