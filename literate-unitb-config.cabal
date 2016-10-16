@@ -20,9 +20,28 @@ source-repository head
   location: https://github.com/literate-unitb/literate-unitb-config
 
 library
-  exposed-modules:     Z3.Version
+  exposed-modules:     Z3.Version, Data.Bidirectional
   -- other-modules:       
-  default-extensions:    LambdaCase, QuasiQuotes, TupleSections
-  build-depends:       base >=4.7 && <5, lens >=4.12 && <4.15, transformers >=0.4 && <0.6, MissingH >=1.3 && <1.5, ConfigFile >=1.1 && <1.2, directory >=1.2 && <1.3, filepath >=1.4 && <1.5, process >=1.4 && <1.5, literate-unitb-utils, invariants, printf-th, hscolour
+  default-extensions:    LambdaCase, QuasiQuotes, TupleSections, FlexibleInstances, DeriveFunctor, RankNTypes, TemplateHaskell, DeriveGeneric
+  build-depends:       base >=4.7 && <5, lens >=4.12 && <4.15, transformers >=0.4 && <0.6, MissingH >=1.3 && <1.5, ConfigFile >=1.1 && <1.2, directory >=1.2 && <1.3, filepath >=1.4 && <1.5, process >=1.2 && <1.5, literate-unitb-utils, invariants, printf-th, hscolour, optparse-applicative, reducers, containers, either, deepseq
   hs-source-dirs:      .
   default-language:    Haskell2010
+
+executable unitb-option
+  -- .hs or .lhs file containing the Main module.
+  main-is:  options.hs
+  hs-source-dirs: app
+  default-language:    Haskell2010
+
+    -- literate-unitb-scripts, 
+  build-depends:       base >=4.7 && < 5, directory >= 1.2.2.0, literate-unitb-utils, literate-unitb-config, mtl, process, shelly, time, optparse-applicative, ConfigFile, reducers, containers, either, lens, deepseq, semigroups
+
+  ghc-options: -W -fwarn-missing-signatures 
+         -fwarn-incomplete-uni-patterns
+         -fwarn-missing-methods
+         -threaded  -fno-ignore-asserts
+         -fwarn-tabs
+         -j8
+  
+  -- LANGUAGE extensions used by modules in this package.
+  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes

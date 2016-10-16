@@ -93,6 +93,8 @@ extra-deps:
 - base-orphans-0.5.4
 - exceptions-0.8.3
 - vector-0.11.0.0
+- optparse-applicative-0.13.0.0
+- shelly-1.6.8.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}

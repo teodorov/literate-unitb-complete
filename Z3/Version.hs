@@ -1,15 +1,19 @@
 {-# LANGUAGE LambdaCase #-}
 module Z3.Version where
 
+import Control.DeepSeq
 import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.Maybe
 import Control.Precondition
 
+import Data.Bidirectional
 import Data.Char
 import Data.List as L
 import Data.List.Utils as L
 import Data.ConfigFile
+
+import GHC.Generics
 
 import System.Directory
 import System.Environment
@@ -20,6 +24,17 @@ import System.IO.Unsafe
 import Text.Printf.TH
 
 import Utilities.Config
+
+data Z3Config = Z3Config 
+    { _z3Path :: FilePath
+    , _z3Timeout :: Int
+    , _z3DefaultTimeout :: Int
+    , _capacity :: Int }
+    deriving (Show,Generic)
+
+makeLenses ''Z3Config
+
+instance NFData Z3Config where
 
 check_z3_bin :: IO Bool
 check_z3_bin = do
@@ -61,12 +76,12 @@ z3_installed = do
             forM ps (doesFileExist . (`combine` "z3"))
     return $ or xs
 
-data Z3Config = Z3Config 
-    { z3c_path :: FilePath
-    , z3c_timeout :: Int
-    , z3c_default_timeout :: Int
-    , z3c_capacity :: Int }
-    deriving Show
+config :: Lens' ConfigParser Z3Config
+config = lensOf $ Z3Config 
+        <$> fieldWith "z3" "z3_path" (view z3Path)
+        <*> fieldWith' 20 "timeout" (view z3Timeout)
+        <*> fieldWith' 3000 "default_timeout" (view z3DefaultTimeout)
+        <*> fieldWith' 32 "capacity" (view capacity)
 
 doesFileExist' :: FilePath -> IO (Maybe FilePath)
 doesFileExist' fn = do
@@ -87,7 +102,7 @@ defaultConfigPath = do
 configFileName :: FilePath
 configFileName = "z3_config.conf"
 
-getConfigFile :: IO (Either CPError (FilePath,ConfigParser))
+getConfigFile :: IO (FilePath,ConfigParser)
 getConfigFile = do
     path <- getExecutablePath
     def  <- defaultConfigPath
@@ -97,24 +112,16 @@ getConfigFile = do
             , path </> fn 
             , def ]
         >>= \case
-            Just fn' -> fmap (fn',) <$> readfile emptyCP fn'
-            Nothing  -> return $ Right (def,emptyCP)
+            Just fn' -> (fn',) . fromRight emptyCP <$> readfile emptyCP fn'
+            Nothing  -> return $ (def,emptyCP)
 
 z3_config :: Z3Config
 z3_config = unsafePerformIO $ do
-    cp <- fmap snd <$> getConfigFile
-    let option :: Get_C a => a -> String -> a
-        option x name = fromRight x $ do
-            cp <- cp
-            get cp "DEFAULT" name
-    return $ Z3Config
-        { z3c_path = option "z3" "z3_path" 
-        , z3c_timeout  = option 20 "timeout"
-        , z3c_default_timeout  = option 3000 "default_timeout"
-        , z3c_capacity = option 32 "capacity" }
+    cp <- snd <$> getConfigFile
+    return $ cp^.config
 
 z3_path :: String
-z3_path = z3c_path z3_config
+z3_path = z3_config^.z3Path
 
 default_timeout :: Int
-default_timeout = z3c_timeout z3_config
+default_timeout = z3_config^.z3DefaultTimeout
