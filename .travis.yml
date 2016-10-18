@@ -165,8 +165,8 @@ install:
   set -ex
   case "$BUILD" in
     stack)
-      # travis_long stack --no-terminal --install-ghc $ARGS build --bench --only-dependencies
-      travis_long stack --no-terminal --install-ghc $ARGS install lens text --bench --only-dependencies
+      travis_long stack --no-terminal --install-ghc $ARGS install --bench --only-dependencies
+      # travis_long stack --no-terminal --install-ghc $ARGS install lens text --bench --only-dependencies
       ;;
     cabal)
       cabal --version
