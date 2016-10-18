@@ -165,7 +165,8 @@ install:
   set -ex
   case "$BUILD" in
     stack)
-      travis_long stack --no-terminal --install-ghc $ARGS install --bench --only-dependencies
+      pwd 
+      travis_long stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
       # travis_long stack --no-terminal --install-ghc $ARGS install lens text --bench --only-dependencies
       ;;
     cabal)
@@ -185,8 +186,8 @@ script:
   set -ex
   case "$BUILD" in
     stack)
-      # stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
-      echo warm up cache
+      stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+      # echo warm up cache
       ;;
     cabal)
       cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
