@@ -19,6 +19,9 @@ compiler: ghc-7.10.3
 packages:
 - '.'
 - location:
+    git: https://github.com/literate-unitb/syntax-error.git
+    commit: 22db4476408a2e6daa193a8e4a0887eb4f3dc7c4
+- location:
     git: https://github.com/literate-unitb/existential.git
     commit: e1bb9c7e183b3d6a17587e93eb8d8fe21ff9845a
 - location:

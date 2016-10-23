@@ -58,7 +58,7 @@ library
         Latex.Scanner
         -- TEST CASES
         Latex.Test
-        Utilities.Syntactic
+        -- Utilities.Syntactic
   
   -- Modules included in this library but not exported.
   -- other-modules:       
@@ -74,7 +74,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >= 4.8 && < 5, lens, mtl, semigroups, safe, deepseq, transformers >= 0.3, either, containers, directory, filepath, parsec, QuickCheck, invariants, printf-th, axiomatic-classes, string-lenses, show-with, unitb-testing, generic-instances, pretty-printable, cereal, data-ordlist
+  build-depends:       base >= 4.8 && < 5, lens, mtl, semigroups, safe, deepseq, transformers >= 0.3, either, containers, directory, filepath, parsec, QuickCheck, invariants, printf-th, axiomatic-classes, string-lenses, show-with, unitb-testing, generic-instances, pretty-printable, cereal, data-ordlist, syntax-error
   
   -- Directories containing source files.
   hs-source-dirs:      .
