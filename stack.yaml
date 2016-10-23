@@ -41,8 +41,8 @@ packages:
 # or unsatisfied dependencies.
 - .
 - location:
-    git: https://github.com/literate-unitb/literate-unitb-utils.git
-    commit: fa8bd0de5c59a27210f82073d4ed47c71eb2cd8e
+    git: https://github.com/literate-unitb/syntax-error.git
+    commit: 22db4476408a2e6daa193a8e4a0887eb4f3dc7c4
 - location:
     git: https://github.com/literate-unitb/printf-th.git
     commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
@@ -52,9 +52,6 @@ packages:
 - location:
     git: https://github.com/literate-unitb/pretty-printable.git
     commit: 742ac9f6e4f369881b4354906c19e65ea75d97b1
-- location:
-    git: https://github.com/literate-unitb/literate-unitb-latex.git
-    commit: 45e3be4a3026f7e72dd8a088dd5483cb13a53409
 - location:
     git: https://github.com/literate-unitb/existential.git
     commit: 9f90a2b17286c64e731a121ba3f02ddaf45883ae
