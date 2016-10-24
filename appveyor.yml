@@ -1,19 +1,19 @@
 # Disabled cache in hope of improving reliability of AppVeyor builds
 cache:
 # - "c:\\sr" # stack root, short paths == fewer problems
-- "c:\\sr\\build-plan" -> appveyor.yml 
-- "c:\\sr\\build-plan-cache" -> appveyor.yml
-- "c:\\sr\\config.yaml" -> appveyor.yml
-- "c:\\sr\\global-project" -> appveyor.yml
-- "c:\\sr\\indices" -> appveyor.yml
-- "c:\\sr\\precompiled" -> appveyor.yml
-- "c:\\sr\\programs" -> appveyor.yml
-- "c:\\sr\\setup-exe-cache" -> appveyor.yml
-- "c:\\sr\\snapshots" -> appveyor.yml
-- "c:\\sr\\templates" -> appveyor.yml
-- "C:\\stack\\.stack-work\\downloaded" -> appveyor.yml
-- "C:\\stack\\.stack-work\\install" -> appveyor.yml
-- "C:\\stack\\.stack-work\\logs" -> appveyor.yml
+- "c:\\sr\\build-plan -> appveyor.yml"
+- "c:\\sr\\build-plan-cache -> appveyor.yml"
+- "c:\\sr\\config.yaml -> appveyor.yml"
+- "c:\\sr\\global-project -> appveyor.yml"
+- "c:\\sr\\indices -> appveyor.yml"
+- "c:\\sr\\precompiled -> appveyor.yml"
+- "c:\\sr\\programs -> appveyor.yml"
+- "c:\\sr\\setup-exe-cache -> appveyor.yml"
+- "c:\\sr\\snapshots -> appveyor.yml"
+- "c:\\sr\\templates -> appveyor.yml"
+- "C:\\stack\\.stack-work\\downloaded -> appveyor.yml"
+- "C:\\stack\\.stack-work\\install -> appveyor.yml"
+- "C:\\stack\\.stack-work\\logs -> appveyor.yml"
 
 install:
 - curl -sS -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
