@@ -20,8 +20,8 @@ cache:
   - $HOME/.ghc
   - $HOME/.cabal
   - $HOME/.stack
-  - $HOME/data-packaged/data-packaged/.stack-work/install
-  - $HOME/data-packaged/data-packaged/.stack-work/downloaded
+  - $HOME/literate-unitb/data-packaged/.stack-work/install
+  - $HOME/literate-unitb/data-packaged/.stack-work/downloaded
 
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
