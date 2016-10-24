@@ -38,7 +38,8 @@ build:
 
 build_script:
 - stack setup %lts% > nul
-- cmd: echo "" | stack --no-terminal build %lts% --test --no-run-tests --dependencies-only
+- cmd: echo "" | stack --no-terminal install dlist cereal mtl random %lts%
+# - cmd: echo "" | stack --no-terminal build %lts% --test --no-run-tests --dependencies-only
 # - cmd: echo "" | stack --no-terminal build %lts% --test --no-run-tests
 
 skip_commits:

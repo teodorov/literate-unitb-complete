@@ -26,9 +26,6 @@ ghc-options:
 packages:
 - '.'
 - location:
-    git: https://github.com/literate-unitb/syntax-error.git
-    commit: f61d650613d3cc1a63948210b7f5a134caf96179
-- location:
     git: https://github.com/literate-unitb/literate-unitb-config.git
     commit: 946dcefbac6e8d88cedb863660441020da5c2eac
 - location:
@@ -40,16 +37,6 @@ packages:
 - location:
     git: https://github.com/literate-unitb/serialize-instances.git
     commit: 9495695c87852e8dd75241644f3201722e334161
-
-- location:
-    git: https://github.com/literate-unitb/unitb-testing.git
-    commit: f2f34ac7b216b0e412b8cdcabefd7091be4c69dc
-- location:
-    git: https://github.com/literate-unitb/transformer-lenses.git
-    commit: 405f81025293b9f9cd25145644ca86fe88a69388
-- location:
-    git: https://github.com/literate-unitb/show-with.git
-    commit: 6be72dbe945cae0945dd18a835f56c7a807937a7
 - location:
     git: https://github.com/literate-unitb/invariants.git
     commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
