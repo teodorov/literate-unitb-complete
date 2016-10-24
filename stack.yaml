@@ -26,14 +26,14 @@ ghc-options:
 packages:
 - '.'
 - location:
+    git: https://github.com/literate-unitb/syntax-error.git
+    commit: f61d650613d3cc1a63948210b7f5a134caf96179
+- location:
     git: https://github.com/literate-unitb/literate-unitb-config.git
     commit: 946dcefbac6e8d88cedb863660441020da5c2eac
 - location:
     git: https://github.com/literate-unitb/literate-unitb-utils.git
     commit: 6ae4b72367ff56cdb47b60d5e920c5a48c6dc431
-- location:
-    git: https://github.com/literate-unitb/syntax-error.git
-    commit: 22db4476408a2e6daa193a8e4a0887eb4f3dc7c4
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
     commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
