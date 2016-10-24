@@ -36,6 +36,10 @@ platform:
 build:
   parallel: true
 
+skip_commits:
+  files:
+    - .travis.yml
+
 build_script:
 - stack setup %lts% > nul
 - cmd: echo "" | stack --no-terminal build %lts% --test --no-run-tests
