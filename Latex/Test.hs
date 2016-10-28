@@ -77,8 +77,8 @@ find_env kw xs = M.map reverse $ L.foldl' f (M.fromList $ zip kw $ repeat []) $ 
 
 main :: FilePath -> IO String
 main path = do
-        let f (EnvNode (Env _ n _ doc _))   = ShowString $ [printf|Env{%s} (%d)|] n (length $ contents' doc)
-            f (BracketNode (Bracket _ _ doc _)) = ShowString $ [printf|Bracket (%d)|] (length $ contents' doc)
+        let f (EnvNode (Env _ n _ doc _))   = ShowString $ [s|Env{%s} (%d)|] n (length $ contents' doc)
+            f (BracketNode (Bracket _ _ doc _)) = ShowString $ [s|Bracket (%d)|] (length $ contents' doc)
             f (Text _)            = ShowString "Text {..}"
         ct <- readFile path
         return $ show $ M.map (map f) <$> extract_structure ct

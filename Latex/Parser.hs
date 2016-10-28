@@ -384,8 +384,8 @@ latex_content' = do
             cmd "\\begin"          <?> "begin environment"
             (n,li1) <- argument    <?> "argument"
             ct  <- latex_content'
-            cmd "\\end"            <?> [printf|end keyword (%s)|] n
-            (_,li2) <- argument' n <?> [printf|\\end{%s}|] n
+            cmd "\\end"            <?> [s|end keyword (%s)|] n
+            (_,li2) <- argument' n <?> [s|\\end{%s}|] n
             return $ EnvNode $ Env li0 n li1 ct li2
         brackets = do
             li0 <- lineInfo
@@ -575,7 +575,7 @@ latex_structure fn xs = do
         latex_content fn ys (1,1)
 
 scan_latex :: FilePath -> String -> Either [Error] [(LatexToken,LineInfo)]
-scan_latex fn xs = -- trace ([printf|input: %s\nuncomment: %s\n|] xs cs) $ 
+scan_latex fn xs = -- trace ([s|input: %s\nuncomment: %s\n|] xs cs) $ 
         read_lines tex_tokens fn (uncomment xs)
     --where cs = uncomment xs
 
