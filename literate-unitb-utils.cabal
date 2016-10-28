@@ -80,7 +80,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, invariants, lens, mtl, parsec, printf-th, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, axiomatic-classes, pretty-printable, bytes
+  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report
 
   -- Directories containing source files.
   hs-source-dirs:      .
