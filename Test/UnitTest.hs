@@ -186,7 +186,7 @@ take_failure_number = do
 callStackLineInfo :: CallStack -> [String]
 callStackLineInfo cs = reverse $ map f $ filter ((__FILE__ /=) . srcLocFile) $ map snd $ getCallStack cs
     where
-        f c = [printf|%s:%d:%d|] (srcLocFile c) (srcLocStartLine c) (srcLocStartCol c)
+        f c = [s|%s:%d:%d|] (srcLocFile c) (srcLocStartLine c) (srcLocStartCol c)
 
 
 new_failure :: CallStack -> String -> String -> String -> M ()
@@ -194,12 +194,12 @@ new_failure cs name actual expected = do
     b <- liftIO $ readMVar log_failures
     if b then do
         n <- get
-        liftIO $ withFile ([printf|actual-%d.txt|] n) WriteMode $ \h -> do
+        liftIO $ withFile ([s|actual-%d.txt|] n) WriteMode $ \h -> do
             hPutStrLn h $ "; " ++ name
             forM_ (callStackLineInfo cs) $ hPutStrLn h . ("; " ++)
             hPutStrLn h "; END HEADER"
             hPutStrLn h actual
-        liftIO $ withFile ([printf|expected-%d.txt|] n) WriteMode $ \h -> do
+        liftIO $ withFile ([s|expected-%d.txt|] n) WriteMode $ \h -> do
             hPutStrLn h $ "; " ++ name
             forM_ (callStackLineInfo cs) $ hPutStrLn h . ("; " ++)
             hPutStrLn h "; END HEADER"
@@ -307,7 +307,7 @@ test_suite_string cs' ut = do
                 let xs = map (either (const (0,1)) id) xs' :: [(Int,Int)]
                     x = sum $ map snd xs
                     y = sum $ map fst xs
-                putLn ([printf|+- [ Success: %d / %d ]|] y x)
+                putLn ([s|+- [ Success: %d / %d ]|] y x)
                 return (y,x)
 
 
@@ -462,7 +462,7 @@ makeTestSuite title = do
     if null es then do
         makeTestSuiteOnly title ts
     else do
-        mapM_ (reportError . [printf|missing component for test case # %d|]) es
+        mapM_ (reportError . [s|missing component for test case # %d|]) es
         [e| undefined |]
 
 path :: QuasiQuoter
