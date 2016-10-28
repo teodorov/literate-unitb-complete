@@ -46,7 +46,7 @@ data LineInfo = LI
      deriving (Eq,Ord,Typeable,Generic)
 
 instance Show LineInfo where
-    show (LI fn i j) = [printf|(LI %s %d %d)|] (show fn) i j
+    show (LI fn i j) = [s|(LI %s %d %d)|] (show fn) i j
 
 instance Read LineInfo where
     readPrec  = between (string "(LI ") (char ')')
@@ -136,13 +136,13 @@ instance Arbitrary LineInfo where
     arbitrary = LI "file" <$> QC.elements [0,5,10] <*> QC.elements [0,5,10]
 
 showLiLong :: LineInfo -> String
-showLiLong (LI fn ln col) = [printf|%s:%d:%d|] fn ln col
+showLiLong (LI fn ln col) = [s|%s:%d:%d|] fn ln col
 
 report :: Error -> String
-report (Error msg li) = [printf|%s:\n    %s|] (showLiLong li) msg
-report (MLError msg ys) = [printf|%s\n%s|] msg
+report (Error msg li) = [s|%s:\n    %s|] (showLiLong li) msg
+report (MLError msg ys) = [s|%s\n%s|] msg
                 (intercalate "\n" 
-                    $ map (\(msg,li) -> [printf|%s:\n\t%s\n|] (showLiLong li) msg) 
+                    $ map (\(msg,li) -> [s|%s:\n\t%s\n|] (showLiLong li) msg) 
                     $ sortOn snd $ NE.toList ys)
 
 makeReport :: Monad m => EitherT [Error] m String -> m String
@@ -181,7 +181,7 @@ type StringLi = TokenStream Char
 
 instance ZoomEq a => ZoomEq (TokenStream a) where
 instance PrettyPrintable LineInfo where
-    pretty (LI _ i j) = [printf|(li:%d:%d)|] i j
+    pretty (LI _ i j) = [s|(li:%d:%d)|] i j
 instance PrettyPrintable a => PrettyPrintable (TokenStream a) where
     pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (map fst xs)
 
