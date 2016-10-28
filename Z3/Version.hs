@@ -50,8 +50,8 @@ check_z3_bin = do
         if (v,h) `elem` versions then
             return True
         else do
-            putStrLn $ [printf|Expecting z3 %s\n|] $ intercalate " or\n"
-                $ map (uncurry $ [printf|z3 version %s, hashcode %s|]) versions
+            putStrLn $ [s|Expecting z3 %s\n|] $ intercalate " or\n"
+                $ map (uncurry $ [s|z3 version %s, hashcode %s|]) versions
             return False
     else do
         putStrLn ("A 'z3' executable has not been found in the path ")
