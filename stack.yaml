@@ -40,23 +40,17 @@ packages:
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
 - .
-- location:
-    git: https://github.com/literate-unitb/serialize-instances.git
-    commit: b79b6cfc7c7828225d25969814977d25192a1aba
-- location:
-    git: https://github.com/literate-unitb/axiomatic-classes.git
-    commit: fab4912ab0811d784c841509dbfbb208864403d2
-- location:
-    git: https://github.com/literate-unitb/invariants.git
-    commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
-- location:
-    git: https://github.com/literate-unitb/printf-th.git
-    commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: 
     - assert-0.0.1.2
+    - th-printf-0.3.1
+    - quickcheck-report-0.1.0.0
+    - portable-template-haskell-lens-0.1.0.0
+    - serialize-instances-0.1.0.0
+    - control-invariants-0.1.0.0
+    - axiomatic-classes-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}
