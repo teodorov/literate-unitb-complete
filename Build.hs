@@ -85,7 +85,7 @@ args opt file = do
                                   ,"libs/data-map-class","libs/data-packaged"
                                   ,"libs/existential","libs/generic-instances"
                                   ,"libs/invariants","libs/partial-order"
-                                  ,"libs/printf-th","libs/reactive-banana-transformers"
+                                  ,"libs/th-printf","libs/reactive-banana-transformers"
                                   ,"libs/string-lenses","libs/unfoldable"
                                   ,"libs/show-with","libs/typelist-functor"
                                   ,"libs/file-system-mockup","libs/transformer-lenses"
@@ -192,7 +192,7 @@ toolExec f args = case tool of
   Stack -> f "stack" $ "exec" : args
 
 execCommand :: String -> String -> String
-execCommand command outfile = toolExec (\c args -> [printf|%s %s %s > %s|] c (intercalate " " args) command outfile) []
+execCommand command outfile = toolExec (\c args -> [s|%s %s %s > %s|] c (intercalate " " args) command outfile) []
 
 cabal_run :: CabalTarget -> Build ()
 cabal_run (CabalTarget target) = do
