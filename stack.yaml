@@ -40,34 +40,18 @@ packages:
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
 - .
-# - location:
-#     git: https://github.com/literate-unitb/printf-th.git
-#     commit: e7c85fc6f210516e9c66e1e7f6bf52996653629c
-- ../string-lenses
-# - location:
-#     git: https://github.com/literate-unitb/string-lenses.git
-#     commit: 17dc67f1023470af623ee7d1812daf80728204e4
-- ../pretty-printable
-# - location:
-#     git: https://github.com/literate-unitb/pretty-printable.git
-#     commit: 742ac9f6e4f369881b4354906c19e65ea75d97b1
-# - location:
-#     git: https://github.com/literate-unitb/existential.git
-#     commit: 9f90a2b17286c64e731a121ba3f02ddaf45883ae
-- ../unitb-testing
-# - location:
-#     git: https://github.com/literate-unitb/unitb-testing.git
-#     commit: f2f34ac7b216b0e412b8cdcabefd7091be4c69dc
-# - ../invariants
-# - location:
-#     git: https://github.com/literate-unitb/invariants.git
-#     commit: 4e406aa7bb9f144f78c85e753a2f41c2b291e59e
+- location:
+    git: https://github.com/literate-unitb/string-lenses.git
+    commit: 0d616b2f754391ba62581348464f45bcb8561019
+- location:
+    git: https://github.com/literate-unitb/pretty-printable.git
+    commit: 1adc34c9f88a5e9fec25d39cd193aec65c4625e9
+- location:
+    git: https://github.com/literate-unitb/unitb-testing.git
+    commit: 6098f62adcb956a5ba924b8cc2f6ac550d4f65f9
 - location:
     git: https://github.com/literate-unitb/transformer-lenses.git
     commit: 405f81025293b9f9cd25145644ca86fe88a69388
-# - location:
-#     git: https://github.com/literate-unitb/serialize-instances.git
-#     commit: 9495695c87852e8dd75241644f3201722e334161
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
     commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
