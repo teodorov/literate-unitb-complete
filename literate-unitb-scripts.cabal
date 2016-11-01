@@ -57,6 +57,8 @@ library
       Tools.BuildSystem
       Tools.Heap
       Tools.Source
+      Tools.Clipboard
+      Tools.Quote
       Utilities.Directory
   
   -- Modules included in this library but not exported.
@@ -66,7 +68,7 @@ library
   default-extensions:    QuasiQuotes, OverloadedStrings, FlexibleContexts
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <5, literate-unitb-config, th-printf, filepath >=1.4 && <1.5, process >=1.2 && <1.5, directory >=1.2 && <1.3, either, string-lenses, ConfigFile, transformers >=0.4 && <0.6, mtl >=2.2 && <2.3, lens, MissingH >=1.3 && <1.5, time >=1.5 && <1.7, containers >=0.5 && <0.6
+  build-depends:       base >=4.8 && <5, literate-unitb-config, th-printf, filepath >=1.4 && <1.5, process >=1.2 && <1.5, directory >=1.2 && <1.3, either, string-lenses, ConfigFile, transformers >=0.4 && <0.6, mtl >=2.2 && <2.3, lens, MissingH >=1.3 && <1.5, time >=1.5 && <1.7, containers >=0.5 && <0.6, pipes, pipes-safe, control-invariants
   
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
@@ -132,7 +134,7 @@ executable diff_fail
   default-language: Haskell2010
   hs-source-dirs: "main"
 
-  build-depends:       base >=4.8 && < 5, directory >= 1.2.2.0, literate-unitb-config, process
+  build-depends:       base >=4.8 && < 5, directory >= 1.2.2.0, literate-unitb-config, pipes, pipes-safe, literate-unitb-scripts
 
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns

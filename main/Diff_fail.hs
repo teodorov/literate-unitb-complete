@@ -4,12 +4,17 @@ module Main where
 import Data.Function
 import Data.List
 
+import           Pipes
+import           Pipes.Safe
+
 import System.Directory
-import System.Process
 
 import Text.Printf
 
-import Utilities.Config
+import Tools.Clipboard
+import Tools.Quote
+
+import Utilities.Config hiding (quote)
 
 main :: IO ()
 main = do
@@ -28,7 +33,8 @@ main = do
             if b1 && b2 then do
                 h <- head.lines <$> readFile file2
                 putStrLn h
-                system $ "script/quote.hs \"" ++ file1 ++ "\" | pbcopy"
+                -- system $ "script/quote.hs \"" ++ file1 ++ "\" | pbcopy"
+                runEffect $ runSafeP $ quote file1 >-> copyToClipboard
                 diff file1 file2
                 return ()
             else return ()
