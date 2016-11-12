@@ -20,6 +20,8 @@ cache:
   - $HOME/.ghc
   - $HOME/.cabal
   - $HOME/.stack
+  - $HOME/literate-unitb/bipartite-graph/.stack-work/install
+  - $HOME/literate-unitb/bipartite-graph/.stack-work/downloaded
   - $HOME/unitb/bipartite-graph/.stack-work/install
   - $HOME/unitb/bipartite-graph/.stack-work/downloaded
 
