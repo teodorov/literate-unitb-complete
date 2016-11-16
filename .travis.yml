@@ -20,8 +20,6 @@ cache:
   - $HOME/.ghc
   - $HOME/.cabal
   - $HOME/.stack
-  - $HOME/literate-unitb/lens-extra/.stack-work/install
-  - $HOME/literate-unitb/lens-extra/.stack-work/downloaded
   - $HOME/unitb/lens-extra/.stack-work/install
   - $HOME/unitb/lens-extra/.stack-work/downloaded
   timeout: 1000
@@ -154,7 +152,6 @@ before_install:
   fi
 
 install:
-- cp -rp $HOME/literate-unitb $HOME/unitb
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 - if [ -f configure.ac ]; then autoreconf -i; fi
 - |
