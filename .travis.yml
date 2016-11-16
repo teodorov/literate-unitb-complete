@@ -22,6 +22,8 @@ cache:
   - $HOME/.stack
   - $HOME/literate-unitb/file-system-mockup/.stack-work/install
   - $HOME/literate-unitb/file-system-mockup/.stack-work/downloaded
+  - $HOME/unitb/file-system-mockup/.stack-work/install
+  - $HOME/unitb/file-system-mockup/.stack-work/downloaded
 
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
@@ -151,6 +153,7 @@ before_install:
   fi
 
 install:
+- cp -rp $HOME/literate-unitb $HOME/unitb
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 - if [ -f configure.ac ]; then autoreconf -i; fi
 - |
