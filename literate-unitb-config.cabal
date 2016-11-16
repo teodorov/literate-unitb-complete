@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 
 source-repository head
   type:     git
-  location: https://github.com/literate-unitb/literate-unitb-config
+  location: https://github.com/unitb/literate-unitb-config
 
 library
   exposed-modules:     Z3.Version, Data.Bidirectional, Utilities.Config
