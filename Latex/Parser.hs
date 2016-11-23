@@ -575,7 +575,7 @@ latex_structure fn xs = do
         latex_content fn ys (1,1)
 
 scan_latex :: FilePath -> String -> Either [Error] [(LatexToken,LineInfo)]
-scan_latex fn xs = -- trace ([s|input: %s\nuncomment: %s\n|] xs cs) $ 
+scan_latex fn xs = -- trace ([s|input: %s\nuncomment: %s\n|] xs cs) $ 
         read_lines tex_tokens fn (uncomment xs)
     --where cs = uncomment xs
 

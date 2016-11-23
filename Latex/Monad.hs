@@ -39,7 +39,7 @@ updateLI xs = do
         _ -> column += length xs
 
 --horizontal :: LatexGen a -> LatexGen a
---horizontal (LatexGen cmd) = LatexGen $ local (const False) cmd
+--horizontal (LatexGen cmd) = LatexGen $ local (const False) cmd
 
 begin :: String -> [LatexGen ()] -> LatexGen a -> LatexGen a
 begin name args body = do

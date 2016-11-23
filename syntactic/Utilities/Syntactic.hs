@@ -183,7 +183,7 @@ instance ZoomEq a => ZoomEq (TokenStream a) where
 instance PrettyPrintable LineInfo where
     pretty (LI _ i j) = [printf|(li:%d:%d)|] i j
 instance PrettyPrintable a => PrettyPrintable (TokenStream a) where
-    pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (map fst xs)
+    pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (map fst xs)
 
 instance Syntactic (TokenStream a) where
     line_info (StringLi xs li) = headDef li (map snd xs)
