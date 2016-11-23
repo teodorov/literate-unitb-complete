@@ -41,10 +41,10 @@ packages:
 # or unsatisfied dependencies.
 - .
 - location:
-    git: https://github.com/literate-unitb/transformer-lenses.git
+    git: https://github.com/unitb/transformer-lenses.git
     commit: 405f81025293b9f9cd25145644ca86fe88a69388
 - location:
-    git: https://github.com/literate-unitb/string-lenses.git
+    git: https://github.com/unitb/string-lenses.git
     commit: 0d616b2f754391ba62581348464f45bcb8561019
 
 # Dependency packages to be pulled from upstream that are not in the resolver

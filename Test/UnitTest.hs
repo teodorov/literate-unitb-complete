@@ -4,7 +4,9 @@ module Test.UnitTest
     ( TestCase(..)
     , run_quickCheck_suite
     , run_quickCheck_suite_with
-    , run_test_cases, test_cases 
+    , run_test_cases
+    , run_test_cases_with
+    , test_cases 
     , tempFile, takeLeaves, leafCount
     , selectLeaf, dropLeaves, leaves
     , makeTestSuite, makeTestSuiteOnly
@@ -414,7 +416,7 @@ caseGenName (PropCaseGen n _) = n
 caseGenName (CaseGen n _ _)   = n
 
 matchTestCase :: Int -> Q (Either Int TestCaseGen)
-matchTestCase n = fmap (maybe (Left n) Right) 
+matchTestCase n = fmap (maybe (Left n) Right) 
             $ runMaybeT $ msum
         [ liftA2 PropCaseGen (valueName namei) (valueName propi)
         , CaseGen <$> valueName namei <*> valueName casei <*> valueName resulti ]
