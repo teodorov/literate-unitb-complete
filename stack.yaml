@@ -41,7 +41,7 @@ packages:
 # or unsatisfied dependencies.
 - .
 - location:
-    git: https://github.com/literate-unitb/generic-instances.git
+    git: https://github.com/unitb/generic-instances.git
     commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
 
 # Dependency packages to be pulled from upstream that are not in the resolver

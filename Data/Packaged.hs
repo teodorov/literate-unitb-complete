@@ -43,7 +43,7 @@ unpackaged :: (Serialize a,Serialize b)
            => Iso (Packaged a) (Packaged b) a b
 unpackaged = from packaged
 
-instance Serialize a => Wrapped (Packaged a) where
+instance Serialize a => Wrapped (Packaged a) where
     type Unwrapped (Packaged a) = a
     _Wrapped' = unpackaged
 
@@ -99,7 +99,7 @@ instance Serialize (NullTerminated []) where
     get = NullTerm <$> 
             whileJust (do x <- get ; return (if x == chr 0 then Nothing else Just x)) return
 
-putNullTerminated :: Foldable t => Putter (t Char)
+putNullTerminated :: Foldable t => Putter (t Char)
 putNullTerminated xs = mapM_ put xs >> put (chr 0)
 
 getNullTerminatedList :: Get String
