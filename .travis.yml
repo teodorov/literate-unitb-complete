@@ -20,8 +20,8 @@ cache:
   - $HOME/.ghc
   - $HOME/.cabal
   - $HOME/.stack
-  - $HOME/literate-unitb/syntax-error/.stack-work/install
-  - $HOME/literate-unitb/syntax-error/.stack-work/downloaded
+  - $HOME/unitb/syntax-error/.stack-work/install
+  - $HOME/unitb/syntax-error/.stack-work/downloaded
 
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each

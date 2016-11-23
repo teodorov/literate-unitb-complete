@@ -38,13 +38,13 @@ resolver: lts-6.23
 packages:
 - '.'
 - location:
-    git: https://github.com/literate-unitb/string-lenses.git
+    git: https://github.com/unitb/string-lenses.git
     commit: 0d616b2f754391ba62581348464f45bcb8561019
 - location:
-    git: https://github.com/literate-unitb/generic-instances.git
+    git: https://github.com/unitb/generic-instances.git
     commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
 - location:
-    git: https://github.com/literate-unitb/pretty-printable.git
+    git: https://github.com/unitb/pretty-printable.git
     commit: 1adc34c9f88a5e9fec25d39cd193aec65c4625e9
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
