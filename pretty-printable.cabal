@@ -47,7 +47,7 @@ cabal-version:       >=1.10
 
 source-repository head
   type:     git
-  location: https://github.com/literate-unitb/pretty-printable
+  location: https://github.com/unitb/pretty-printable
 
 library
   -- Modules exported by the library.
