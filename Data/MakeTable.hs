@@ -32,7 +32,7 @@ makeRecordConstr :: Name -> DecsQ
 makeRecordConstr n = makeRecordConstrAs (prefix' "make" n) n
 
 expandTySyn :: Name -> Q Name
-expandTySyn n = maybe (return n) expandTySyn . getTySyn =<< reify n
+expandTySyn n = maybe (return n) expandTySyn . getTySyn =<< reify n
     where
         getTySyn = preview (_TyConI . _TySynD . _3 . to constructor)
 
@@ -119,13 +119,13 @@ class GAllMaps map a where
                         => String -> map k a -> f (map k a))
                -> Maybe String -> a p -> f (a p)
 
-instance (GAllMaps map c, Selector s) => GAllMaps map (S1 s c) where
+instance (GAllMaps map c, Selector s) => GAllMaps map (S1 s c) where
     gAllMaps f _ m@(M1 x) = M1 <$> gAllMaps f (Just $ selName m) x
 
-instance (GAllMaps map c) => GAllMaps map (D1 d c) where
+instance (GAllMaps map c) => GAllMaps map (D1 d c) where
     gAllMaps f tag (M1 x) = M1 <$> gAllMaps f tag x
 
-instance (GAllMaps map c) => GAllMaps map (C1 d c) where
+instance (GAllMaps map c) => GAllMaps map (C1 d c) where
     gAllMaps f tag (M1 x) = M1 <$> gAllMaps f tag x
 
 instance (Show k,Show b) => GAllMaps HashMap (K1 a (HashMap k b)) where
