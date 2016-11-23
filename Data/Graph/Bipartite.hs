@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP,QuasiQuotes #-}
 module Data.Graph.Bipartite
     ( BiGraph,GraphBuilder,GraphReader,BiGraph'
     , source, target, origins
@@ -26,6 +27,13 @@ module Data.Graph.Bipartite
     , traverseLeftWithEdgeInfo', traverseRightWithEdgeInfo'
     , traverseLeftWithEdgeInfo, traverseRightWithEdgeInfo
     , traverseEdges, traverseEdgesWithKeys
+#if MIN_VERSION_transformers(0,5,0)
+    , liftEqGraph
+    , liftEqMap
+    , liftShowsGraph
+    , liftShowsListPrec
+    , liftShowsMap
+#endif
     , acrossBoth
     , transpose
     , leftMap, rightMap, edgeMap
@@ -49,6 +57,9 @@ import Control.Precondition
 import Data.Array as A hiding ((!))
 import Data.Array.ST
 import Data.Default
+#if MIN_VERSION_transformers(0,5,0)
+import Data.Functor.Classes
+#endif
 import Data.List  as L hiding (transpose,lookup)
 import Data.List.NonEmpty  as NE hiding (fromList,transpose)
 import Data.Map   as M hiding (fromList,empty,traverseWithKey,lookup,member,(!))
@@ -65,7 +76,7 @@ import Prelude hiding (lookup)
 
 import Test.QuickCheck.ZoomEq
 
-import Text.Printf
+import Text.Printf.TH
 
 newtype GraphBuilder key0 v0 key1 v1 e s0 s1 a = GB (RWST () ([(key0,v0)],[(key1,v1)],[(Int,Int,e)]) (Int,Map key0 Int,Int,Map key1 Int) Maybe a)
     deriving (Monad,Applicative,Functor,Alternative,MonadPlus)
@@ -295,7 +306,7 @@ traverseRightWithKey = rightVertices
 traverseRight :: Traversal (BiGraph' key0 v0 key1 vA e) (BiGraph' key0 v0 key1 vB e) vA vB
 traverseRight = rightAL.arVals.traverse
 
-traverseBoth :: Traversal (BiGraph' key0 vA key1 vA e) (BiGraph' key0 vB key1 vB e) vA vB
+traverseBoth :: Traversal (BiGraph' key0 vA key1 vA e) (BiGraph' key0 vB key1 vB e) vA vB
 traverseBoth f (Graph lf rt ed) = Graph <$> (arVals.traverse) f lf 
                                         <*> (arVals.traverse) f rt 
                                         <*> pure ed
@@ -415,7 +426,7 @@ instance ( Show key0, Show key1
          , Ord key0, Ord key1
          , Show v0, Show v1) 
         => Show (BiGraph' key0 v0 key1 v1 e) where
-    show g = printf "Graph { left = %s, right = %s, edges = %s }" 
+    show g = [s|Graph { left = %s, right = %s, edges = %s }|]
                 (show $ leftMap g) 
                 (show $ rightMap g) 
                 (show $ edgeMap g)
@@ -501,7 +512,7 @@ rightVertex v = GR $ do
 edgeInfo :: Edge s0 s1 -> GraphReader' key0 v0 key1 v1 e s0 s1 e
 edgeInfo (Edge i j) = GR $ views edges (! (i,j))
 
-member :: (Ord key0,Ord key1) => key0 -> key1 
+member :: (Ord key0,Ord key1) => key0 -> key1 
        -> BiGraph' key0 v0 key1 v1 e -> Bool
 member k0 k1 g = isJust $ lookup k0 k1 g
 
@@ -596,6 +607,90 @@ target (Edge _ v) = Vertex v
 
 origins :: Edge s0 s1 -> (Vertex s0,Vertex s1)
 origins (Edge v0 v1) = (Vertex v0, Vertex v1)
+
+#if MIN_VERSION_transformers(0,5,0)
+liftShowsListPrec :: (Int -> a -> ShowS)
+                  -> Int -> [a] -> ShowS 
+liftShowsListPrec showA _ xs = showString "[" . liftShowsListPrec' showA xs . showString "]"
+-- liftShowsListPrec showA n = liftShowsPrec showA (liftShowsListPrec showA n) n
+-- liftShowsListPrec showA n (x:xs) = showString "[]"
+
+liftShowsListPrec' :: (Int -> a -> ShowS)
+                   -> [a] -> ShowS 
+-- liftShowsListPrec showA n = liftShowsPrec showA (liftShowsListPrec showA n) n
+liftShowsListPrec' _showA [] = id
+liftShowsListPrec' showA [x] = showA 0 x
+liftShowsListPrec' showA (x:xs) = showA 0 x . showString "," . liftShowsListPrec' showA xs
+
+liftShowsPairPrec :: (Int -> a -> ShowS)
+                  -> (Int -> b -> ShowS)
+                  -> Int -> (a,b) -> ShowS 
+liftShowsPairPrec showA showB _ (x,y) = 
+              showString "(" 
+            . showA 0 x 
+            . showString ", " 
+            . showB 0 y 
+            . showString ")"
+
+liftShowsMap :: (Int -> k -> ShowS)
+             -> (Int -> a -> ShowS)
+             -> Int
+             -> Map k a
+             -> ShowS 
+liftShowsMap showK showA n m = showParen (n >= 10) $ 
+      showString "fromList " . liftShowsListPrec 
+          (liftShowsPairPrec showK showA) 
+          10 (M.toList m)
+
+liftEqGraph :: (Ord k0,Ord k1,Ord k0',Ord k1')
+               => (k0 -> k0' -> Bool)
+               -> (v0 -> v0' -> Bool)
+               -> (k1 -> k1' -> Bool)
+               -> (v1 -> v1' -> Bool)
+               -> (e -> e' -> Bool)
+               -> BiGraph' k0 v0 k1 v1 e 
+               -> BiGraph' k0' v0' k1' v1' e' 
+               -> Bool
+liftEqGraph eqK0 eqV0 eqK1 eqV1 eqE g g' = 
+         liftEqMap eqK0 eqV0 (leftMap g) (leftMap g')
+      && liftEqMap eqK1 eqV1 (rightMap g) (rightMap g')
+      && liftEqMap (liftEqPair eqK0 eqK1) eqE (edgeMap g) (edgeMap g')
+
+liftEqMap :: (k -> k' -> Bool)
+          -> (a -> a' -> Bool)
+          -> Map k a
+          -> Map k' a'
+          -> Bool
+liftEqMap eqK eqA m0 m1 = liftEq
+        (liftEqPair eqK eqA)
+        (M.toList m0) 
+        (M.toList m1)
+
+liftEqPair :: (a -> a' -> Bool)
+           -> (b -> b' -> Bool)
+           -> (a,b)
+           -> (a',b')
+           -> Bool
+liftEqPair f g (x,x') (y,y') = f x y && g x' y'
+
+liftShowsGraph :: (Ord k0,Ord k1)
+               => (Int -> k0 -> ShowS)
+               -> (Int -> v0 -> ShowS)
+               -> (Int -> k1 -> ShowS)
+               -> (Int -> v1 -> ShowS)
+               -> (Int -> e -> ShowS)
+               -> Int
+               -> BiGraph' k0 v0 k1 v1 e 
+               -> ShowS
+liftShowsGraph _showK0 _showV0 _showK1 _showV1 _showE _n _g
+      = id
+      -- = showParen (n >= 10) $
+      --   showString $ [s|Graph { left = %s, right = %s, edges = %s }|]
+      --           (liftShowsMap showK0 showV0 0 (leftMap g) "") 
+      --           (liftShowsMap showK1 showV1 0 (rightMap g) "") 
+      --           (liftShowsMap (liftShowsPairPrec showK0 showK1) showE 0 (edgeMap g) "") 
+
+#endif
 
 instance (NFData k,NFData a) => NFData (AdjList k a)
 instance (NFData k0,NFData k1,NFData v0,NFData v1,NFData e) => NFData (BiGraph' k0 v0 k1 v1 e)
