@@ -20,6 +20,8 @@ cache:
   - $HOME/.ghc
   - $HOME/.cabal
   - $HOME/.stack
+  - $HOME/unitb/literate-unitb-scripts/.stack-work/install
+  - $HOME/unitb/literate-unitb-scripts/.stack-work/downloaded
   - $HOME/literate-unitb/literate-unitb-scripts/.stack-work/install
   - $HOME/literate-unitb/literate-unitb-scripts/.stack-work/downloaded
   timeout: 1000
@@ -124,6 +126,7 @@ matrix:
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
+- cp -rp $HOME/literate-unitb $HOME/unitb
 - unset CC
 
 # We want to always allow newer versions of packages when building on GHC HEAD

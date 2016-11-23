@@ -57,7 +57,7 @@ _errFile :: FilePath
 _o_file :: FilePath
 _o_file = replaceExtension file ".o"
 
-inBin :: Pre => FilePath -> FilePath
+inBin :: Pre => FilePath -> FilePath
 inBin file = byRel "isPrefixOf" isPrefixOf path file $ path </> "bin" </> drop (length path + 1) (dropExtension file) <.> "o"
 
 compile_file :: Build ()

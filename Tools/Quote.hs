@@ -92,5 +92,5 @@ quoteLn = P.drop 1 >-> P.map (fmap escape) >-> quoteLn'
 --         fn <- getArgs
 --         case fn of
 --             [fn] -> runEffect $ runSafeP 
---                 $ quote fn >-> copyToClipboard
+--                 $ quote fn >-> copyToClipboard
 --             _ -> putStrLn "usage: quote file"

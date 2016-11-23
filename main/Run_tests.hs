@@ -79,7 +79,7 @@ general = do
                     $ "Lines of Haskell code:"
                        : (take 6 $ map f $ reverse 
                             $ sortOn fst lc')
-                      ++ ["Run time: " ++ (let (m,s) = divMod (round $ diffUTCTime t1 t0) (60 :: Int) in 
+                      ++ ["Run time: " ++ (let (m,s) = divMod (round $ diffUTCTime t1 t0) (60 :: Int) in 
                                 printf "%dm %ds" m s)]
                 xs <- readFile "result.txt"
                 putStrLn xs
