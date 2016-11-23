@@ -135,7 +135,7 @@ instance (Ord k,Eq a) => PreOrd (M.Map k a) where
 
 instance (Ord k,Eq a) => PartialOrd (M.Map k a) where
 
-instance Eq a => PreOrd (Quotient a) where
+instance Eq a => PreOrd (Quotient a) where
     partCompare x y
         | x == y    = Comp EQ
         | otherwise = Uncomp
