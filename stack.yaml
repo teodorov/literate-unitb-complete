@@ -42,22 +42,36 @@ packages:
 - .
 - location:
     git: https://github.com/literate-unitb/string-lenses.git
-    commit: 0d616b2f754391ba62581348464f45bcb8561019
+    commit: 5de38f1ce72b56dc648fb4ad3ccae2424b44a666
 - location:
     git: https://github.com/literate-unitb/pretty-printable.git
-    commit: 1adc34c9f88a5e9fec25d39cd193aec65c4625e9
+    commit: f3255138a8fda7ea62e2db3ef1d9c1329c662b40
 - location:
     git: https://github.com/literate-unitb/unitb-testing.git
-    commit: 6098f62adcb956a5ba924b8cc2f6ac550d4f65f9
+    commit: d08ea2ab7682f896c06fc01283c833d86c71df85
 - location:
     git: https://github.com/literate-unitb/transformer-lenses.git
-    commit: 405f81025293b9f9cd25145644ca86fe88a69388
+    commit: e16ff1927d127f4f735cc46483c08f94fd1663d5
 - location:
     git: https://github.com/literate-unitb/generic-instances.git
-    commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
+    commit: 5e9b4de0f6549933f570f7f2bab16654299c7b0d
 - location:
     git: https://github.com/literate-unitb/show-with.git
-    commit: 6be72dbe945cae0945dd18a835f56c7a807937a7
+    commit: 666b16a9d8f80970f5252f8cdbb1de2db361c27c
+
+- location:
+    git: https://github.com/unitb/axiomatic-classes.git
+    commit: 2e982add730ce1f06723d6d411c08a227f502ed0
+- location:
+    git: https://github.com/unitb/existential.git
+    commit: 8bbe0b7da116aafea38870260da5fe3413f14491
+- location:
+   git: https://github.com/unitb/invariants.git
+   commit: f414f5b6f483f7ebe2deedc5f6901cf2d180236e
+- location:
+   git: https://github.com/unitb/quickcheck-report.git
+   commit: b1dc9fa29be77658438ad40b36f4b4ec11e12d13
+
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
@@ -75,12 +89,12 @@ extra-deps:
 - optparse-applicative-0.13.0.0
 - shelly-1.6.8.1
 - th-printf-0.3.1
-- quickcheck-report-0.1.0.0
+# - quickcheck-report-0.1.0.0
 - portable-template-haskell-lens-0.1.0.0
 - serialize-instances-0.1.0.0
-- control-invariants-0.1.0.0
-- existential-0.2.0.0
-- axiomatic-classes-0.1.0.0
+# - control-invariants-0.1.0.0
+# - existential-0.2.0.0
+# - axiomatic-classes-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}

@@ -81,7 +81,7 @@ fieldWith' def k f = BiParser
 -- withDefault :: Applicative f 
 --             => a 
 --             -> BiParser Maybe c b a 
---             -> BiParser f c b a
+--             -> BiParser f c b a
 -- withDefault x (BiParser f g) = BiParser f (pure . fromMaybe x . g)
 
 optionally :: Applicative f
