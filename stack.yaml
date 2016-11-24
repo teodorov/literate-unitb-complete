@@ -42,7 +42,7 @@ packages:
 - .
 - location:
     git: https://github.com/unitb/generic-instances.git
-    commit: 8d67a6479d3b5a38c69efd114c1d59d2b81c813c
+    commit: 5e9b4de0f6549933f570f7f2bab16654299c7b0d
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
