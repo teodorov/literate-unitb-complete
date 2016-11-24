@@ -40,17 +40,26 @@ packages:
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
 - .
+- location:
+   git: https://github.com/unitb/invariants.git
+   commit: f414f5b6f483f7ebe2deedc5f6901cf2d180236e
+- location:
+   git: https://github.com/unitb/quickcheck-report.git
+   commit: b1dc9fa29be77658438ad40b36f4b4ec11e12d13
+- location:
+   git: https://github.com/unitb/axiomatic-classes.git
+   commit: 2e982add730ce1f06723d6d411c08a227f502ed0
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: 
     - assert-0.0.1.2
     - th-printf-0.3.1
-    - quickcheck-report-0.1.0.0
+    # - quickcheck-report-0.1.0.0
     - portable-template-haskell-lens-0.1.0.0
     - serialize-instances-0.1.0.0
-    - control-invariants-0.1.0.0
-    - axiomatic-classes-0.1.0.0
+    # - control-invariants-0.1.0.0
+    # - axiomatic-classes-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}
