@@ -40,13 +40,16 @@ packages:
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
 - .
+- location:
+   git: https://github.com/unitb/invariants.git
+   commit: f414f5b6f483f7ebe2deedc5f6901cf2d180236e
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: 
     - assert-0.0.1.2
     - th-printf-0.3.1
-    - control-invariants-0.1.0.0
+    # - control-invariants-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}
