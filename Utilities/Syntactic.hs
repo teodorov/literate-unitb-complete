@@ -13,6 +13,7 @@ import Data.List
 import Data.List.NonEmpty as NE (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import Data.List.Ordered
+import Data.Semigroup
 import Data.Serialize hiding (get)
 import Data.Typeable
 import qualified Data.String.Lines as L
@@ -179,6 +180,8 @@ data TokenStream a = StringLi [(a,LineInfo)] LineInfo
 
 type StringLi = TokenStream Char
 
+instance Semigroup (TokenStream a) where
+    StringLi xs _ <> StringLi ys li = StringLi (xs <> ys) li
 instance ZoomEq a => ZoomEq (TokenStream a) where
 instance PrettyPrintable LineInfo where
     pretty (LI _ i j) = [s|(li:%d:%d)|] i j
@@ -235,16 +238,26 @@ asLI loc = uncurry (LI (loc_filename loc)) (loc_start loc)
 mkLI :: String -> LineInfo
 mkLI str = LI str 1 1
 
-locToLI :: SrcLoc -> LineInfo
-locToLI loc = LI
+liLens :: Lens' SrcLoc LineInfo
+liLens f loc = fmap update . f $ LI
             (srcLocFile loc) 
             (srcLocStartLine loc)
             (srcLocStartCol loc)
+    where
+        update (LI fn i j) = loc { srcLocFile = fn
+                                 , srcLocStartLine = i
+                                 , srcLocStartCol = j }
+
+locToLI :: SrcLoc -> LineInfo
+locToLI = view liLens
 
 errorTrace :: I.Pre => [FilePath] -> CallStack -> String -> [Error]
 errorTrace fs stack msg = [MLError msg $ nonEmpty' $ loc & mapped._2 %~ locToLI]
     where
         loc = getSrcLocs fs stack
+
+instance PrettyPrintable Error where
+    pretty = report
 
 instance NFData Error 
 instance NFData LineInfo
