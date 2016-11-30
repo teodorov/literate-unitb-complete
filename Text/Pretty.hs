@@ -4,7 +4,7 @@ module Text.Pretty where
     -- Libraries
 import Control.Applicative
 import Control.DeepSeq
-import Control.Invariant ((##))
+import Control.Invariant ((##),Checked,content')
 import Control.Lens hiding (List,cons,uncons)
 import Control.Monad.Reader
 
@@ -106,6 +106,9 @@ instance NFData a => NFData (Pretty a) where
 instance (ZoomEq a,PrettyPrintable a) => ZoomEq (Pretty a) where
     Pretty x .== Pretty y | x == y = return ()
                           | otherwise = (pretty x ++ " /= " ++ pretty y) ## False
+
+instance PrettyPrintable a => PrettyPrintable (Checked a) where
+    pretty = pretty . view content'
 
 withMargin :: String -> String -> String -> String
 withMargin first other = asLines %~ NE.zipWith (++) (first :| repeat other) 
