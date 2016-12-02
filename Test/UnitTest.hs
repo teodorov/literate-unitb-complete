@@ -17,6 +17,7 @@ module Test.UnitTest
     , IsTestCase(..)
     , logNothing, PrintLog
     , path
+    , clear_results
     , allLeaves )
 where
 
@@ -43,6 +44,8 @@ import           Data.List
 import           Data.List.NonEmpty as NE (sort)
 import           Data.String.Indentation
 import           Data.String.Lines hiding (lines,unlines)
+import           Data.Text as Text (unpack)
+import           Data.Text.Lazy as Lazy (unpack)
 import           Data.Tuple
 import           Data.Typeable
 
@@ -58,6 +61,7 @@ import Prelude
 
 import System.Directory
 import System.FilePath
+import System.Process
 import System.IO
 import System.IO.Unsafe
 
@@ -233,6 +237,9 @@ data UnitTest = forall a b. (Eq a,NFData b) => UT
 --     where
 --         f xs = takeWhile (/= '(') xs
 
+clear_results :: IO ()
+clear_results = void $ system "rm actual-*.txt expected-*.txt log-*"
+
 run_quickCheck_suite :: Pre => TestCase -> IO Bool
 run_quickCheck_suite t = run_quickCheck_suite_with t $ return ()
 
@@ -265,7 +272,7 @@ run_test_cases_with xs opts = do
         either throw return x
 
 disp :: (Typeable a, Show a) => a -> String
-disp x = fromMaybe (reindent $ show x) (cast x)
+disp x = fromMaybe (reindent $ show x) (cast x <|> fmap Text.unpack (cast x) <|> fmap Lazy.unpack (cast x))
 
 putLn :: String -> M ()
 putLn xs = do
