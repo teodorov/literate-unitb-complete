@@ -168,7 +168,7 @@ install:
     stack)
       pwd 
       # travis_long stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
-      travis_long stack --no-terminal --install-ghc $ARGS install text lens 
+      travis_long stack --no-terminal --install-ghc $ARGS install text lens literate-unitb-config
       ;;
     cabal)
       cabal --version
