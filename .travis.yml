@@ -168,7 +168,7 @@ install:
     stack)
       pwd 
       # travis_long stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
-      travis_long stack --no-terminal --install-ghc $ARGS install cabal-install text
+      travis_long stack --no-terminal --install-ghc $ARGS install text
       ;;
     cabal)
       cabal --version
