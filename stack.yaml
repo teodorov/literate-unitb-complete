@@ -42,13 +42,13 @@ packages:
 - .
 - location:
     git: https://github.com/unitb/axiomatic-classes.git
-    commit: 2e982add730ce1f06723d6d411c08a227f502ed0
+    commit: head
 - location:
    git: https://github.com/unitb/invariants.git
-   commit: f414f5b6f483f7ebe2deedc5f6901cf2d180236e
+   commit: head
 - location:
    git: https://github.com/unitb/quickcheck-report.git
-   commit: b1dc9fa29be77658438ad40b36f4b4ec11e12d13
+   commit: head
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
