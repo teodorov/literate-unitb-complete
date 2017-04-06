@@ -61,7 +61,7 @@ extra-deps:
     # - quickcheck-report-0.1.0.0
     - portable-template-haskell-lens-0.1.0.0
     - serialize-instances-0.1.0.0
-    # - control-invariants-0.1.0.0
+    - control-invariants-0.1.0.0
     # - axiomatic-classes-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
