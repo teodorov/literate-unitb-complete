@@ -39,25 +39,25 @@ packages:
 - '.'
 - location:
     git: https://github.com/unitb/string-lenses.git
-    commit: 5de38f1ce72b56dc648fb4ad3ccae2424b44a666
+    commit: head
 - location:
     git: https://github.com/unitb/generic-instances.git
-    commit: 5e9b4de0f6549933f570f7f2bab16654299c7b0d
+    commit: head
 - location:
     git: https://github.com/unitb/pretty-printable.git
-    commit: f3255138a8fda7ea62e2db3ef1d9c1329c662b40
+    commit: head
 - location:
     git: https://github.com/unitb/axiomatic-classes.git
-    commit: 2e982add730ce1f06723d6d411c08a227f502ed0
+    commit: head
 - location:
     git: https://github.com/unitb/existential.git
-    commit: 8bbe0b7da116aafea38870260da5fe3413f14491
+    commit: head
 - location:
    git: https://github.com/unitb/invariants.git
-   commit: f414f5b6f483f7ebe2deedc5f6901cf2d180236e
+   commit: head
 - location:
    git: https://github.com/unitb/quickcheck-report.git
-   commit: b1dc9fa29be77658438ad40b36f4b4ec11e12d13
+   commit: head
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: 
