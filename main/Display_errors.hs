@@ -33,7 +33,7 @@ compile_script = do
         -- cabal_build "bench-bucket-packaged"
            -- >>= cabal_run
         -- compile_all
-        compile_app
+        _ <- compile_app
         -- profile_app
         return ()
 
@@ -66,7 +66,7 @@ compile_file = do
         b <- doesFileExist $ inBin file
         when b $ removeFile $ inBin file
     compile True (args (CompileFlags CompileFile False) file)
-    liftIO $ rawSystem "touch" [file]
+    _ <- liftIO $ rawSystem "touch" [file]
     return ()
 
 run_test :: FilePath -> Build ()
@@ -93,7 +93,7 @@ main = do
         rm_f "actual-*.txt"
         rm_f "expected-*.txt"
         rm_f "po-*.z3"
-    build path compile_script
+    _ <- build path compile_script
     -- printf "%s\n" path
     -- putStrLn $ intercalate " " $ "ghc" : (args CompileFile file)
         -- putStrLn "File ok"

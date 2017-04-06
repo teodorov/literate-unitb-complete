@@ -226,7 +226,7 @@ compile_test = make "suite/test_tmp.hs"
 
 profile_test :: Build FilePath
 profile_test = do
-    make "suite/test_tmp.hs"
+    _ <- make "suite/test_tmp.hs"
     enableProfiling "suite/test_tmp.hs"
 
 compile_all :: Build FilePath
@@ -237,5 +237,5 @@ compile_app = make "app/Continuous.hs"
 
 profile_app :: Build FilePath
 profile_app = do 
-    make "app/Continuous.hs"
+    _ <- make "app/Continuous.hs"
     enableProfiling "app/Continuous.hs"

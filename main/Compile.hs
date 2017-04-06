@@ -63,8 +63,8 @@ main = do
     delay <- newEmptyMVar
     waitv <- newEmptyMVar
     createDirectoryIfMissing True "bin"
-    forkIO $ keyboard waitv
-    forkIO $ timeout delay waitv
+    _ <- forkIO $ keyboard waitv
+    _ <- forkIO $ timeout delay waitv
     let wait = do
             x <- tryTakeMVar waitv
             maybe (do

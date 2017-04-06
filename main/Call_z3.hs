@@ -17,6 +17,6 @@ main = do
         let xs = filter (isPrefixOf "po-") ls ++ filter (is $ prefixed "log".suffixed ".z3") ls
         forM_ xs $ \fn -> do
             putStrLn fn
-            system ([s|head -n 2 %s|] fn)
+            _ <- system ([s|head -n 2 %s|] fn)
             system ([s|time z3 -smt2 -T:30 %s|] fn)
 

@@ -28,13 +28,16 @@ quote :: MonadSafe m
 quote fn = markLast (P.readFile fn) >-> quoteLn
 
 initP :: Monad m
-      => Pipe (Maybe a) a m ()
+      => Pipe (Maybe a) (Maybe a) m ()
 initP = maybe (return ()) aux =<< await
     where
         aux x = do
             y <- await
-            yield x
-            maybe (return ()) aux y
+            case y of
+                Just y' -> do
+                    yield (Just x)
+                    aux y'
+                Nothing -> yield Nothing
 
 accumWhile :: Monad m
            => (a -> Bool) 
@@ -55,7 +58,6 @@ markLast p = do
 
 drawAll :: Monad m => Pipe (Maybe a) a m ()
 drawAll = maybe (return ()) (const drawAll <=< yield) =<< await
-
 
 quoteLn' :: MonadSafe m
          => Pipe (Maybe String) String m ()

@@ -56,13 +56,13 @@ main = do
                     hFlush stdout
                     t2 <- getCurrentTime
                     if null args then do
-                        system $ "./run_tests 2>&1 >> /dev/null"
-                        system "cp result.txt last_result.txt"
+                        _  <- system $ "./run_tests 2>&1 >> /dev/null"
+                        _  <- system "cp result.txt last_result.txt"
                         tz <- getCurrentTimeZone
                         t  <- getCurrentTime :: IO UTCTime
                         let local = utcToLocalTime tz t
                             time = formatTime defaultTimeLocale "Time: %H:%M:%S" $ local
-                        system $ "echo \"" ++ time ++ "\" >> last_result.txt"
+                        _  <- system $ "echo \"" ++ time ++ "\" >> last_result.txt"
                         t0 <- getModificationTime "test"
                         if t2 <= t0 then
                             void $ system "touch test"

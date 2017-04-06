@@ -12,9 +12,9 @@ data Input = Quit | Next
 
 keyboard :: IO (MVar Input)
 keyboard = do
-        v <- newMVar Next
+        v   <- newMVar Next
         tid <- myThreadId
-        forkIO $ fix $ \rec -> do
+        _   <- forkIO $ fix $ \rec -> do
             x <- getLine
             if x == "quit" then do 
                 putMVar v Quit

@@ -57,7 +57,7 @@ general = do
         case c1 of
             ExitSuccess -> do
                 path <- getCurrentDirectory
-                build path (cabal_build Nothing)
+                _ <- build path (cabal_build Nothing)
                 --build path compile_all
                 putStrLn "Running test ..."
                 hFlush stdout
@@ -123,8 +123,8 @@ specific mod_name fun_name = do
 main :: IO ()
 main = do
     xs <- getArgs
-    b <- check_z3_bin
-    system "rm actual* expected* po-* log*.z3"
+    b  <- check_z3_bin
+    _  <- system "rm actual* expected* po-* log*.z3"
     if b then 
         case xs of
             []    -> general >> return ()
