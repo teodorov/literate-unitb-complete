@@ -48,7 +48,13 @@ extra-deps:
 - assert-0.0.1.2
 - portable-lines-0.1
 - th-printf-0.3.1
+- distributive-0.5.1
+- lens-4.14
+# # - quickcheck-report-0.1.0.0
 - portable-template-haskell-lens-0.1.0.0
+# # - control-invariants-0.1.0.0
+# # - existential-0.2.0.0
+# # - axiomatic-classes-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}
