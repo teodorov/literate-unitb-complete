@@ -64,7 +64,7 @@ matrix:
 
   # Build with the newest GHC and cabal-install. This is an accepted failure,
   # see below.
-  - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
+  - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS="--stack-yaml stack-lts-7-8.yaml"
     compiler: ": #GHC HEAD"
     addons: {apt: {packages: [cabal-install-head,ghc-head,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
 
@@ -129,8 +129,8 @@ matrix:
     os: osx
 
   allow_failures:
-  - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
-  - env: BUILD=stack ARGS="--resolver nightly"
+  - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS="--stack-yaml stack-lts-7-8.yaml"
+  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-lts-7-8.yaml"
 
 before_install:
 # Using compiler above sets CC to an invalid value, so unset it
