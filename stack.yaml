@@ -39,13 +39,13 @@ packages:
 # The following packages have been ignored due to incompatibility with the
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
-- .
+- '.'
 - location:
     git: https://github.com/unitb/generic-instances.git
-    commit: head
+    commit: b4eb374d9fde9831eb549849354369617c4e44b1
 - location:
     git: https://github.com/unitb/serialize-instances.git
-    commit: head
+    commit: ff3faa9cf976e68be8d769b5960a1b4db3b9bf63
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
