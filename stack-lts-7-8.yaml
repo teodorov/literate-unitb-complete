@@ -61,6 +61,8 @@ extra-deps:
 - portable-lines-0.1
 - th-printf-0.3.1
 - portable-template-haskell-lens-0.1.0.0
+- lens-4.14
+- distributive-0.5.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}
