@@ -39,16 +39,16 @@ packages:
 # The following packages have been ignored due to incompatibility with the
 # resolver compiler, dependency conflicts with other packages
 # or unsatisfied dependencies.
-- .
+- '.'
 - location:
     git: https://github.com/unitb/axiomatic-classes.git
-    commit: head
+    commit: 24ce269668f39a74ba1fe0628c4f6d65e092870c
 - location:
-   git: https://github.com/unitb/invariants.git
-   commit: head
+    git: https://github.com/unitb/invariants.git
+    commit: e644470ef8c16d5b1631b23ff3a127f8596955b8
 - location:
-   git: https://github.com/unitb/quickcheck-report.git
-   commit: head
+    git: https://github.com/unitb/quickcheck-report.git
+    commit: 348df1ca45673190805e87316770adbb3af59a08
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
