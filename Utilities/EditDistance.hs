@@ -80,7 +80,9 @@ diff xs ys =
         ar = A.listArray bnds 
                          (map f (A.range bnds))
 
-instance (Enum a, Arbitrary a) => Arbitrary ([Change a], [a]) where
+data EditResult a = EditResult [Change a] [a]
+
+instance (Enum a, Arbitrary a) => Arbitrary (EditResult a) where
     arbitrary = do
             xs <- map toEnum `liftM` listOf (choose (1,10))
             --xs <- arbitrary
@@ -105,7 +107,7 @@ instance (Enum a, Arbitrary a) => Arbitrary ([Change a], [a]) where
                         ]
                     put $ effect k xs
                     return k
-            return (ys,xs)
+            return (EditResult ys xs)
 
 data Change a = 
         Insert Int a 

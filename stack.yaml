@@ -40,6 +40,12 @@ packages:
     git: https://github.com/unitb/invariants.git
     commit: e644470ef8c16d5b1631b23ff3a127f8596955b8
 - location:
+    git: https://github.com/unitb/unitb-testing.git
+    commit: HEAD
+- location:
+    git: https://github.com/unitb/transformer-lenses.git
+    commit: HEAD
+- location:
     git: https://github.com/unitb/quickcheck-report.git
     commit: 1bcc8cd5a91bc660346d1df7eb6ebb1a8152e865
 
