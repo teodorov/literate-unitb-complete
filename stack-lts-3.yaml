@@ -39,15 +39,19 @@ packages:
 - location:
     git: https://github.com/unitb/pretty-printable.git
     commit: 1adc34c9f88a5e9fec25d39cd193aec65c4625e9
+- location:
+    git: https://github.com/unitb/axiomatic-classes.git
+    commit: 24ce269668f39a74ba1fe0628c4f6d65e092870c
+- location:
+    git: https://github.com/unitb/quickcheck-report.git
+    commit: 1bcc8cd5a91bc660346d1df7eb6ebb1a8152e865
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: 
 - assert-0.0.1.2
-- axiomatic-classes-0.1.0.0
 - control-invariants-0.1.0.0
 - existential-0.2.0.0
 - portable-lines-0.1
 - portable-template-haskell-lens-0.1.0.0
-- quickcheck-report-0.1.0.0
 - serialize-instances-0.1.0.0
 - th-printf-0.3.1
 
