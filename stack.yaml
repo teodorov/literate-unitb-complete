@@ -31,22 +31,17 @@ packages:
 - unitb-testing/
 - string-lenses/
 - pretty-printable/
+- partial-order/
+- show-with/
+- data-packaged/
+- generic-instances/
 
 - location:
     git: https://github.com/unitb/unfoldable.git
     commit: 2b428472036f885792f89f8b4c700628157889f9
 - location:
-    git: https://github.com/unitb/partial-order.git
-    commit: 456ce13eb0d8766b7c41f5e8d279c9d85398e8c9
-- location:
     git: https://github.com/unitb/transformer-lenses.git
     commit: 899637f5a57a6909ed0f238e04388521a5f07c04
-- location:
-    git: https://github.com/unitb/show-with.git
-    commit: 864e83e05b18541a707d5a55e526d6e2e5aa0a34
-- location:
-    git: https://github.com/unitb/generic-instances.git
-    commit: 342e88e34ff238ee432d1ef783ff6275b7d8934d
 - location:
     git: https://github.com/unitb/serialize-instances.git
     commit: ff3faa9cf976e68be8d769b5960a1b4db3b9bf63
@@ -62,9 +57,6 @@ packages:
 - location:
     git: https://github.com/unitb/data-compressed.git
     commit: 51b75b90af13274bb48d7093f294fb1283bd983a
-- location:
-    git: https://github.com/unitb/data-packaged.git
-    commit: 7e4d427b271573a3fa64625816eeb950c85d171b
 - location:
     git: https://github.com/unitb/quickcheck-report.git
     commit: 1bcc8cd5a91bc660346d1df7eb6ebb1a8152e865
