@@ -19,7 +19,7 @@ resolver: lts-7.10
 
 # Local packages, usually specified by relative directory name
 packages:
-# - ../literate-unitb-logic
+- literate-unitb-logic/
 - literate-unitb/
 - location:
     git: https://github.com/unitb/literate-unitb-config.git
@@ -30,9 +30,6 @@ packages:
 - location:
     git: https://github.com/unitb/literate-unitb-latex.git
     commit: 9dba5727b0a0739a77071bd12bb020afb1f687ae
-- location:
-    git: https://github.com/unitb/literate-unitb-logic.git
-    commit: a2a5e2a9f937e62b73d56fb16b4ad4a09d70cab1
 - location:
     git: https://github.com/unitb/syntax-error.git
     commit: 4afedb21cdce20c6cff8cb6b4f8375a99a080ec9
