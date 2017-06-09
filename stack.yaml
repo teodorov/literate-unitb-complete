@@ -35,28 +35,16 @@ packages:
 - show-with/
 - data-packaged/
 - generic-instances/
+- data-compressed
+- file-system-mockup
+- co-applicative
+- lens-extra
+- transformer-lenses
+- unfoldable
 
-- location:
-    git: https://github.com/unitb/unfoldable.git
-    commit: 2b428472036f885792f89f8b4c700628157889f9
-- location:
-    git: https://github.com/unitb/transformer-lenses.git
-    commit: 899637f5a57a6909ed0f238e04388521a5f07c04
 - location:
     git: https://github.com/unitb/serialize-instances.git
     commit: ff3faa9cf976e68be8d769b5960a1b4db3b9bf63
-- location:
-    git: https://github.com/unitb/lens-extra.git
-    commit: bb7ff20059db94e2174925f848121dcbd4d50c76
-- location:
-    git: https://github.com/unitb/co-applicative.git
-    commit: 7188c8bde5e7fb3a9d60370896bb2aec9baa4be4
-- location:
-    git: https://github.com/unitb/file-system-mockup.git
-    commit: 911f0e672618fac47bc997c507305691ff433c39
-- location:
-    git: https://github.com/unitb/data-compressed.git
-    commit: 51b75b90af13274bb48d7093f294fb1283bd983a
 - location:
     git: https://github.com/unitb/quickcheck-report.git
     commit: 1bcc8cd5a91bc660346d1df7eb6ebb1a8152e865
