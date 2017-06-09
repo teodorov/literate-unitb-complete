@@ -28,6 +28,9 @@ packages:
 - typelist-functor/
 - classy-lens-hierarchy/
 - bipartite-graph/
+- unitb-testing/
+- string-lenses/
+- pretty-printable/
 
 - location:
     git: https://github.com/unitb/unfoldable.git
@@ -36,14 +39,8 @@ packages:
     git: https://github.com/unitb/partial-order.git
     commit: 456ce13eb0d8766b7c41f5e8d279c9d85398e8c9
 - location:
-    git: https://github.com/unitb/unitb-testing.git
-    commit: 338d3125ca2bb96679ac34ba0f73da0bcb90c245
-- location:
     git: https://github.com/unitb/transformer-lenses.git
     commit: 899637f5a57a6909ed0f238e04388521a5f07c04
-- location:
-    git: https://github.com/unitb/string-lenses.git
-    commit: 28c86ee6c5c1ccbd4f001721e8636d3301ab52d4
 - location:
     git: https://github.com/unitb/show-with.git
     commit: 864e83e05b18541a707d5a55e526d6e2e5aa0a34
@@ -65,9 +62,6 @@ packages:
 - location:
     git: https://github.com/unitb/data-compressed.git
     commit: 51b75b90af13274bb48d7093f294fb1283bd983a
-- location:
-    git: https://github.com/unitb/pretty-printable.git
-    commit: e43804c59100430feedec572d392668762dd6806
 - location:
     git: https://github.com/unitb/data-packaged.git
     commit: 7e4d427b271573a3fa64625816eeb950c85d171b
