@@ -2,7 +2,7 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-7.10
+resolver: lts-7.24
 # resolver: lts-6.4
 
 # ghc-options:
@@ -25,22 +25,24 @@ packages:
 - literate-unitb-utils/
 - literate-unitb-latex/
 - syntax-error/
-- typelist-functor/
-- classy-lens-hierarchy/
-- bipartite-graph/
 - unitb-testing/
-- string-lenses/
-- pretty-printable/
-- partial-order/
-- show-with/
-- data-packaged/
-- generic-instances/
-- data-compressed
-- file-system-mockup
-- co-applicative
-- lens-extra
-- transformer-lenses
-- unfoldable
+-   location: libs
+    subdirs:
+    - typelist-functor/
+    - classy-lens-hierarchy/
+    - bipartite-graph/
+    - string-lenses/
+    - pretty-printable/
+    - partial-order/
+    - show-with/
+    - data-packaged/
+    - generic-instances/
+    - data-compressed/
+    - file-system-mockup/
+    - co-applicative/
+    - lens-extra/
+    - transformer-lenses/
+    - unfoldable/
 
 - location:
     git: https://github.com/unitb/serialize-instances.git
