@@ -19,14 +19,16 @@ resolver: lts-7.10
 
 # Local packages, usually specified by relative directory name
 packages:
-- literate-unitb-logic/
 - literate-unitb/
+- literate-unitb-logic/
 - literate-unitb-config/
 - literate-unitb-utils/
 - literate-unitb-latex/
-- location:
-    git: https://github.com/unitb/syntax-error.git
-    commit: 4afedb21cdce20c6cff8cb6b4f8375a99a080ec9
+- syntax-error/
+- typelist-functor/
+- classy-lens-hierarchy/
+- bipartite-graph/
+
 - location:
     git: https://github.com/unitb/unfoldable.git
     commit: 2b428472036f885792f89f8b4c700628157889f9
@@ -36,9 +38,6 @@ packages:
 - location:
     git: https://github.com/unitb/unitb-testing.git
     commit: 338d3125ca2bb96679ac34ba0f73da0bcb90c245
-- location:
-    git: https://github.com/unitb/typelist-functor.git
-    commit: 98171ab0824124d12039567ee9c0851933ce4b44
 - location:
     git: https://github.com/unitb/transformer-lenses.git
     commit: 899637f5a57a6909ed0f238e04388521a5f07c04
@@ -64,14 +63,8 @@ packages:
     git: https://github.com/unitb/file-system-mockup.git
     commit: 911f0e672618fac47bc997c507305691ff433c39
 - location:
-    git: https://github.com/unitb/bipartite-graph.git
-    commit: b76f97da93ef96a52f743f5ca8578e51092c69c8
-- location:
     git: https://github.com/unitb/data-compressed.git
     commit: 51b75b90af13274bb48d7093f294fb1283bd983a
-- location:
-    git: https://github.com/unitb/classy-lens-hierarchy.git
-    commit: c4f98d500973d9e04f78f398b6c866674019f784
 - location:
     git: https://github.com/unitb/pretty-printable.git
     commit: e43804c59100430feedec572d392668762dd6806
