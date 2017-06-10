@@ -218,7 +218,8 @@ script:
       # 
       pwd
       ls || echo "nothing"
-      (test "ls $HOME/.stack" && echo skipping the build) || travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
+      # (test "ls $HOME/.stack" && echo skipping the build) || travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
+      travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
       # echo $HOME
       # echo not calling stack
       ;;
