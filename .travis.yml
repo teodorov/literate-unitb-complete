@@ -109,6 +109,13 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
+  - stage: Full test
+    env: BUILD=stack ARGS=""
+  - env: BUILD=stack ARGS="--resolver lts-3"
+  - env: BUILD=stack ARGS="--resolver lts-6"
+  - env: BUILD=stack ARGS="--resolver lts-7"
+  - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
+
   # Build on OS X in addition to Linux
 
   #- env: BUILD=stack ARGS="--resolver lts-2"
@@ -255,15 +262,6 @@ install:
 #       ;;
 #   esac
 #   set +ex
-
-jobs:
-  include:
-    - stage: Full test
-      env: BUILD=stack ARGS=""
-    - env: BUILD=stack ARGS="--resolver lts-3"
-    - env: BUILD=stack ARGS="--resolver lts-6"
-    - env: BUILD=stack ARGS="--resolver lts-7"
-    - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
 
 script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
 
