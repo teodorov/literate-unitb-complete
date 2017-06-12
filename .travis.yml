@@ -35,6 +35,7 @@ cache:
 #     addons: {apt: {packages: [libfcgi-dev,libgmp-dev]}}
 matrix:
   include:
+  - stage: Test literate-unitb-logic
   # We grab the appropriate GHC and cabal-install versions from hvr's PPA. See:
   # https://github.com/hvr/multi-ghc-travis
   #- env: BUILD=cabal GHCVER=7.0.4 CABALVER=1.16 HAPPYVER=1.19.5 ALEXVER=3.1.7
@@ -219,7 +220,7 @@ script:
       pwd
       ls || echo "nothing"
       # (test "ls $HOME/.stack" && echo skipping the build) || travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
-      travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
+      travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
       # echo $HOME
       # echo not calling stack
       ;;
@@ -245,6 +246,16 @@ script:
       ;;
   esac
   set +ex
+
+jobs:
+  include:
+    - stage: Full test
+      script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+    - env: BUILD=stack ARGS=""
+    - env: BUILD=stack ARGS="--resolver lts-3"
+    - env: BUILD=stack ARGS="--resolver lts-6"
+    - env: BUILD=stack ARGS="--resolver lts-7"
+    - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
 
 before_deploy:
   - travis_long stack --no-terminal $ARGS install
