@@ -55,9 +55,10 @@ jobs:
   #- env: BUILD=cabal GHCVER=7.8.4 CABALVER=1.18 HAPPYVER=1.19.5 ALEXVER=3.1.7
   #  compiler: ": #GHC 7.8.4"
   #  addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
-    env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
-    compiler: ": #GHC 7.10.3"
-    addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
+    # env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
+    # compiler: ": #GHC 7.10.3"
+    # addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
+    # script: 
   # - env: BUILD=cabal GHCVER=8.0.1 CABALVER=1.24 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
   #   compiler: ": #GHC 8.0.1"
   #   addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1,happy-1.19.5,alex-3.1.7], sources: [hvr-ghc]}}
@@ -76,6 +77,7 @@ jobs:
   - env: BUILD=stack ARGS=""
     compiler: ": #stack default"
     addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
   #- env: BUILD=stack ARGS="--resolver lts-2"
   #  compiler: ": #stack 7.8.4"
@@ -84,23 +86,28 @@ jobs:
   - env: BUILD=stack ARGS="--resolver lts-3"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
   - env: BUILD=stack ARGS="--resolver lts-6"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
   - env: BUILD=stack ARGS="--resolver lts-7"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
   - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
   # Nightly builds are allowed to fail
   - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
   # Build on OS X in addition to Linux
 
@@ -211,43 +218,43 @@ install:
   esac
   set +ex
 
-script:
-- |
-  set -ex
-  case "$BUILD" in
-    stack)
-      # stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
-      # travis_wait 40 stack --no-terminal $ARGS test --bench --no-run-benchmarks 
-      # 
-      pwd
-      ls || echo "nothing"
-      # (test "ls $HOME/.stack" && echo skipping the build) || travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
-      travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
-      # echo $HOME
-      # echo not calling stack
-      ;;
-    cabal)
-      cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
-      # travis_wait 40 cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
+# script:
+# - |
+#   set -ex
+#   case "$BUILD" in
+#     stack)
+#       # stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+#       # travis_wait 40 stack --no-terminal $ARGS test --bench --no-run-benchmarks 
+#       # 
+#       pwd
+#       ls || echo "nothing"
+#       # (test "ls $HOME/.stack" && echo skipping the build) || travis_long stack --no-terminal $ARGS test --bench --no-run-benchmarks
+#       travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
+#       # echo $HOME
+#       # echo not calling stack
+#       ;;
+#     cabal)
+#       cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
+#       # travis_wait 40 cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
 
-      ORIGDIR=$(pwd)
-      for dir in $PACKAGES
-      do
-        cd $dir
-        cabal check || [ "$CABALVER" == "1.16" ]
-        cabal sdist
-        PKGVER=$(cabal info . | awk '{print $2;exit}')
-        SRC_TGZ=$PKGVER.tar.gz
-        cd dist
-        tar zxfv "$SRC_TGZ"
-        cd "$PKGVER"
-        cabal configure --enable-tests
-        cabal build
-        cd $ORIGDIR
-      done
-      ;;
-  esac
-  set +ex
+#       ORIGDIR=$(pwd)
+#       for dir in $PACKAGES
+#       do
+#         cd $dir
+#         cabal check || [ "$CABALVER" == "1.16" ]
+#         cabal sdist
+#         PKGVER=$(cabal info . | awk '{print $2;exit}')
+#         SRC_TGZ=$PKGVER.tar.gz
+#         cd dist
+#         tar zxfv "$SRC_TGZ"
+#         cd "$PKGVER"
+#         cabal configure --enable-tests
+#         cabal build
+#         cd $ORIGDIR
+#       done
+#       ;;
+#   esac
+#   set +ex
 
 jobs:
   include:
