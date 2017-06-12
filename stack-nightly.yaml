@@ -24,6 +24,7 @@ packages:
 - literate-unitb-config/
 - literate-unitb-utils/
 - literate-unitb-latex/
+- literate-unitb-scripts/
 - syntax-error/
 - unitb-testing/
 -   location: libs
@@ -73,6 +74,8 @@ extra-deps:
 - distributive-0.5.1
 - map-syntax-0.2.0.2
 - th-printf-0.3.1
+- directory-1.2.7.1
+- unfoldable-0.1.0.0
 
 # Override default flag values for local packages and extra-deps
 flags: {}
