@@ -65,7 +65,6 @@ extra-deps:
 - monoid-transformer-0.0.3
 - portable-lines-0.1
 - pseudomacros-0.0.2
-- lens-4.14
 - quickcheck-report-0.1.0.0
 - portable-template-haskell-lens-0.1.0.0
 - serialize-instances-0.1.0.0
