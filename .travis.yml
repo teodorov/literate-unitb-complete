@@ -37,6 +37,7 @@ jobs:
   include:
   - stage: Prepare cache
     script: True
+    addons: {apt: {packages: [libgmp-dev]}}
 
   - stage: Test literate-unitb-logic
     env: BUILD=stack ARGS=""
