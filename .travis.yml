@@ -21,7 +21,7 @@ cache:
   - $HOME/.cabal
   - $HOME/.stack
   - $HOME/z3
-  - $HOME/unitb/literate-unitb/.stack-work
+  - $HOME/unitb/literate-unitb-complete/.stack-work
 
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
@@ -47,18 +47,28 @@ jobs:
 
   - env: BUILD=stack ARGS="--resolver lts-3"
     compiler: ": #stack 7.10.2"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver lts-6"
     compiler: ": #stack 7.10.3"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver lts-7"
     compiler: ": #stack 8.0.1"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
     compiler: ": #stack 8.0.2"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
   - stage: Full test
     env: BUILD=stack ARGS=""
@@ -68,18 +78,28 @@ jobs:
 
   - env: BUILD=stack ARGS="--resolver lts-3"
     compiler: ": #stack 7.10.2"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver lts-6"
     compiler: ": #stack 7.10.3"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver lts-7"
     compiler: ": #stack 8.0.1"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
     compiler: ": #stack 8.0.2"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
 
   # Build on OS X in addition to Linux
 
@@ -167,32 +187,32 @@ before_install:
   fi
 
 install:
-- stack setup --resolver lts-3 --install-ghc
-- stack setup --resolver lts-6 --install-ghc
-- stack setup --resolver lts-7 --install-ghc
-- stack setup --resolver lts-8 --install-ghc
-- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 - if [ -f configure.ac ]; then autoreconf -i; fi
-- |
-  set -ex
-  case "$BUILD" in
-    stack)
-      # travis_wait 70 stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
-      # travis_long stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
-      # travis_long stack --no-terminal --install-ghc $ARGS build --bench --only-dependencies
-      travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-config literate-unitb-latex lens text
-      ;;
-    cabal)
-      cabal --version
-      travis_retry cabal update
+- travis_long stack --no-terminal --install-ghc --resolver lts-3 install literate-unitb-config literate-unitb-latex lens text
+- travis_long stack --no-terminal --install-ghc --resolver lts-6 install literate-unitb-config literate-unitb-latex lens text
+- travis_long stack --no-terminal --install-ghc --resolver lts-7 install literate-unitb-config literate-unitb-latex lens text
+- travis_long stack --no-terminal --install-ghc --resolver lts-8 install literate-unitb-config literate-unitb-latex lens text
+- echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
+# - |
+#   set -ex
+#   case "$BUILD" in
+#     stack)
+#       # travis_wait 70 stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+#       # travis_long stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+#       # travis_long stack --no-terminal --install-ghc $ARGS build --bench --only-dependencies
+#       travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-config literate-unitb-latex lens text
+#       ;;
+#     cabal)
+#       cabal --version
+#       travis_retry cabal update
 
-      # Get the list of packages from the stack.yaml file
-      PACKAGES=$(stack $STACKARGS --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
+#       # Get the list of packages from the stack.yaml file
+#       PACKAGES=$(stack $STACKARGS --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
 
-      cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
-      ;;
-  esac
-  set +ex
+#       cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
+#       ;;
+#   esac
+#   set +ex
 
 # script:
 # - |
