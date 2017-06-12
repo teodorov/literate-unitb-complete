@@ -93,6 +93,37 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
+  - stage: Test literate-unitb-scripts
+    env: BUILD=stack ARGS=""
+    compiler: ": #stack default"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+
+  - env: BUILD=stack ARGS="--resolver lts-3"
+    compiler: ": #stack 7.10.2"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--resolver lts-6"
+    compiler: ": #stack 7.10.3"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--resolver lts-7"
+    compiler: ": #stack 8.0.1"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
+    compiler: ": #stack 8.0.2"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
+    compiler: ": #stack nightly"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+  
   - stage: Full test
     env: BUILD=stack ARGS=""
     compiler: ": #stack default"
