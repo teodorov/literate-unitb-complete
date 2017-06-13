@@ -509,7 +509,6 @@ newMachine :: ( HasMachine machine expr
 newMachine name f = empty_machine name & content.machineBase %~ execState f
 
 instance NFData DocItem where
-instance PrettyPrintable expr => PrettyPrintable (MachineAST' expr) where
 instance PrettyPrintable expr => PrettyPrintable (MachineBase expr) where
 instance PrettyPrintable DocItem where
     pretty = show

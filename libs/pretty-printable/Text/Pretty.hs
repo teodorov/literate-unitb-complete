@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators, ScopedTypeVariables, GADTs #-}
 module Text.Pretty where
 
     -- Libraries
@@ -36,7 +36,7 @@ newtype Pretty a = Pretty { unPretty :: a }
 
 class PrettyPrintable a where
     pretty :: a -> String
-    default pretty :: (Functor f, Show (f (Pretty a))) => f a -> String
+    default pretty :: (f b ~ a, Functor f, Show (f (Pretty b))) => f b -> String
     pretty = show . fmap Pretty
 
 instance PrettyPrintable a => Show (Pretty a) where
