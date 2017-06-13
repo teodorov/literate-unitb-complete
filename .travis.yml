@@ -22,9 +22,31 @@ cache:
   - $HOME/.stack
   - $HOME/z3
   - $HOME/unitb/literate-unitb-complete/.stack-work
-  - $HOME/build/unitb/literate-unitb-complete/.stack-work
-  - $HOME/build/unitb/literate-unitb-complete/*/.stack-work
-  - $HOME/build/unitb/literate-unitb-complete/libs/*/.stack-work
+
+  - $HOME/build/unitb/literate-unitb-complete/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-config/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-latex/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-logic/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-scripts/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-utils/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/syntax-error/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/unitb-testing/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/bipartite-graph/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/classy-lens-hierarchy/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/co-applicative/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/data-compressed/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/data-packaged/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/file-system-mockup/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/generic-instances/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/lens-extra/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/partial-order/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/pretty-printable/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/show-with/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/string-lenses/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/transformer-lenses/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/typelist-functor/.stack-work/
+  - $HOME/build/unitb/literate-unitb-complete/libs/unfoldable/.stack-work/
 
 # The different configurations we want to test. We have BUILD=cabal which uses
 # cabal-install, and BUILD=stack which uses Stack. More documentation on each
