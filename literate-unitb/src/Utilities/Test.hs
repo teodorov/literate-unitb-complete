@@ -13,9 +13,8 @@ import Logic.Theories.FunctionTheory
 import Utilities.Graph as G
         ( matrix_of_with, closure
         , m_closure_with, as_map
-        , unions )
+        , unions, run_spec )
 import Utilities.EditDistance
-import qualified Utilities.GraphSpec as GSpec
 
     -- Libraries
 import Control.Lens
@@ -271,7 +270,7 @@ test = test_cases "Graphs and operator grammars" $
     , QuickCheckProps "case 7 - union of a list of {unsorted} list" case7
     , QuickCheckProps "case 8 - edit distance, random testing" case8
     , aCase "case 9 - edit distance, regression test from random testing" case9 0
-    , QuickCheckProps "QuickCheck of graphs" GSpec.run_spec
+    , QuickCheckProps "QuickCheck of graphs" G.run_spec
     , QuickCheckProps "case 11 - Relations, quickcheck" Rel.run_spec
     , QuickCheckProps "case 12 - New graphs, quickcheck" Graph.run_tests
     , QuickCheckProps "case 13 - Sane line breaks, quickcheck" Lines.run_tests
