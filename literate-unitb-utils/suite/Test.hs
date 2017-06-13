@@ -13,9 +13,8 @@ module Main (main) where
 import Utilities.Graph as G
         ( matrix_of_with, closure
         , m_closure_with, as_map
-        , unions )
+        , unions, run_spec )
 import Utilities.EditDistance
-import qualified Utilities.GraphSpec as GSpec
 
     -- Libraries
 -- import Control.Lens
@@ -117,8 +116,6 @@ result0 = array ((0,0),(5,5))
 --             , ((Union,SetDiff),NoAssoc,LeftAssoc)
 --             ]
 
-fst3 :: (a,b,c) -> a
-fst3 (x,_,_) = x
             
 -- case1 :: IO [((Operator,Operator),Assoc,Assoc)]
 -- case1 = return $ result
@@ -257,9 +254,6 @@ case9 = return $ length $ filter not
             , prop_a [0,5,-2] [0,-2,5]
             ]
 
-test_case :: TestCase
-test_case = test
-
 test :: TestCase
 test = test_cases "Graphs and operator grammars" $
     [ aCase "case 0 - complete domain of matrices" case0 result0
@@ -273,7 +267,7 @@ test = test_cases "Graphs and operator grammars" $
     , QuickCheckProps "case 7 - union of a list of {unsorted} list" case7
     , QuickCheckProps "case 8 - edit distance, random testing" case8
     , aCase "case 9 - edit distance, regression test from random testing" case9 0
-    , QuickCheckProps "QuickCheck of graphs" GSpec.run_spec
+    , QuickCheckProps "QuickCheck of graphs" G.run_spec
     -- , QuickCheckProps "case 11 - Relations, quickcheck" Rel.run_spec
     -- , QuickCheckProps "case 12 - New graphs, quickcheck" Graph.run_tests
     , QuickCheckProps "case 13 - Sane line breaks, quickcheck" Lines.run_tests

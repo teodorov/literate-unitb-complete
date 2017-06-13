@@ -56,7 +56,6 @@ library
         Utilities.EditDistance
         Utilities.Functor
         Utilities.Graph
-        Utilities.GraphSpec
         Utilities.Language
         Utilities.MapSyntax
         -- Utilities.Table

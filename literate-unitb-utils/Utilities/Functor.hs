@@ -13,15 +13,20 @@ newtype Swap4 f a b c d e = Swap4 {swap4 :: f e b c d a}
 newtype Swap5 f a b c d e g = Swap5 {swap5 :: f g b c d e a}
 
 instance Wrapped (Swap1 f a b) where
-    type Unwrapped (Swap1 f a b) = f a b
+    type Unwrapped (Swap1 f a b) = f b a
+    _Wrapped' = iso swap1 Swap1
 instance Wrapped (Swap2 f a b c) where
-    type Unwrapped (Swap2 f a b c) = f a b c
+    type Unwrapped (Swap2 f a b c) = f c b a
+    _Wrapped' = iso swap2 Swap2
 instance Wrapped (Swap3 f a b c d) where
-    type Unwrapped (Swap3 f a b c d) = f a b c d
+    type Unwrapped (Swap3 f a b c d) = f d b c a
+    _Wrapped' = iso swap3 Swap3
 instance Wrapped (Swap4 f a b c d e) where
-    type Unwrapped (Swap4 f a b c d e) = f a b c d e
+    type Unwrapped (Swap4 f a b c d e) = f e b c d a
+    _Wrapped' = iso swap4 Swap4
 instance Wrapped (Swap5 f a b c d e g) where
-    type Unwrapped (Swap5 f a b c d e g) = f a b c d e g
+    type Unwrapped (Swap5 f a b c d e g) = f g b c d e a
+    _Wrapped' = iso swap5 Swap5
 
 class Functor1 f where
     fmap1 :: (a -> b) -> f a c -> f b c

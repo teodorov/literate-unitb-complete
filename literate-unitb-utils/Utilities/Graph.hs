@@ -10,7 +10,8 @@ module Utilities.Graph
     , (!), unionWith, transpose
     , mapKeys, empty, as_map, size
     , unions, times, vertices 
-    , uppest, run_tests, from_list )
+    , uppest, run_tests, from_list 
+    , axm_def, run_spec )
 where
 -- 
 
@@ -40,9 +41,6 @@ import Prelude hiding ( map )
 import Test.QuickCheck
 import Test.QuickCheck.Report
 
-instance Show a => Show (SCC a) where
-    show (AcyclicSCC x) = show x
-    show (CyclicSCC xs) = show xs
 
 --type Array a b = 
 
@@ -340,3 +338,31 @@ run_tests = $forAllProperties'
 
 instance (NFData a,NFData b) => NFData (Matrix a b)
 
+instance (Ord a,Enum a,Eq b,Arbitrary b) => Arbitrary (Matrix a b) where
+    arbitrary = do
+        (Positive m) <- arbitrary
+        -- (Positive n) <- arbitrary
+        -- let xs = map toEnum [1..m]
+        def <- arbitrary
+        ys  <- listOf $ do
+            i <- choose (1,m)
+            j <- choose (1,m)
+            x <- arbitrary
+            return ((toEnum i, toEnum j),x)
+        return $ from_list ys def
+
+axm_def :: (Show a, Arbitrary a, Ord a, Composition b) 
+         => Matrix a b -> Property
+axm_def m' = forAll arbitrary $ \(x,z) -> 
+        m (x,z)  ==  uppest (L.map (\y -> m(x,y) `seq` m(y,z)) $ vertices m')
+    where
+        m = (m' !)
+
+-- prop_def :: Property
+-- prop_def = (forAll arbitrary (axm_def :: G.Matrix Int Bool -> Property))
+--             .&&. (forAll arbitrary (axm_def :: G.Matrix Int (G.Min Int) -> Property))
+
+return []
+run_spec :: (PropName -> Property -> IO (a, Result))
+         -> IO ([a], Bool)
+run_spec = $forAllProperties'
