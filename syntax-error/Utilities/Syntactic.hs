@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections,FunctionalDependencies,CPP #-}
+{-# LANGUAGE TupleSections,FunctionalDependencies,CPP,OverloadedStrings #-}
 module Utilities.Syntactic where
 
 import Control.DeepSeq
@@ -9,14 +9,15 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Trans.Either
 
-import Data.List
+import Data.List as L
 import Data.List.NonEmpty as NE (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import Data.List.Ordered
 import Data.Semigroup
 import Data.Serialize hiding (get)
+import Data.Text as T
 import Data.Typeable
-import qualified Data.String.Lines as L
+-- import qualified Data.String.Lines as L
 
 import GHC.Generics.Instances
 import GHC.Read
@@ -37,7 +38,7 @@ import Text.Pretty
 import Text.Printf.TH
 
 
-data Error = Error String LineInfo | MLError String (NonEmpty (String,LineInfo))
+data Error = Error Text LineInfo | MLError Text (NonEmpty (Text,LineInfo))
     deriving (Eq,Typeable,Show,Ord,Read,Generic)
 
 data LineInfo = LI 
@@ -74,8 +75,8 @@ string (x:xs) = char x >> string xs
 
 makeLenses ''LineInfo
 
-show_err :: [Error] -> String
-show_err xs = unlines $ map report $ sortOn line_info xs
+show_err :: [Error] -> Text
+show_err xs = T.unlines $ L.map report $ sortOn line_info xs
 
 class Syntactic a where
     line_info :: a -> LineInfo
@@ -83,19 +84,22 @@ class Syntactic a where
     traverseLineInfo :: Traversal' a LineInfo
 
 class Token t where
-    lexeme :: t -> String
+    lexeme :: t -> Text
     lexemeLength :: t -> LineInfo -> LineInfo
     lexemeLength x
-            | length xs <= 1 = column %~ (+ length t)
-            | otherwise      = (line %~ (+ (length xs - 1))).(column .~ (length (last xs) + 1))
+            | L.length xs <= 1 = column %~ (+ T.length t)
+            | otherwise      = (line %~ (+ (L.length xs - 1))).(column .~ (T.length (L.last xs) + 1))
         where 
-            xs = NE.toList $ L.lines t
+            xs = T.lines t
             t  = lexeme x
 
 instance Token Char where
-    lexeme x = [x]
+    lexeme x = T.singleton x
 
 instance Token String where
+    lexeme = pack
+
+instance Token Text where
     lexeme = id
 
 class IsBracket a str | a -> str where
@@ -114,8 +118,8 @@ end (tok,li) = lexemeLength tok li
 afterLast :: Token a => LineInfo -> [(a,LineInfo)] -> LineInfo
 afterLast li xs = maybe li end $ lastMay xs
 
-with_li :: LineInfo -> Either [String] b -> Either [Error] b
-with_li li = either (\x -> Left $ map (`Error` li) x) Right
+with_li :: LineInfo -> Either [Text] b -> Either [Error] b
+with_li li = either (\x -> Left $ L.map (`Error` li) x) Right
 
 instance Syntactic LineInfo where
     line_info = id
@@ -126,7 +130,7 @@ instance ZoomEq Error where
     (.==) = (I.===)
 instance Syntactic Error where
     line_info (Error _ li) = li
-    line_info (MLError _ ls) = minimum $ snd <$> ls
+    line_info (MLError _ ls) = L.minimum $ snd <$> ls
     after = line_info
     traverseLineInfo f (Error x li) = Error x <$> f li
     traverseLineInfo f (MLError x lis) = MLError x <$> (traverse._2) f lis
@@ -136,35 +140,34 @@ instance ZoomEq LineInfo where
 instance Arbitrary LineInfo where
     arbitrary = LI "file" <$> QC.elements [0,5,10] <*> QC.elements [0,5,10]
 
-showLiLong :: LineInfo -> String
-showLiLong (LI fn ln col) = [s|%s:%d:%d|] fn ln col
+showLiLong :: LineInfo -> Text
+showLiLong (LI fn ln col) = [st|%s:%d:%d|] (pack fn) ln col
 
-report :: Error -> String
-report (Error msg li) = [s|%s:\n    %s|] (showLiLong li) msg
-report (MLError msg ys) = [s|%s\n%s|] msg
-                (intercalate "\n" 
-                    $ map (\(msg,li) -> [s|%s:\n\t%s\n|] (showLiLong li) msg) 
-                    $ sortOn snd $ NE.toList ys)
+report :: Error -> Text
+report (Error msg li) = [st|%s:\n    %s|] (showLiLong li) msg
+report (MLError msg ys) = T.intercalate "\n" $
+                  msg : L.map (\(msg,li) -> pack $ [s|%s:\n\t%s\n|] (showLiLong li) msg) 
+                      (sortOn snd $ NE.toList ys)
 
-makeReport :: Monad m => EitherT [Error] m String -> m String
+makeReport :: Monad m => EitherT [Error] m Text -> m Text
 makeReport = liftM fst . makeReport' () . liftM (,())
 
-makeReport' :: Monad m => a -> EitherT [Error] m (String,a) -> m (String,a)
+makeReport' :: Monad m => a -> EitherT [Error] m (Text,a) -> m (Text,a)
 makeReport' def m = eitherT f return m
     where    
-        f x = return ("Left " ++ show_err x,def)
+        f x = return ("Left " <> show_err x,def)
 
-format_error :: Error -> String
+format_error :: Error -> Text
 format_error = report
 
-message :: Error -> String
+message :: Error -> Text
 message (Error msg _) = msg
 message (MLError msg _) = msg
 
 shrink_error_list :: [Error] -> [Error]
 shrink_error_list es' = do
-        (xs,e,ys) <- zip3 (inits es) es (drop 1 $ tails es)
-        guard $ not $ any (e `less_specific`) $ xs ++ ys
+        (xs,e,ys) <- zip3 (L.inits es) es (L.drop 1 $ L.tails es)
+        guard $ not $ L.any (e `less_specific`) $ xs ++ ys
         return e
     where
         less_specific e0@(Error _ _) e1@(Error _ _) = e0 == e1
@@ -186,10 +189,10 @@ instance ZoomEq a => ZoomEq (TokenStream a) where
 instance PrettyPrintable LineInfo where
     pretty (LI _ i j) = [s|(li:%d:%d)|] i j
 instance PrettyPrintable a => PrettyPrintable (TokenStream a) where
-    pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (map fst xs)
+    pretty str@(StringLi xs _) = pretty (line_info str) ++ ": " ++ pretty (L.map fst xs)
 
 instance Syntactic (TokenStream a) where
-    line_info (StringLi xs li) = headDef li (map snd xs)
+    line_info (StringLi xs li) = headDef li (L.map snd xs)
     after (StringLi _ li) = li
     traverseLineInfo f (StringLi xs li) = StringLi <$> (traverse._2) f xs <*> f li
 
@@ -229,7 +232,7 @@ asStringLi li xs = unlinesLi ys'
         ys' = NE.map f ys
         nxLn (LI fn i _j) = LI fn (i+1) 1
         nxCol (LI fn i j) = LI fn i (j+1)
-        f (x,y) = StringLi (zip y lis) (lis !! length y)
+        f (x,y) = StringLi (L.zip y lis) (lis !! L.length y)
             where lis = iterate nxCol x
 
 asLI :: Loc -> LineInfo
@@ -251,13 +254,13 @@ liLens f loc = fmap update . f $ LI
 locToLI :: SrcLoc -> LineInfo
 locToLI = view liLens
 
-errorTrace :: I.Pre => [FilePath] -> CallStack -> String -> [Error]
-errorTrace fs stack msg = [MLError msg $ nonEmpty' $ loc & mapped._2 %~ locToLI]
+errorTrace :: I.Pre => [FilePath] -> CallStack -> Text -> [Error]
+errorTrace fs stack msg = [MLError msg $ nonEmpty' $ loc & mapped %~ bimap pack locToLI]
     where
         loc = getSrcLocs fs stack
 
 instance PrettyPrintable Error where
-    pretty = report
+    pretty = unpack . report
 
 instance NFData Error 
 instance NFData LineInfo

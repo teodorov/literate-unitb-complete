@@ -12,8 +12,10 @@ where
 import Control.Monad
 
 import Data.Maybe
-import qualified Data.List.NonEmpty as NE
-import Data.String.Lines as L
+-- import qualified Data.List.NonEmpty as NE
+import Data.List as L
+-- import Data.String.Lines as L
+import Data.Text as T
 
 import Utilities.Syntactic
 
@@ -31,7 +33,7 @@ instance Applicative (Scanner a) where
 
 instance Monad (Scanner a) where
     f >>= gF = comb f gF
-    fail s   = raise . Error s =<< get_line_info
+    fail s   = raise . Error (pack s) =<< get_line_info
     return x = Scanner (\s -> Right (x,s))
 
 raise :: Error -> Scanner a k
@@ -66,17 +68,17 @@ read_if p left right = do
             x:_ <- peek 
             if p x
             then do
-                read_char
+                _ <- read_char
                 left x
             else
                 right
 
-line_number :: String -> String -> [(Char, LineInfo)]
-line_number fn xs     = concatMap f ys
+line_number :: FilePath -> Text -> [(Char, LineInfo)]
+line_number fn xs     = L.concatMap f ys
     where
-        f (n, xs)  = map (g n) xs
+        f (n, xs)  = L.map (g n) xs
         g n (i, x) = (x, LI fn n i)
-        ys         = zip [1..] $ map (zip [1..]) $ NE.toList $ L.lines' xs
+        ys         = L.zip [1..] $ L.map (L.zip [1..] . unpack) $ T.lines xs
         --addEOL = maybe [] (uncurry (++) . (second (:[]))) . unconsR
         --ys         = zip [1..] $ map (zip [1..] . (++ "\n")) $ lines xs
 
@@ -88,13 +90,13 @@ line_number fn xs     = concatMap f ys
 peek :: Scanner a [a]
 peek = Scanner f
     where
-        f s@(State xs _) = Right (map fst xs, s)
+        f s@(State xs _) = Right (L.map fst xs, s)
 
             
 is_eof :: Scanner a Bool
 is_eof = do
         xs <- peek
-        return (null xs)
+        return (L.null xs)
             
 read_char :: Token b => Scanner b b
 read_char = Scanner f
@@ -122,10 +124,10 @@ match p = do
 
 match_string :: Eq a => [a] -> [a] -> Maybe Int
 match_string xs = \ys -> do
-        guard (xs == take n ys)
+        guard (xs == L.take n ys)
         return n
     where
-        n = length xs
+        n = L.length xs
 
 type Pattern a b = ([a] -> Maybe Int, [a] -> Scanner a b)
 
@@ -138,7 +140,7 @@ match_first ((p,f):xs) x = do
             Nothing -> match_first xs x
 
 read_lines :: Scanner Char a 
-           -> FilePath -> String 
+           -> FilePath -> Text
            -> Either [Error] a 
 read_lines s fn xs = read_tokens s (line_number fn xs) $ LI fn 1 1
 
