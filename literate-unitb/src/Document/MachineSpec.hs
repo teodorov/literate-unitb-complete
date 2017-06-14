@@ -82,7 +82,7 @@ instance Arbitrary ExprNotation where
             e     <- expr_type False vars t
             case e of
                 Just e  -> return (vars,e)
-                Nothing -> retry $ n-1
+                Nothing -> retry (n-1 :: Int)
             ) 10
         let ctx = Context 
                     M.empty vars M.empty
@@ -286,7 +286,7 @@ gen_machine b = fix (\retry n -> do
                         variables .= vars
                         props .= empty_property_set
                                 { _inv = M.fromList $ zip inv_lbl inv } 
-                Nothing -> retry $ n-1
+                Nothing -> retry (n-1 :: Int)
             ) 10
 
 instance Arbitrary RawMachine where

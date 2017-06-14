@@ -7,7 +7,6 @@ import Control.Lens
 import Control.Monad
 
 import Data.Functor.Compose
-import Data.List
 import Data.Monoid ((<>))
 
 import Document.Document hiding (system)
@@ -21,11 +20,9 @@ import qualified Utilities.Test as UT
 import qualified Code.Test as Code
 import qualified Documentation.Test as Sum
 
-import Shelly hiding (time,get)
 
 import Options.Applicative
 
-import System.Directory
 import System.Exit
 import System.Process
 
@@ -102,7 +99,6 @@ parseSelection =
 
 trashTestFiles :: IO ()
 trashTestFiles = do
-    xs <- getDirectoryContents "."
     setNumCapabilities 8
     void $ system "rm actual* expected* po-* log*.z3"
 

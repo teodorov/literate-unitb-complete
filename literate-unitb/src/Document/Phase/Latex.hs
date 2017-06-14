@@ -48,6 +48,7 @@ import Prelude hiding ((.),id)
 
 import Text.Printf.TH
 
+import Utilities.ArrowEx
 import Utilities.Syntactic
 
 data LatexMatch = CmdMatch String [Bracket] | EnvMatch Environment
@@ -74,6 +75,11 @@ makeLenses ''LatexParserT
 first' :: Monad m => (a -> m b) -> ((a,c) -> m (b,c))
 first' = kleisli' %~ first
 
+instance ArrowEx LatexParserA where
+    existsA1 f = 
+        case f of 
+            LatexParser f0 f1 f2 f3 f4 _ -> LatexParser f0 f1 f2 f3 f4 $ asInst (_runLatexParser f)
+
 instance ArrowUnfold LatexParserA where
     fixExA = runLatexParser.kleisli' %~ fixExA
 
@@ -81,7 +87,7 @@ instance Applicative (LatexParserA a) where
     pure = LatexParser [] [] [] [] True . pure . pure
     f <*> x = (f &&& x) >>> arr (uncurry ($))
 
-instance Arrow (LatexParserA) where
+instance Arrow LatexParserA where
     arr f = lift' $ pure . f
     first = runLatexParser %~ first'
 instance Category LatexParserA where

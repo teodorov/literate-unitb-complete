@@ -97,7 +97,7 @@ makeLenses ''Params'
 instance NFData Params where
 
 instance Show ParserState where
-    show (Idle x) = [s|Idle %sms|] $ show $ round $ x * 1000
+    show (Idle x) = [s|Idle %sms|] $ show $ (round $ x * 1000 :: Int)
     show Parsing  = "Parsing"
 
 parser :: Shared
@@ -173,10 +173,10 @@ prover (Shared { .. }) = do
     where
         inc x = modify_obs working (return . (+x))
         dec x = modify_obs working (return . (+ (-x)))            
-        -- handler :: 
-        handler lbl@(_,x) (ErrorCall msg) = do
+        handler :: (PrettyPrintable t) => (t, Label) -> ErrorCall -> IO b
+        handler lbl@(_,x) err = do
             write_obs dump_cmd $ Just $ Only x
-            fail ([s|During %s: %s|] (pretty lbl) msg)
+            fail ([s|During %s: %s|] (pretty lbl) (show err))
         worker req = forever $ do
             -- (k,po) <- takeMVar req
             (k,po) <- atomically $ readTBQueue req
@@ -218,7 +218,7 @@ proof_report' showSuccess pattern outs es isWorking =
         foot _ = 
                 [ [s|# hidden: %d failures|] (length xs - length ys)
                 ]
-        xs = filter (failure . snd) (zip [0..] $ M.toAscList outs)
+        xs = filter (failure . snd) (zip [(0 :: Int) ..] $ M.toAscList outs)
         ys = map f $ filter (match . snd) xs
         match xs  = maybe True (\f -> f `L.isInfixOf` map toLower (show $ snd $ fst xs)) pattern
         failure :: (a,(b,Maybe Bool)) -> Bool

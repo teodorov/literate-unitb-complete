@@ -21,7 +21,7 @@ instance Applicative Z3 where
     pure = Z3 . SequentM . RWST . const . \x s -> pure (pure x,s,mempty)
     Z3 (SequentM (RWST f)) <*> Z3 (SequentM (RWST x)) = Z3 $ SequentM $ RWST $ \() s -> liftA2 (comp s) (f () s) (x () s)
         where
-            comp s (i,j,k) (i',j',k') = (i <*> i',s,k <> k')
+            comp s (i,_,k) (i',_,k') = (i <*> i',s,k <> k')
 
 sequent :: SequentM Expr -> Z3 Validity
 sequent s = Z3 $ case makeSequent s of

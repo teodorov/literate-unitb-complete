@@ -289,8 +289,8 @@ path3 = [path|Tests/cubes-t3.tex|]
 result4 :: Either [Error] (Map ProgId ProgressProp)
 result4 = M.map (fmap (DispExpr "")) <$> either g Right (do
         q0 <- f `mzeq` zlambda [i_decl] 
-            (mzle (mzint 0) i `mzand` mzless i bigN) 
-            (mzpow i $ mzint 3)
+            (mzle (mzint (0 :: Int)) i `mzand` mzless i bigN) 
+            (mzpow i $ mzint (3 :: Int))
         q1 <- bigN `mzeq` n
         q2 <- (k `mzless` n) `mzor` (n `mzeq` bigN)
         p1  <- (n `mzeq` k)

@@ -1,0 +1,295 @@
+{
+	"build_systems":
+	[
+		{
+            "cmd":
+            [
+                "diff_fail"
+            ],
+            "name": "Check test results",
+            "working_dir": "${project_path}"
+        },
+        {
+			"cmd":
+			[
+				"stack",
+				"build",
+				"--test",
+				"--ghc-options", "-fno-warn-name-shadowing",
+				"--no-run-tests",
+				"--resolver",
+				"lts-3"
+			],
+			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / stack lts-3",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				"stack",
+				"build",
+				"--test",
+				"--ghc-options", "-fno-warn-name-shadowing",
+				"--no-run-tests",
+				"--resolver",
+				"lts-6"
+			],
+			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / stack lts-6",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				"stack",
+				"build",
+				"--test",
+				"--ghc-options", "-fno-warn-name-shadowing",
+				"--no-run-tests",
+				"--resolver",
+				"lts-7"
+			],
+			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / stack lts-7",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				"stack",
+				"build",
+				"--test",
+				"--ghc-options", "-fno-warn-name-shadowing",
+				"--no-run-tests",
+				"--pedantic",
+				"--stack-yaml", "stack-nightly.yaml",
+				"--resolver",
+				"lts-8"
+			],
+			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / stack lts-8",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				"stack",
+				"build",
+				"--test",
+				"--ghc-options", "-fno-warn-name-shadowing",
+				"--no-run-tests",
+				"--pedantic",
+				"--stack-yaml", "stack-nightly.yaml",
+				"--resolver",
+				"nightly"
+			],
+			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / stack nightly",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				"stack",
+				"test",
+				"literate-unitb",
+				"--test-arguments",
+				"--selected-case"
+			],
+			"file_regex": "^([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / stack test",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				// "cabal",
+				"stack",
+				// "exec",
+				"runghc",
+				"--",
+				"-isrc:script:utils:latex:logic:libs/invariants:libs/generic-instances:libs/string-lenses:libs/axiomatic-classes:libs/printf-th",
+				"$project_path/script/main/Display_errors.hs",
+				"$file",
+				"$project_path",
+				"ghc_errors.txt"
+			],
+			"file_regex": "^([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
+			"name": "Haskell / Literate Unit-B",
+			"selector": "source.haskell",
+			"working_dir": "${project_path}"
+		},
+		{
+			"cmd":
+			[
+				"bin/Continuous",
+				"$file",
+				"-V",
+				"-v",
+				"-d"
+			],
+			"file_regex": "^([^\\s]..*?):([0-9]*):?([0-9]*)",
+			"name": "Literate Unit-B",
+			"selector": "text.tex.latex",
+			"working_dir": "${project_path}"
+		}
+	],
+	"folders":
+	[
+		{
+			"file_include_patterns":
+			[
+				"*.cabal", "*.yaml", "*.yml"
+			],
+			"path": "."
+		},
+		// {
+		// 	"file_include_patterns":
+		// 	[
+		// 		"*hs",
+		// 		"*.md"
+		// 	],
+		// 	"path": "logic"
+		// },
+		// {
+		// 	"folder_exclude_patterns":
+		// 	[	"dist",".stack-work" ],
+		// 	"file_include_patterns":
+		// 	[
+		// 		"*hs",
+		// 		"*.md"
+		// 	],
+		// 	"path": "libs"
+		// },
+		// {
+		// 	"file_include_patterns":
+		// 	[
+		// 		"*hs",
+		// 		"*.md"
+		// 	],
+		// 	"path": "latex"
+		// },
+		// {
+		// 	"file_include_patterns":
+		// 	[
+		// 		"*hs",
+		// 		"*.md"
+		// 	],
+		// 	"path": "utils"
+		// },
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.md"
+			],
+			"path": "literate-unitb/src"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "literate-unitb-logic"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "literate-unitb-latex"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "literate-unitb-utils"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "literate-unitb-config"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "syntax-error"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "unitb-testing"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"path": "libs"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.md"
+			],
+			"path": "literate-unitb/suite"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.md"
+			],
+			"path": "literate-unitb/script"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.md"
+			],
+			"path": "literate-unitb/app"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*tex",
+				"*sty"
+			],
+			"path": "literate-unitb/Tests"
+		}
+	],
+	"settings":
+	{
+		"translate_tabs_to_spaces": true
+	}
+}

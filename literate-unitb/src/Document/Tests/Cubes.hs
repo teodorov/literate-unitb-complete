@@ -94,9 +94,9 @@ event6_evt = empty_event {
         _actions = rel_action vars $ fromList $ zip 
             (map label ["a1", "a0", "a2", "a3"])
             [ a' `zeq` (a `zplus` b), 
-              n' `zeq` (n `zplus` zint 1),
+              n' `zeq` (n `zplus` zint (1 :: Int)),
               b' `zeq` (b `zplus` c),
-              c' `zeq` (c `zplus` zint 6) ] }
+              c' `zeq` (c `zplus` zint (6 :: Int)) ] }
     where
         a  = Word var_a
         a' = Word var_a'

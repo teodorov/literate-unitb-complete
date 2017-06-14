@@ -29,7 +29,7 @@ import Control.Monad.Trans.Either
 import Control.Precondition
 
 import qualified Data.Map as M
-import Data.List
+-- import Data.List
 import Data.Time
 import Data.Typeable
 import Data.Version

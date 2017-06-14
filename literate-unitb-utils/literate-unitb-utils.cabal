@@ -53,6 +53,7 @@ library
   -- Modules exported by the library.
   exposed-modules:     
         Data.DList.Utils
+        Utilities.ArrowEx
         Utilities.EditDistance
         Utilities.Functor
         Utilities.Graph
@@ -79,7 +80,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report
+  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, existential
 
   -- Directories containing source files.
   hs-source-dirs:      .

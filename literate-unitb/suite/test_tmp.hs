@@ -64,52 +64,52 @@ import Document.ExprScope as EScope
 main :: IO ()
 main = timeIt $ void $ do
     setNumCapabilities 8
-    system "rm actual-*.txt"
-    system "rm expected-*.txt"
-    system "rm po-*.z3"
-    system "rm log*.z3"
+    _ <- system "rm actual-*.txt"
+    _ <- system "rm expected-*.txt"
+    _ <- system "rm po-*.z3"
+    _ <- system "rm log*.z3"
     writeFile "syntax.txt" $ unlines syntaxSummary
     putStrLn $ nameType
-    return $ edit =<< raw_proof_obligation Deq.path1 "m0/INIT/FIS/q/p" 0
-    return $ printQuickCheckResult MSpec.run_spec
-    return $ quickCheck MSpec.prop_expr_parser
-    return $ run_test_cases Deq.test_case
+    _ <- return $ edit =<< raw_proof_obligation Deq.path1 "m0/INIT/FIS/q/p" 0
+    _ <- return $ printQuickCheckResult MSpec.run_spec
+    _ <- return $ quickCheck MSpec.prop_expr_parser
+    _ <- return $ run_test_cases Deq.test_case
     -- timeIt $ do
     --     p <- parse_system path
     --     evaluate $ force p
     -- x <- proof_obligation Deq.path4 "m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/NEG" 1
-    return $ run_test_cases Term.test_case
-    return $ run_test_cases Ph.test_case
-    return $ run_test_cases Ut.test_case
-    return $ run_test_cases Z3.test_case
+    _ <- return $ run_test_cases Term.test_case
+    _ <- return $ run_test_cases Ph.test_case
+    _ <- return $ run_test_cases Ut.test_case
+    _ <- return $ run_test_cases Z3.test_case
     ----print =<< Ph.case7
-    return $ run_test_cases Code.test_case
-    return $ run_test_cases Sum.test_case
-    return $ print =<< run_test_cases Doc.check_axioms
-    return $ printQuickCheckResult PExp.check_props
-    return $ run_test_cases SM.test_case
+    _ <- return $ run_test_cases Code.test_case
+    _ <- return $ run_test_cases Sum.test_case
+    _ <- return $ print =<< run_test_cases Doc.check_axioms
+    _ <- return $ printQuickCheckResult PExp.check_props
+    _ <- return $ run_test_cases SM.test_case
 -- ******
-    return $ run_test_cases Lam.test_case
+    _ <- return $ run_test_cases Lam.test_case
 -- ******
-    return $ run_test_cases Cubes.test_case
-    return $ run_test_cases Sync.test_case
-    return $ run_test_cases Puzz.test_case
-    return $ quickCheck MSpec.prop_expr_parser
-    return $ printQuickCheckResult MSpec.run_spec
-    return $ print =<< run_test_cases check_axioms
-    return $ run_test_cases Def.test_case
-    return $ run_test_cases Logic.test_case
+    _ <- return $ run_test_cases Cubes.test_case
+    _ <- return $ run_test_cases Sync.test_case
+    _ <- return $ run_test_cases Puzz.test_case
+    _ <- return $ quickCheck MSpec.prop_expr_parser
+    _ <- return $ printQuickCheckResult MSpec.run_spec
+    _ <- return $ print =<< run_test_cases check_axioms
+    _ <- return $ run_test_cases Def.test_case
+    _ <- return $ run_test_cases Logic.test_case
     -- timeout (60 * 1000000) $ do
-    return $ run_test_cases UB.test_case
-    -- return $ print =<< Lines.run_tests
-    return $ run_test_cases TS.test_case
-    return $ run_test_cases TSS.test_case
-    return $ run_test_cases TSRef.test_case
-    return $ run_test_cases UT.test_case
-    return $ run_test_cases Tex.test_case
-    return $ run_test_cases GC.test_case
-    return $ run_test_cases Parser.test_case
-    return $ run_test_cases Z3.test_case
-    return $ run_test_cases Doc.test_case
-    return $ printQuickCheckResult EScope.run_tests
+    _ <- return $ run_test_cases UB.test_case
+    -- _ <- return $ print =<< Lines.run_tests
+    _ <- return $ run_test_cases TS.test_case
+    _ <- return $ run_test_cases TSS.test_case
+    _ <- return $ run_test_cases TSRef.test_case
+    _ <- return $ run_test_cases UT.test_case
+    _ <- return $ run_test_cases Tex.test_case
+    _ <- return $ run_test_cases GC.test_case
+    _ <- return $ run_test_cases Parser.test_case
+    _ <- return $ run_test_cases Z3.test_case
+    _ <- return $ run_test_cases Doc.test_case
+    _ <- return $ printQuickCheckResult EScope.run_tests
     return ()

@@ -58,14 +58,14 @@ example0 = do
         let (x,x',x_decl) = prog_var "x" int
             (y,_,y_decl) = prog_var "y" int
             li = LI "" 0 0
-        inv0   <- with_li li (x `mzeq` (mzint 2 `mztimes` y))
-        init0  <- with_li li (x `mzeq` mzint 0)
-        init1  <- with_li li (y `mzeq` mzint 0)
-        tr     <- with_li li (x `mzeq` mzint 0)
+        inv0   <- with_li li (x `mzeq` (mzint (2 :: Int) `mztimes` y))
+        init0  <- with_li li (x `mzeq` mzint (0 :: Int))
+        init1  <- with_li li (y `mzeq` mzint (0 :: Int))
+        tr     <- with_li li (x `mzeq` mzint (0 :: Int))
         co     <- with_li li (x `mzle` x')
         csched <- with_li li (x `mzeq` y)
-        s0     <- with_li li (liftM (Assign x_decl) (x `mzplus` mzint 2))
-        s1     <- with_li li (liftM (Assign y_decl) (y `mzplus` mzint 1))
+        s0     <- with_li li (liftM (Assign x_decl) (x `mzplus` mzint (2 :: Int)))
+        s1     <- with_li li (liftM (Assign y_decl) (y `mzplus` mzint (1 :: Int)))
         let tr0 = Tr empty tr (NE.fromList ["evt"]) empty_hint
             co0 = Co [] co
             ps = empty_property_set {

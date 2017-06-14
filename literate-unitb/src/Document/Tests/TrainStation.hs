@@ -171,7 +171,7 @@ machine0 = newMachine trainName $ do
       event_table .= newEvents [("enter", enter_evt), ("leave", leave_evt)]
       props .= props0
     where
-        inLbls = map (label . ("in" ++) . show . (1 -)) [0..]
+        inLbls = map (label . ("in" ++) . show . (1 -)) [(0 :: Int) ..]
         axm0 = c [expr| \BLK = \{ent,ext\} \bunion PLF |]
         axm2 = c [expr| \neg ent = ext \land \neg ent \in PLF \land \neg ext \in PLF |] 
         axm3 = c [expr| \qforall{p}{}{ \neg p = ext \equiv p \in \{ent\} \bunion PLF } |]

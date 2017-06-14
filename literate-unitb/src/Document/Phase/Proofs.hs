@@ -76,6 +76,7 @@ import Prelude hiding (id,(.))
 
 import Text.Printf.TH
 
+import Utilities.ArrowEx
 import Utilities.Syntactic
 
 type LiveEvtId = Either EventId ProgId
@@ -348,9 +349,8 @@ liveness m = withLineInfo $ proc () -> do
             r  <- promoteRule m inf es hint
             return $ inf & ruleLens .~ r
         step :: LatexParserA (RawProgressProp,RuleProxy) VoidInference
-        step = insideOneEnvOf ["step","flatstep"] $ proc (goal,prxy) -> do 
-                Cell prxy' <- arr (view cell) -< prxy
-                stepList m -< (goal,Inst prxy')
+        step = insideOneEnvOf ["step","flatstep"] $ 
+            second (viewA cell) >>> existsA1Pair' (stepList m)
 
 type VoidInference = Cell1 (Compose Inference Proxy) RuleParser
 
