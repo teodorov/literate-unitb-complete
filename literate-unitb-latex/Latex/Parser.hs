@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies, OverloadedStrings, OverloadedLists #-}
 module Latex.Parser where
 
     -- Modules
@@ -17,9 +17,11 @@ import Data.Either.Combinators
 import qualified Data.Foldable as F
 import Data.List ( intercalate )
 import qualified Data.List as L
+import Data.Monoid
 import Data.Semigroup hiding ( (<>) )
 import qualified Data.Semigroup as S 
 import Data.String.Lines as LN
+import Data.Text as T
 import Data.Typeable
 
 import GHC.Generics (Generic)
@@ -44,7 +46,7 @@ data LatexNode =
         | Text LatexToken
     deriving (Eq,Show,Generic,Typeable)
 
-data Environment = Env LineInfo String LineInfo LatexDoc LineInfo
+data Environment = Env LineInfo Text LineInfo LatexDoc LineInfo
     deriving (Eq,Show,Generic,Typeable)
 
 data Bracket = Bracket BracketType LineInfo LatexDoc LineInfo
@@ -57,9 +59,9 @@ data BracketType = Curly | Square
     deriving (Eq,Show,Typeable,Generic)
 
 data LatexToken =
-        Command String LineInfo
-        | TextBlock String LineInfo
-        | Blank String LineInfo
+        Command Text LineInfo
+        | TextBlock Text LineInfo
+        | Blank Text LineInfo
         | Open BracketType LineInfo
         | Close BracketType LineInfo
     deriving (Eq, Show, Typeable, Generic)
@@ -67,7 +69,7 @@ data LatexToken =
 makePrisms ''LatexToken
 makePrisms ''LatexNode
 
-envType :: Environment -> String
+envType :: Environment -> Text
 envType (Env _ n _ _ _) = n
 
 --instance Zippable LatexNode where
@@ -80,37 +82,37 @@ instance Semigroup LatexDoc where
     (<>) (Doc li0 xs _) (Doc _ ys li1) = Doc li0 (xs++ys) li1
 
 class Convertible a where
-    flatten :: a -> String
+    flatten :: a -> Text
 
-flatten' :: LatexDoc -> String
-flatten' (Doc _ xs _) = concatMap flatten xs
+flatten' :: LatexDoc -> Text
+flatten' (Doc _ xs _) = T.concat $ L.map flatten xs
 
 instance Convertible LatexDoc where
     flatten = flatten'
 
 instance Convertible LatexNode where
     flatten (EnvNode (Env _ s _ ct _)) = 
-               "\\begin{" ++ s ++ "}"
-            ++ flatten' ct
-            ++ "\\end{" ++ s ++ "}"
-    flatten (BracketNode (Bracket b _ ct _)) = [openBracket b] ++ flatten' ct ++ [closeBracket b]
+               "\\begin{" <> s <> "}"
+            <> flatten' ct
+            <> "\\end{" <> s <> "}"
+    flatten (BracketNode (Bracket b _ ct _)) = [openBracket b] <> flatten' ct <> [closeBracket b]
     flatten (Text xs) = lexeme xs
 
 instance Convertible [LatexToken] where
-    flatten = concatMap lexeme
+    flatten = T.concat . L.map lexeme
 
 instance Convertible [(LatexToken,LineInfo)] where
-    flatten = concatMap (lexeme.fst)
+    flatten = T.concat . L.map (lexeme.fst)
 
 instance Convertible StringLi where
-    flatten (StringLi xs _) = map fst xs
+    flatten (StringLi xs _) = pack $ L.map fst xs
 
 instance IsBracket BracketType Char where
     bracketPair Curly = ('{','}')
     bracketPair Square = ('[',']')
 
 instance PrettyPrintable LatexDoc where
-    pretty = flatten
+    pretty = unpack . flatten
 
 instance NFData Environment where
 instance NFData Bracket where
@@ -127,22 +129,22 @@ lineInfoLens f (Open x li)  = Open x  <$> f li
 lineInfoLens f (Close x li) = Close x <$> f li
 
 whole_line :: LineInfo -> [LineInfo]
-whole_line (LI fn i j) = map (uncurry3 LI) $ zip3 (repeat fn) (repeat i) [j..]
+whole_line (LI fn i j) = L.map (uncurry3 LI) $ zip3 (repeat fn) (repeat i) [j..]
 
 uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
 uncurry3 f (x,y,z) = f x y z
 
 flatten_li' :: LatexDoc -> StringLi
-flatten_li' (Doc _ xs li) = StringLi (concatMap flatten_li xs) li
+flatten_li' (Doc _ xs li) = StringLi (L.concatMap flatten_li xs) li
 
 getString :: StringLi -> [(Char,LineInfo)]
 getString (StringLi xs _) = xs
 
 flatten_li :: LatexNode -> [(Char,LineInfo)]
 flatten_li (EnvNode (Env li0 s _ ct li1)) = 
-           zip ("\\begin{" ++ s ++ "}") (whole_line li0)
+           L.zip ("\\begin{" ++ unpack s ++ "}") (whole_line li0)
         ++ getString (flatten_li' ct)
-        ++ zip ("\\end{" ++ s ++ "}") (whole_line li1)
+        ++ L.zip ("\\end{" ++ unpack s ++ "}") (whole_line li1)
 flatten_li (Text xs)        = lexeme_li xs
 flatten_li (BracketNode (Bracket b li0 ct li1)) 
         = (openBracket b,li0) : getString (flatten_li' ct) ++ [(closeBracket b,li1)]
@@ -158,7 +160,7 @@ fold_docM f x doc = foldM f x $ contents' $ contents doc
 
 map_doc :: (LatexNode -> b)
         -> LatexNode -> [b]
-map_doc f doc = map f $ contents' $ contents doc
+map_doc f doc = L.map f $ contents' $ contents doc
 
 map_docM :: Monad m 
          => (LatexNode -> m b)
@@ -170,13 +172,13 @@ map_docM_ :: Monad m
          -> LatexNode -> m ()
 map_docM_ f doc = mapM_ f $ contents' $ contents doc
 
-isWord :: LatexDoc -> Maybe String
+isWord :: LatexDoc -> Maybe Text
 isWord = fmap fst . isWord'
 
-isWord' :: LatexDoc -> Maybe (String,LineInfo)
+isWord' :: LatexDoc -> Maybe (Text,LineInfo)
 isWord' (Doc _ xs _) = concat' =<< mapM (f <=< preview _Text) xs 
     where
-        concat' ((x,li):xs) = Just (x ++ concatMap fst xs,li)
+        concat' ((x,li):xs) = Just (x <> T.concat (L.map fst xs),li)
         concat' [] = Nothing
         f (TextBlock x li) = Just (x,li)
         f (Command x li)   = Just (x,li)
@@ -202,7 +204,7 @@ contents' :: LatexDoc -> [LatexNode]
 contents' (Doc _ xs _) = xs
 
 unconsTex :: LatexDoc -> Maybe (LatexNode,LatexDoc)
-unconsTex (Doc _ (x:xs) li) = Just (x,Doc (headDef li $ map line_info xs) xs li)
+unconsTex (Doc _ (x:xs) li) = Just (x,Doc (headDef li $ L.map line_info xs) xs li)
 unconsTex (Doc _ [] _)      = Nothing
 
 consTex :: LatexNode -> LatexDoc -> LatexDoc
@@ -242,7 +244,7 @@ instance Syntactic LatexNode where
     line_info (BracketNode (Bracket _ li _ _)) = li
     line_info (Text t)           = line_info t
     after (Text t) = after t
-    after (EnvNode (Env _ nm _ _ li))  = end (nm ++ "}",li)
+    after (EnvNode (Env _ nm _ _ li))  = end (nm <> "}",li)
     after (BracketNode (Bracket _ _ _ li)) = end ("}",li)
     traverseLineInfo f (BracketNode (Bracket b li0 ct li1)) = fmap BracketNode $
             Bracket b <$> f li0 
@@ -265,17 +267,17 @@ instance Syntactic LatexDoc where
                 <*> f li'
 
 tokens :: LatexDoc -> [(LatexToken,LineInfo)]
-tokens (Doc _ xs _) = concatMap f xs
+tokens (Doc _ xs _) = L.concatMap f xs
     where
         f :: LatexNode -> [(LatexToken,LineInfo)]
         f (EnvNode (Env li0 name li1 ct li2)) = f begin ++ cont ++ f end
             where
-                f = map (id &&& line_info)
-                openLI = li0 & column %~ (length "\\begin"+)
-                closeLI = li1 & column %~ (length name+)
+                f = L.map (id &&& line_info)
+                openLI = li0 & column %~ (L.length "\\begin"+)
+                closeLI = li1 & column %~ (T.length name+)
                 endLI = afterLast (closeLI & column %~ (1+)) cont
-                openLI' = endLI & column %~ (length "\\end"+)
-                closeLI' = li2 & column %~ (length name+)
+                openLI' = endLI & column %~ (L.length "\\end"+)
+                closeLI' = li2 & column %~ (T.length name+)
                 begin = [ (Command "\\begin" li0)
                         , (Open Curly openLI)
                         , (TextBlock name li1) 
@@ -288,9 +290,9 @@ tokens (Doc _ xs _) = concatMap f xs
         f (BracketNode (Bracket br li0 ct li1)) = [(Open br li0,li0)] ++ tokens ct ++ [(Close br li1,li1)]
         f (Text tok) = [(tok,line_info tok)]
 
-source :: LatexNode -> String
+source :: LatexNode -> Text
 source (Text t) = lexeme t
-source x           = show x
+source x           = pack $ show x
 
 instance Token LatexToken where
     lexeme (Command xs _)   = xs
@@ -302,37 +304,36 @@ instance Token LatexToken where
     lexeme (Close Square _) = "]"
 
 lexeme_li :: LatexToken -> [(Char, LineInfo)]
-lexeme_li x = zip (lexeme x) $ whole_line li
+lexeme_li x = L.zip (unpack $ lexeme x) $ whole_line li
     where
         li    = line_info x
 
-begin_kw :: String
-end_kw   :: String
+begin_kw :: Text
+end_kw   :: Text
 
 begin_kw = "\\begin"
 end_kw   = "\\end"
 
-is_identifier :: String -> Maybe Int
-is_identifier []    = Nothing
-is_identifier (x:xs)
-    | isAlpha x     = Just (1 + length (takeWhile isAlphaNum xs))
-    | otherwise     = Nothing 
+is_identifier :: Text -> Maybe Int
+is_identifier t | not $ T.null $ T.filter isAlpha t = Just ln
+                | otherwise                         = Nothing
+    where ln = T.length (T.takeWhile isAlphaNum t)
 
-is_command :: String -> Maybe Int
+is_command :: Text -> Maybe Int
 is_command []       = Nothing
 is_command (x:xs)   
     | x == '\\'     =
         (do n <- is_identifier xs
             return (n+1)) `mplus`
         (do guard (not $ L.null xs)
-            if isSymbol $ head xs
+            if isSymbol $ T.head xs
                 then return 2
                 else Nothing)
     | otherwise     = Nothing
 
-is_space :: String -> Maybe Int
+is_space :: Text -> Maybe Int
 is_space xs = do
-        let n = length $ takeWhile isSpace xs
+        let n = T.length $ T.takeWhile isSpace xs
         guard (1 <= n)
         Just n
 
@@ -344,8 +345,8 @@ tex_tokens = do
         else do
             li <- get_line_info
             c <- match_first [
-                    (is_space, \xs -> return $ Just $ Blank xs li),
-                    (is_command, \xs -> return $ Just $ Command xs li),
+                    (is_space, \xs -> return $ Just $ Blank (pack xs) li),
+                    (is_command, \xs -> return $ Just $ Command (pack xs) li),
                     (match_string "{", (\_ -> return (Just $ Open Curly li))),
                     (match_string "}", (\_ -> return (Just $ Close Curly li))),
                     (match_string "[", (\_ -> return (Just $ Open Square li))),
@@ -405,7 +406,7 @@ latex_content' = do
         close b  = texToken (_Close._1.only b)
         argument = argumentAux id
         argument' n = argumentAux (only n)
-        argumentAux :: Show a => Prism' String a -> Parser (a,LineInfo)
+        argumentAux :: Show a => Prism' Text a -> Parser (a,LineInfo)
         argumentAux p = do
             optional $ texToken _Blank
             texToken (_Open._1.only Curly)    <?> "open curly"
@@ -441,9 +442,9 @@ texToken' :: (Traversal' LatexToken a) -> Parser LatexToken
 texToken' p = texTokenAux (\x -> x <$ (x^?p))
 
 latex_content :: FilePath -> [(LatexToken,LineInfo)] -> (Int,Int) -> Either [Error] LatexDoc
-latex_content fn toks (i,j) = mapLeft toErr $ P.parse parser fn $ map fst toks
+latex_content fn toks (i,j) = mapLeft toErr $ P.parse parser fn $ L.map fst toks
     where toErr e = [Error (errMsg e) (posToLi $ P.errorPos e)]
-          errMsg e = intercalate "; " $ L.nub $ concatMap f $ errorMessages e
+          errMsg e = T.intercalate "; " $ L.nub $ L.concatMap f $ errorMessages e
           f (SysUnExpect xs) = ["unexpected: " ++ xs]
           f (UnExpect xs) = ["unexpected: " ++ xs]
           f (Expect xs)   = ["expected: " ++ xs]
@@ -459,45 +460,45 @@ latex_content fn toks (i,j) = mapLeft toErr $ P.parse parser fn $ map fst toks
 
 
 size :: LatexDoc -> Int
-size (Doc _ xs _) = sum $ map f xs
+size (Doc _ xs _) = sum $ L.map f xs
     where
         f (Text _) = 1
         f (EnvNode (Env _ _ _ ct _)) = 1 + size ct
         f (BracketNode (Bracket _ _ ct _)) = 1 + size ct
 
 subtrees :: LatexDoc -> [() -> LatexDoc]
-subtrees (Doc li xs li') = concatMap f xs ++ ys
+subtrees (Doc li xs li') = L.concatMap f xs ++ ys
     where
         f (Text _) = []
-        f (EnvNode (Env li0 n li1 ct li2)) = (\() -> ct) : concat 
+        f (EnvNode (Env li0 n li1 ct li2)) = (\() -> ct) : L.concat 
             [ [ doc, \() -> Doc li [EnvNode $ Env li0 n li1 (doc ()) li2] li' ] 
                 | doc <- subtrees ct ]
         f (BracketNode (Bracket b li1 ct li2)) = (\() -> ct) : 
-            concat [ 
+            L.concat [ 
                 [ doc, \() -> Doc li [BracketNode $ Bracket b li1 (doc ()) li2] li' ] 
                     | doc <- subtrees ct ]
         g t@(Text _) = [\() -> Doc li [t] li']
         g (EnvNode (Env li0 n li1 ct li2)) = [\() -> Doc li [EnvNode $ Env li0 n li1 ct li2] li']
         g (BracketNode (Bracket b li1 ct li2)) = [\() -> Doc li [BracketNode $ Bracket b li1 ct li2] li']
         ys
-            | length xs <= 1 = []
-            | otherwise      = concatMap g xs
+            | L.length xs <= 1 = []
+            | otherwise      = L.concatMap g xs
 
 
 opt_args :: Scanner LatexToken [[LatexNode]]
 opt_args = return []
 
 trim_blank_text' :: LatexDoc -> LatexDoc
-trim_blank_text' xs = Doc li0 xs' (lis ! length xs')
+trim_blank_text' xs = Doc li0 xs' (lis ! L.length xs')
     where
         Doc li0 ys li = drop_blank_text' xs
-        ys' = scanr (\x -> (allBlank x &&)) True ys
-        xs' = map fst $ takeWhile (not . snd) $ zip ys ys'
+        ys' = L.scanr (\x -> (allBlank x &&)) True ys
+        xs' = L.map fst $ L.takeWhile (not . snd) $ L.zip ys ys'
         allBlank (Text (Blank _ _)) = True
         allBlank _ = False
         --isBlank (Blank _ _) = True
         --isBlank _ = False
-        lis = map line_info ys ++ [li]
+        lis = L.map line_info ys ++ [li]
 
 drop_blank_text :: [LatexNode] -> [LatexNode]
 drop_blank_text ( Text (Blank _ _) : ys ) = drop_blank_text ys
@@ -521,7 +522,7 @@ skip_blank = do
             _  -> return ()
 
 
-type DocWithHoles = Either (String,LineInfo) (LatexToken,LineInfo)
+type DocWithHoles = Either (Text,LineInfo) (LatexToken,LineInfo)
 
 find_input_cmd :: Scanner LatexToken [DocWithHoles]
 find_input_cmd = do
@@ -553,7 +554,7 @@ find_input_cmd = do
                     rs <- find_input_cmd
                     return $ Right (r,line_info r) : rs
 
-scan_file :: FilePath -> String 
+scan_file :: FilePath -> Text 
           -> Either [Error] [DocWithHoles]
 scan_file fname xs = do
         ys <- read_lines tex_tokens fname (uncomment xs)
@@ -569,28 +570,28 @@ do_while cmd = do
             do_while cmd
         else return ()
 
-latex_structure :: FilePath -> String -> Either [Error] LatexDoc
+latex_structure :: FilePath -> Text -> Either [Error] LatexDoc
 latex_structure fn xs = do
         ys <- scan_latex fn xs
         latex_content fn ys (1,1)
 
-scan_latex :: FilePath -> String -> Either [Error] [(LatexToken,LineInfo)]
+scan_latex :: FilePath -> Text -> Either [Error] [(LatexToken,LineInfo)]
 scan_latex fn xs = -- trace ([s|input: %s\nuncomment: %s\n|] xs cs) $ 
         read_lines tex_tokens fn (uncomment xs)
     --where cs = uncomment xs
 
 is_prefix :: Eq a => [a] -> [a] -> Bool
-is_prefix xs ys = xs == take (length xs) ys
+is_prefix xs ys = xs == L.take (L.length xs) ys
 
-uncomment :: String -> String
+uncomment :: Text -> Text
 uncomment xs = F.concat $ fmap removeComment $ LN.lines' xs
     where
-        removeComment = uncurry (++) . second (dropWhile (`notElem` "\n\r")) . span ('%' /=)
+        removeComment = uncurry (<>) . second (T.dropWhile (`notElem` "\n\r")) . T.span ('%' /=)
 
 with_print :: Show a => a -> a
 with_print x = unsafePerformIO (do putStrLn $ show x ; return x)
 
-remove_ref :: String -> String
+remove_ref :: Text -> Text
 remove_ref ('\\':'r':'e':'f':'{':xs) = remove_ref xs
 remove_ref ('}':xs) = remove_ref xs
 remove_ref (x:xs)   = x:remove_ref xs
