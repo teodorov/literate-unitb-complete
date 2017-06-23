@@ -11,6 +11,9 @@ import Data.Monoid
 
 import Options.Applicative 
 
+import System.Directory
+
+import Utilities.Config
 import Z3.Version
 
 data SetOptions = SetOptions
@@ -48,6 +51,8 @@ rewriteConfig f = do
     (fn,cp) <- getConfigFile
     _ <- evaluate cp
     let c' = f $ cp^.config
+    homeSetting <- homeSettingPath
+    createDirectoryIfMissing False homeSetting
     writeFile fn $ to_string $ cp & config .~ c'
     putStrLn "set the options to:"
     print c'
