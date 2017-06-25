@@ -49,7 +49,7 @@ zipRecord' args =
         binding n = valD (varP $ mkName $ "x" ++ show n) 
                          (normalB [e| $(varE $ mkName "_args") !! $(litE $ integerL $ fromIntegral n) |]) []
         myLet = letE decs $ tupE [ varE (mkName $ "x" ++ show i) | (_,i) <- fieldPos ]
-        fieldPos = mapMaybe (sequenceOf _1) $ zip args [0..]
+        fieldPos = mapMaybe (sequenceOf _1) $ zip args [0 :: Int ..]
 
 funPrism :: Pattern -> ExpQ 
 funPrism (Pattern f args) = [e| selectFun (fromName f) . $(zipRecord' args) |]
@@ -72,7 +72,7 @@ makePattern str = Pattern kw' args''
         args' = fromMaybe (error "field names should start with '$'")
                     $ args^?below (prefixed "$")
         kw' :: Name
-        kw' = either (error . unlines) id $ isZ3Name kw
+        kw' = either (error . unlines) id $ isZ3Name $ pack kw
         args'' = map (^? filtered (/= "_")) args'
 
 funPat :: String -> PatQ

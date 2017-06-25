@@ -119,7 +119,7 @@ top_sort' g = runST $ do
                 writeArray path  n i
                 k <- readArray eStack (n-1)
                 let es = (i2e ! i)
-                zipWithM (writeArray eList) [k..] es
+                zipWithM_ (writeArray eList) [k..] es
                 writeArray eStack n (k + length es)
                 modifySTRef rN (+1)
         let pop = do

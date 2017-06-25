@@ -1,13 +1,29 @@
 {-# LANGUAGE KindSignatures #-}
-module Utilities.Language where
+module Utilities.Language 
+  ( module Utilities.Language 
+  , pack )
+where
 
+import Control.DeepSeq
 import Control.Lens hiding (elements)
 import Control.Monad
-import Control.Monad.Writer hiding ((<>))
+import Control.Monad.Writer hiding ((<>),lift)
 
 import Data.Char
+import Data.Data
+import Data.Hashable
 import Data.List.NonEmpty
 import Data.Semigroup hiding (option)
+import Data.Serialize
+import Data.String
+import Data.Text as T
+import Data.Text.Arbitrary as T ()
+import Data.Text.Encoding as T
+
+import GHC.Generics
+
+import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 
 import qualified Text.Parsec as P
 
@@ -15,6 +31,9 @@ import Test.QuickCheck as QC
 
 newtype Language a = Language { _language :: forall m. IsLanguage m => m a}
     deriving (Functor)
+
+newtype NEText = NEText { getText :: Text }
+    deriving (Data,Generic,Eq,Ord,Show)
 
 class (Monad m) => IsLanguage (m :: * -> *) where
     (<?>) :: m a -> String -> m a
@@ -62,7 +81,7 @@ instance Monad Gen' where
             (r,w) <- runWriter <$> (elements' =<< xs)
             fmap (fmap (tell w >>)) . getGen . f $ r
 
-instance IsLanguage (P.Parsec [Char] ()) where
+instance  P.Stream text Identity Char => IsLanguage (P.Parsec text ()) where
     (<?>) = (P.<?>)
     (<|>) = (P.<|>)
     anyChar = P.anyChar
@@ -113,13 +132,21 @@ instance IsLanguage Language where
     try (Language cmd) = Language $ try cmd
     suchThat p (Language cmd) = Language $ Utilities.Language.suchThat p cmd
 
+text :: String -> Language Text
+text = fmap pack . string
+
 many1' :: Language a -> Language (NonEmpty a)
 many1' cmd = (:|) <$> cmd <*> many cmd
 
-parse :: Language a -> P.SourceName -> String -> Maybe a
+many1Text' :: Language Char -> Language NEText
+many1Text' cmd = NEText . pack <$> ((:) <$> cmd <*> many cmd)
+
+parse :: P.Stream text Identity Char
+      => Language a -> P.SourceName -> text -> Maybe a
 parse cmd src xs = either (const Nothing) Just $ parse' cmd src xs
 
-parse' :: Language a -> P.SourceName -> String -> Either P.ParseError a
+parse' :: P.Stream text Identity Char
+       => Language a -> P.SourceName -> text -> Either P.ParseError a
 parse' (Language cmd) = P.parse (cmd >>= \x -> P.eof >> return x)
 
 gen :: Language a -> Gen String
@@ -127,3 +154,21 @@ gen (Language (Gen cmd)) = fmap execWriter $ elements' =<< cmd
 
 word :: Language a -> Gen a
 word (Language (Gen cmd)) = fmap (fst . runWriter) $ elements' =<< cmd
+
+instance Hashable NEText where
+instance Arbitrary NEText where
+    arbitrary = NEText <$> (T.cons <$> arbitrary <*> arbitrary)
+    shrink (NEText x) = (NEText . T.cons (T.head x)) <$> shrink (T.tail x)
+instance Semigroup NEText where
+    NEText x <> NEText y = NEText $ x <> y
+
+instance Serialize Text where
+  put txt = put $ encodeUtf8 txt
+  get     = fmap decodeUtf8 get
+instance Serialize NEText where
+instance NFData NEText where
+
+instance Lift Text where
+    lift t = [e| fromString $(stringE $ unpack t) |]
+instance Lift NEText where
+    lift (NEText t) = [e| NEText $(lift t) |]

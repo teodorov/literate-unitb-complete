@@ -70,7 +70,7 @@ library
   -- other-modules:       
   
   -- LANGUAGE extensions used by modules in this package.
-  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
+  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes, OverloadedStrings
 
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
@@ -80,7 +80,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, existential
+  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, existential, text, quickcheck-text
 
   -- Directories containing source files.
   hs-source-dirs:      .
@@ -93,6 +93,6 @@ test-suite test-utils
   hs-source-dirs: suite
   default-language:    Haskell2010
   main-is: Test.hs
-  default-extensions: QuasiQuotes, TemplateHaskell
+  default-extensions: QuasiQuotes, TemplateHaskell, OverloadedStrings
   build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, literate-unitb-utils, unitb-testing
 

@@ -6,10 +6,15 @@ import Control.Monad.Trans.State
 import Control.Precondition
 
 import Data.Array as A hiding ((!))
+import Data.Function
 import Data.List as L
+import Data.Text (Text,unpack)
 
 import Test.QuickCheck
 import Test.QuickCheck.Report
+
+distText :: Text -> Text -> Int
+distText = dist `on` unpack
 
 dist :: Eq a => [a] -> [a] -> Int
 dist xs ys = 
@@ -142,7 +147,7 @@ prop_b xs' ys' = length (diff xs ys) == dist xs ys
         xs = map getSmall xs'
         ys = map getSmall ys'
 
-prop_a :: Eq a => [Small a] -> [Small a] -> Bool
+prop_a :: [Small Int] -> [Small Int] -> Bool
 prop_a xs' ys' = effects (diff xs ys) xs == ys
     where
         xs = map getSmall xs'

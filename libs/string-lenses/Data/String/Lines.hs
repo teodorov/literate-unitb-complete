@@ -10,6 +10,7 @@ import Data.List.NonEmpty (NonEmpty(..),fromList,toList,(<|))
 import qualified Data.List.NonEmpty as NE
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
+import qualified Data.Text as T
 
 import Prelude hiding (lines,unlines)
 
@@ -27,6 +28,12 @@ asLines = iso lines' F.concat
 
 traverseLines :: Traversal' String String
 traverseLines = asLines . traverse
+
+asLinesText :: Iso' T.Text [T.Text]
+asLinesText = iso T.lines T.unlines
+
+traverseLinesText :: Traversal' T.Text T.Text
+traverseLinesText = asLinesText . traverse
 
 spanIso :: (a -> Bool) -> Iso [a] [b] ([a],[a]) ([b],[b])
 spanIso p = iso (span p) (uncurry (++))
@@ -134,7 +141,7 @@ prop_unlines_lines_cancel :: Property
 prop_unlines_lines_cancel =  forAll gen $
         \xs -> xs === lines (unlines xs)
     where
-        gen = fromList <$> listOf1 (listOf $ arbitrary `suchThat` (`notElem` "\r\n"))
+        gen = fromList <$> listOf1 (listOf $ arbitrary `suchThat` (`notElem` ['\r','\n']))
 
 prop_lines'_concat_cancel :: String -> Property
 prop_lines'_concat_cancel xs = xs === F.concat (lines' xs)
@@ -164,13 +171,14 @@ instance Arbitrary a => Arbitrary (NonEmpty a) where
 
 instance Arbitrary Lines where
     arbitrary = do
-        let char  = arbitrary `suchThat` (`notElem` "\n\r")
+        let char  = arbitrary `suchThat` (`notElem` ['\n','\r'])
             line1 = listOf1 char
             line  = listOf char
             line' = L.concat <$> oneof 
                         [ sequence [line,eol]
                         , sequence [line1,return "\n"]]
             eol   = elements ["\r\n","\r"]
+            f :: [String] -> [String]
             f (x0:x1:xs) 
                 | "\r" `L.isSuffixOf` x0 
                     && x1 == "\n" = f (x1:xs)
@@ -182,8 +190,9 @@ instance Arbitrary Lines where
         where
             shrink' xs = NE.reverse . (NE.head xs :|) <$> shrink (NE.tail $ NE.reverse xs)
             f (n,x :| xs) = take n x :| (take' n <$> xs)
-            take' n xs = uncurry (++) $ first (take n) $ span (`notElem` "\n\r") xs
-            p (Lines xs) = all (`notElem` "\n\r") (NE.head xs') && all (\x -> any (`L.isSuffixOf` x) ["\n","\r\n","\r"]) (NE.tail xs')
+            take' :: Int -> String -> String
+            take' n xs = uncurry (++) $ first (take n) $ span (`notElem` ['\n','\r']) xs
+            p (Lines xs) = all (`notElem` ['\n','\r']) (NE.head xs') && all (\x -> any (`L.isSuffixOf` x) ["\n","\r\n","\r"]) (NE.tail xs')
                 where
                     xs' = NE.reverse xs 
 

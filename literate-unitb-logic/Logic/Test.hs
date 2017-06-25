@@ -29,10 +29,13 @@ import Data.Char
 import Data.Default
 import Data.Hashable
 import Data.List as L hiding (union)
-import Data.Map hiding ( map, union, member )
+import           Data.Map hiding ( map, union, member )
 import qualified Data.Map as M
+import Data.Monoid
 import Data.PartialOrd
 import qualified Data.Set as S
+import           Data.Text (Text,unpack)
+import qualified Data.Text as T
 
 import Language.Haskell.TH.Unqualify
 import Language.Haskell.TH.Ppr 
@@ -48,6 +51,7 @@ import Test.QuickCheck.Report
 
 import Test.UnitTest hiding (name)
 
+import TextShow (showt)
 import Text.Printf.TH
 
 import Utilities.MapSyntax
@@ -222,10 +226,10 @@ test = test_cases "genericity"
                 $(quickCheckWrap 'prop_unicity_counter_example)
 --        [ aCase "types unify with self" (check_prop prop_type_unifies_with_self) True
         , QuickCheckProps "type mapping are acyclic" $(quickCheckWrap 'prop_type_mapping_acyclic)
-        , stringCase "one-point rule simplification on existentials" case8 result8
+        , textCase "one-point rule simplification on existentials" case8 result8
         , QuickCheckProps "axioms of type classes PreOrd and PartialOrd" case9
-        , stringCase "Record expressions" case10 result10
-        , stringCase "Record sets" case11 result11
+        , textCase "Record expressions" case10 result10
+        , textCase "Record sets" case11 result11
         , aCase "Record sets in Z3" case12 result12
         , aCase "Syntax for record literals" case13 result13
         , aCase "Syntax for record update" case14 result14
@@ -249,7 +253,8 @@ test = test_cases "genericity"
         , aCase "parsing expressions encoded in arrays" case32 result32
         ]
     where
-        reserved x n = addSuffix ("@" ++ show n) (fromString'' x)
+        reserved :: Text -> Int -> InternalName
+        reserved x n = addSuffix ("@" <> showt n) (fromText x)
         vA1 = reserved "a" 1
         vA2 = reserved "a" 2
         vB1 = reserved "b" 1
@@ -323,8 +328,8 @@ result7 :: ExprP
         (x,_) = var "x" train
         empty_set_of_train = funApp (mk_fun' [train] "empty-set" [] $ set_type train) []
 
-result8 :: String
-result8 = unlines
+result8 :: Text
+result8 = T.unlines
     [ "(and p q)"
     , "p"
     , "(and (or (and p q) p q (= 7 87)) q)"
@@ -336,8 +341,8 @@ result8 = unlines
     , "(= 7 87)"
     ]
 
-case8 :: IO String
-case8 = return $ unlines $ map pretty_print' $ disjuncts e'
+case8 :: IO Text
+case8 = return $ T.unlines $ map pretty_print' $ disjuncts e'
     where
         (z,z_decl) = var "z" int
         z7  = mzint 7
@@ -358,14 +363,14 @@ case9 :: (PropName -> Property -> IO (a, Result))
 case9 = $(quickCheckClassesWith [''PreOrd,''PartialOrd])
 
 instance IsQuantifier Integer where
-    merge_range = Str . show
+    merge_range = Str . showt
     termType n = unGen arbitrary (mkQCGen $ fromInteger n) (fromInteger n)
     exprType n r t = unGen (oneof [arbitrary,return r,return t]) 
                 (mkQCGen $ fromInteger n) (fromInteger n)
     qForall  = 1
     qExists  = 2
 instance Tree Integer where
-    as_tree' = return . Str . show
+    as_tree' = return . Str . showt
 instance PrettyPrintable Integer where
     pretty = show
 instance TypeAnnotationPair Integer Integer where
@@ -376,7 +381,7 @@ instance Typed Integer where
     type TypeOf Integer = Integer
     type_of = id
 
-case10 :: IO String
+case10 :: IO Text
 case10 = return $ z3_code $ _goal $ runSequent' $ do
         let t = record_type $ runMap' $ do
                 x ## int
@@ -389,7 +394,7 @@ case10 = return $ z3_code $ _goal $ runSequent' $ do
         assume "v2: v1[x:=7]" $ v2 .=. zrec_update v1 (x ## 7)
         check $ v1 .=. v2
 
-case11 :: IO String
+case11 :: IO Text
 case11 = return $ z3_code $ _goal $ runSequent' $ do
         include set_theory
         include basic_theory
@@ -603,10 +608,10 @@ case23 :: IO UntypedExpr
 case23 = return $ either show_error id $ untypedExpression
     where
         expr = "\\qforall{x,y}{}{x = y}"
-        stringLi = asStringLi (mkLI expr) expr
+        stringLi = asStringLi (mkLI $ unpack expr) expr
         setting = theory_setting basic_theory
         untypedExpression = parse_expression setting stringLi
-        show_error = \x -> error ("couldn't parse expression:\n" ++ show_err x)
+        show_error = \x -> error (unpack $ "couldn't parse expression:\n" <> show_err x)
 
 result23 :: UntypedExpr
 result23 = zforall [x',y'] ztrue (fun2 (zeq_fun gA) x y)
@@ -620,10 +625,10 @@ case24 :: IO UntypedExpr
 case24 = return $ either show_error id $ untypedExpression
     where
         expr = "\\neg (-2) = 2"
-        stringLi = asStringLi (mkLI expr) expr
+        stringLi = asStringLi (mkLI $ unpack expr) expr
         setting = theory_setting' preludeTheories
         untypedExpression = parse_expression setting stringLi
-        show_error = \x -> error ("couldn't parse expression:\n" ++ show_err x)
+        show_error = \x -> error (unpack $ "couldn't parse expression:\n" <> show_err x)
 
 result24 :: UntypedExpr
 result24 = znot (fun2 (zeq_fun gA) (zopp $ zint 2) (zint 2))
@@ -735,20 +740,19 @@ case31 = fmap (pprint . unqualifyP) . runQ $ quotePat fun "(= $x $y)"
 
 result30 :: String
 result30 = intercalate "\n"
-    [ "selectFun (fromName (name False ((:|) 'a' ['n',"
-    , "                                           'd']) 0 \"\" Z3Encoding)) . matchLength 2 (\\_args_0 -> let {x0 = _args !! 0;"
-    , "                                                                                                     x1 = _args !! 1}"
-    , "                                                                                                 in (x0,"
-    , "                                                                                                     x1))"
+    [ "selectFun (fromName (name False (NEText (fromString \"and\")) 0 (fromString \"\") Z3Encoding)) . matchLength 2 (\\_args_0 -> let {x0 = _args !! 0;"
+    , "                                                                                                                             x1 = _args !! 1}"
+    , "                                                                                                                         in (x0,"
+    , "                                                                                                                             x1))"
     ]
 
 result31 :: String
 result31 = intercalate "\n"
-    [ "(preview (selectFun (fromName (name False ((:|) '=' []) 0 \"\" Z3Encoding)) . matchLength 2 (\\_args -> let {x0 = _args !! 0;"
-    , "                                                                                                          x1 = _args !! 1}"
-    , "                                                                                                      in (x0,"
-    , "                                                                                                          x1))) -> Just (x,"
-    , "                                                                                                                         y))"
+    [ "(preview (selectFun (fromName (name False (NEText (fromString \"=\")) 0 (fromString \"\") Z3Encoding)) . matchLength 2 (\\_args -> let {x0 = _args !! 0;"
+    , "                                                                                                                                   x1 = _args !! 1}"
+    , "                                                                                                                               in (x0,"
+    , "                                                                                                                                   x1))) -> Just (x,"
+    , "                                                                                                                                                  y))"
     ]
 
 case32 :: IO Expr

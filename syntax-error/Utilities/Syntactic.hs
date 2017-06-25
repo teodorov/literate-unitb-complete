@@ -84,7 +84,11 @@ class Syntactic a where
     traverseLineInfo :: Traversal' a LineInfo
 
 class Token t where
+    {-# MINIMAL lexeme | lexemeString #-}
     lexeme :: t -> Text
+    lexeme = pack . lexemeString
+    lexemeString :: t -> String
+    lexemeString = unpack . lexeme
     lexemeLength :: t -> LineInfo -> LineInfo
     lexemeLength x
             | L.length xs <= 1 = column %~ (+ T.length t)
@@ -94,10 +98,10 @@ class Token t where
             t  = lexeme x
 
 instance Token Char where
-    lexeme x = T.singleton x
+    lexemeString x = [x]
 
 instance Token String where
-    lexeme = pack
+    lexemeString = id
 
 instance Token Text where
     lexeme = id
@@ -225,10 +229,10 @@ unlinesLi :: NonEmpty StringLi -> StringLi
 unlinesLi (x :| []) = x
 unlinesLi (StringLi xs0 li0 :| (StringLi xs1 li1:xss)) = unlinesLi $ StringLi (xs0 ++ [('\n',li0)] ++ xs1) li1 :| xss
 
-asStringLi :: LineInfo -> String -> StringLi
+asStringLi :: LineInfo -> Text -> StringLi
 asStringLi li xs = unlinesLi ys'
     where
-        ys = NE.zip (NE.iterate nxLn li) (neLines xs)
+        ys = NE.zip (NE.iterate nxLn li) (neLines $ unpack xs)
         ys' = NE.map f ys
         nxLn (LI fn i _j) = LI fn (i+1) 1
         nxCol (LI fn i j) = LI fn i (j+1)

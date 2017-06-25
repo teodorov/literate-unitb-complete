@@ -67,6 +67,7 @@
 				"build",
 				"--test",
 				"--ghc-options", "-fno-warn-name-shadowing",
+				"--ghc-options", "-fno-warn-orphans",
 				// "--ghc-options", "-fno-warn-type-defaults",
 				"--no-run-tests",
 				"--pedantic",
@@ -153,6 +154,8 @@
 			[
 				"*.cabal", "*.yaml", "*.yml"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "."
 		},
 		// {
@@ -164,8 +167,6 @@
 		// 	"path": "logic"
 		// },
 		// {
-		// 	"folder_exclude_patterns":
-		// 	[	"dist",".stack-work" ],
 		// 	"file_include_patterns":
 		// 	[
 		// 		"*hs",
@@ -195,6 +196,8 @@
 				"*hs",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "literate-unitb/src"
 		},
 		{
@@ -204,6 +207,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "literate-unitb-logic"
 		},
 		{
@@ -213,6 +218,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "literate-unitb-latex"
 		},
 		{
@@ -222,6 +229,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "literate-unitb-utils"
 		},
 		{
@@ -231,6 +240,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "literate-unitb-config"
 		},
 		{
@@ -240,6 +251,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "syntax-error"
 		},
 		{
@@ -249,6 +262,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "unitb-testing"
 		},
 		{
@@ -258,6 +273,8 @@
 				"*.cabal",
 				"*.md"
 			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "libs"
 		},
 		{

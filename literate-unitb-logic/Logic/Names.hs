@@ -13,7 +13,7 @@ module Logic.Names
     , makeZ3Name
     , make, make'
     , isName, isName'
-    , fromString'
+    -- , fromString'
     , fresh
     , reserved
     , z3Render
@@ -23,6 +23,7 @@ module Logic.Names
     , addBackslash
     , setSuffix
     , smt, tex
+    , pack
     , Encoding(..)
     , run_props     
     )
@@ -36,6 +37,7 @@ import Logic.Names.Internals as Names
 #endif
 
 import Control.Lens
+import Data.Text (pack)
 import Data.Typeable
 
 class HasNames a n | a -> n where

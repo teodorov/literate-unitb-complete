@@ -20,6 +20,8 @@ import qualified Control.Monad.Trans.Reader as R
 import           Data.List as L
 import           Data.Map as M hiding ( map )
 import qualified Data.Map as M
+import           Data.Monoid
+import           Data.Text as T (Text,unpack)
 
 import Utilities.Syntactic
 
@@ -88,13 +90,13 @@ choiceP xs x final = do
             (runParserWith y . final)
 
 getToken :: Prism' ExprToken a 
-         -> String
+         -> Text
          -> Parser a
 getToken pr lb = liftP $ do
             x <- read_char
             case x^?pr of
                 Just x -> return x
-                _ -> fail $ "expecting a \'" ++ lb ++ "\': " ++ lexeme x
+                _ -> fail $ unpack $ "expecting a \'" <> lb <> "\': " <> lexeme x
 
 manyP :: Parser a -> Parser [a]
 manyP p = do
@@ -121,7 +123,7 @@ choose_la (x:xs) = do
         x `mplus` choose_la xs
 choose_la [] = mzero
 
-add_context :: String -> Parser a -> Parser a
+add_context :: Text -> Parser a -> Parser a
 add_context _ cmd = cmd
 
 attempt :: Parser a -> Parser a

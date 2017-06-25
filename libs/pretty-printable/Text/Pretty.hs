@@ -20,6 +20,7 @@ import           Data.List.NonEmpty as NE (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 import Data.String.Lines
+import Data.Text (Text,pack,unpack)
 
 import GHC.Generics
 import GHC.Generics.Lens
@@ -34,10 +35,15 @@ import Test.QuickCheck.ZoomEq
 newtype Pretty a = Pretty { unPretty :: a }
     deriving (Eq,Ord,Functor,Foldable,Traversable,Hashable,Generic)
 
+defaultPretty :: (Functor f, Show (f (Pretty b))) => f b -> String
+defaultPretty = show . fmap Pretty
+
 class PrettyPrintable a where
     pretty :: a -> String
-    default pretty :: (f b ~ a, Functor f, Show (f (Pretty b))) => f b -> String
-    pretty = show . fmap Pretty
+    pretty = unpack . prettyText
+    prettyText :: a -> Text
+    prettyText = pack . pretty
+    {-# MINIMAL pretty | prettyText #-}
 
 instance PrettyPrintable a => Show (Pretty a) where
     show = pretty . unPretty

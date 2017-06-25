@@ -42,6 +42,7 @@ import Data.List.NonEmpty as NE hiding (unlines)
 #endif
 import Data.Packaged
 import Data.Serialize
+import Data.Text (Text,pack)
 
 import GHC.Generics (Generic)
 
@@ -105,25 +106,25 @@ instance Show InternalName where
     show = show . view unpackaged . getInternalName
 
 
-makeName :: Pre => String -> Name
+makeName :: Pre => Text -> Name
 makeName = view (from name) . Intl.makeName
 
-addSuffix :: String -> InternalName -> InternalName
+addSuffix :: Text -> InternalName -> InternalName
 addSuffix suf = internal %~ Intl.addSuffix suf
 
-setSuffix :: String -> Name -> Name
+setSuffix :: Text -> Name -> Name
 setSuffix suf = name %~ Intl.setSuffix suf
 
 dropSuffix :: InternalName -> InternalName
 dropSuffix = internal %~ Intl.dropSuffix
 
-reserved :: String -> Int -> InternalName
+reserved :: Text -> Int -> InternalName
 reserved = fmap (view $ from internal) . Intl.reserved
 
-isName :: String -> Either [String] Name
+isName :: Text -> Either [String] Name
 isName = fmap (view $ from name) . Intl.isName
 
-isName' :: String -> Maybe Name
+isName' :: Text -> Maybe Name
 isName' = fmap (view $ from name) . Intl.isName'
 
 instance NFData Name where
@@ -166,10 +167,10 @@ tex = QuasiQuoter
     , quoteType = undefined }
 
 parseZ3Name :: String -> ExpQ
-parseZ3Name str = either (fail . unlines) lift $ Intl.isZ3Name str
+parseZ3Name str = either (fail . unlines) lift $ Intl.isZ3Name $ pack str
 
 parseTexName :: String -> ExpQ
-parseTexName str = either (fail . unlines) lift $ Intl.isName str
+parseTexName str = either (fail . unlines) lift $ Intl.isName $ pack str
 
-isZ3Name :: String -> Either [String] Name
+isZ3Name :: Text -> Either [String] Name
 isZ3Name = fmap (view $ from name) . Intl.isZ3Name

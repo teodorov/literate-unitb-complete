@@ -46,8 +46,11 @@ import           Data.List as L
 import qualified Data.List.Ordered as OL
 import           Data.Map  as M
 import qualified Data.Set  as S
+import           Data.Text (Text,unpack)
+import qualified Data.Text  as T
 import           Data.Tuple
 
+import TextShow hiding (fromText)
 import Text.Printf.TH
 
 import Utilities.Error
@@ -127,7 +130,7 @@ with_variables vs (TacticT cmd) = TacticT $ do
                 (symbols ctx)
     li <- view line_info
     unless (M.null clashes) $ 
-        hard_error [Error ([s|redefinition of %s|] $ intercalate "," $ L.map render $ keys clashes) 
+        hard_error [Error ([st|redefinition of %s|] $ T.intercalate "," $ L.map renderText $ keys clashes) 
             $ li]
     ErrorT $ local (sequent.constants %~ (symbol_table vs `M.union`)) $ 
         runErrorT cmd
@@ -139,7 +142,7 @@ get_dummy var = do
         li  <- get_line_info
         let Context _ _ _ _ vars = ctx
         maybe 
-            (hard_error [Error ("invalid dummy: " ++ render var) li])
+            (hard_error [Error ("invalid dummy: " <> renderText var) li])
             return
             $ M.lookup var vars
 
@@ -174,7 +177,7 @@ lookup_hypothesis :: Monad m
                   -> TacticT m Expr
 lookup_hypothesis (ThmRef hyp inst) = do
         li <- get_line_info
-        let err_msg = Error ([s|predicate is undefined: '%s'|] $ pretty hyp) li
+        let err_msg = Error ([st|predicate is undefined: '%s'|] $ prettyText hyp) li
         hyps <- TacticT $ view $ sequent.named
         x <- maybe 
             (hard_error [err_msg])
@@ -222,10 +225,10 @@ assert xs proof = make_hard $
                 -- , assertions with proof objects
                 -- , dependencies between assertions)
             make_hard $ forM_ (cycles $ concat zs) $ \x ->
-                let msg = [s|a cycle exists between the proofs of the assertions %s|] in
+                let msg = [st|a cycle exists between the proofs of the assertions %s|] in
                 case x of
                     AcyclicSCC _ -> return ()
-                    CyclicSCC cs -> soft_error [Error (msg $ intercalate "," $ L.map pretty cs) li]
+                    CyclicSCC cs -> soft_error [Error (msg $ T.intercalate "," $ L.map prettyText cs) li]
             p  <- with_hypotheses xs proof
             return $ Assertion (fromList ys) (concat zs) p li
 
@@ -382,12 +385,12 @@ is_fresh v = TacticT $ do
         are_fresh [v] <$> view sequent
 
 new_fresh :: (Monad m, Pre)
-          => String
+          => Text
           -> Type 
           -> TacticT m Var
 new_fresh name t = do
         fix (\rec n suf -> do
-            let v = fromString'' (name ++ suf)
+            let v = fromText (name <> suf)
             b <- is_fresh v
             (lbls,ids) <- TacticT $ lift $ get
             if b && not (v `S.member` ids)
@@ -395,7 +398,7 @@ new_fresh name t = do
                 lift $ put (lbls,S.insert v ids)
                 return $ Var v t
             else do
-                rec (n+1 :: Int) (show n)
+                rec (n+1 :: Int) (showt n)
             ) 0 ""
 
 is_label_fresh :: Monad m => Label -> TacticT m Bool
@@ -406,10 +409,10 @@ is_label_fresh lbl = TacticT $ do
                 && (not $ lbl `member` thm)
 
 fresh_label :: Monad m
-            => String -> TacticT m Label
+            => Text -> TacticT m Label
 fresh_label name = do
         fix (\rec n suf -> do
-            let v = label (name ++ suf)
+            let v = label (name <> suf)
             b           <- is_label_fresh v
             (lbls, ids) <- TacticT $ get
             if b && not (v `S.member` lbls) 
@@ -417,7 +420,7 @@ fresh_label name = do
                 lift $ put (S.insert v lbls,ids)
                 return v
             else do
-                rec (n+1 :: Int) (show n)
+                rec (n+1 :: Int) (showt n)
             ) 0 ""
 
 free_vars_goal :: Monad m
@@ -429,19 +432,19 @@ free_vars_goal ((v0,v1):vs) proof = do
         free_goal v0 v1 $
             free_vars_goal vs proof
 
-bind :: Monad m => String -> Maybe a -> TacticT m a
+bind :: Monad m => Text -> Maybe a -> TacticT m a
 bind _ (Just x)  = return x
-bind msg Nothing = fail msg
+bind msg Nothing = fail $ unpack msg
 
-guard :: Monad m => String -> Bool -> m ()
-guard msg b = unless b $ fail msg
+guard :: Monad m => Text -> Bool -> m ()
+guard msg b = unless b $ fail $ unpack msg
 
 define :: Monad m
        => [(Name, Expr)]
        -> TacticT m Proof
        -> TacticT m Proof
 define xs proof = do
-    let po (v,e) = ("WD" </> label (render v),well_definedness e,easy)
+    let po (v,e) = ("WD" </> label (renderText v),well_definedness e,easy)
         vars = L.map (uncurry Var . (second type_of)) xs
     li <- get_line_info
     p  <- assert (L.map po xs) $ 
@@ -463,11 +466,11 @@ free_goal v0 v1 m = do
         fresh <- is_fresh v1
         (new,t) <- case goal of 
             Binder Forall bv r t _ -> do
-                  guard ([s|'%s' is not a fresh variable|] $ render v1)
+                  guard ([st|'%s' is not a fresh variable|] $ renderText v1)
                       fresh
                   v0'@(Var _ tt) <- bind 
-                      ([s|'%s' is not a bound variable in:\n%s|]
-                                (render v0) $ pretty_print' goal)
+                      ([st|'%s' is not a bound variable in:\n%s|]
+                                (renderText v0) $ pretty_print' goal)
                       $ L.lookup v0 (zip bv' bv)
                   return
                       ( rename v0 v1 
@@ -475,7 +478,7 @@ free_goal v0 v1 m = do
                       , tt)
                 where
                   bv' = L.map (view name) bv
-            _ -> fail $ "goal is not a universal quantification:\n" ++ pretty_print' goal
+            _ -> fail $ unpack $ "goal is not a universal quantification:\n" <> pretty_print' goal
         p <- with_variables [Var v1 t] $ with_goal new m
         return $ FreeGoal v0 v1 t p li
 
@@ -496,8 +499,8 @@ instantiate hyp ps = do
                     return newh
             _ 
                 | not $ L.null ps -> 
-                    fail $ "predicate is not a universal quantification:\n" 
-                        ++ pretty_print' hyp
+                    fail $ unpack $ "predicate is not a universal quantification:\n" 
+                        <> pretty_print' hyp
                 | otherwise  -> return hyp
 
 instantiate_all :: Monad m
@@ -507,9 +510,9 @@ instantiate_all :: Monad m
 instantiate_all [] proof = proof
 instantiate_all ((ThmRef lbl ps, li):rs) proof = do
         hyps    <- get_named_hyps -- _hypotheses
-        new_lbl <- fresh_label $ pretty lbl
+        new_lbl <- fresh_label $ prettyText lbl
         h <- maybe
-            (hard_error [Error ([s|inexistant hypothesis: %s|] $ pretty lbl) li])
+            (hard_error [Error ([st|inexistant hypothesis: %s|] $ prettyText lbl) li])
             return 
             (lbl `M.lookup` hyps)
         instantiate_hyp h new_lbl ps $
@@ -539,11 +542,11 @@ instantiate_hyp hyp lbl ps proof = do
             p    <- with_hypotheses [(lbl,newh)] proof
             return $ InstantiateHyp hyp (fromList ps) p li
         else
-            fail $ "formula is not an hypothesis:\n" 
-                ++ pretty_print' hyp
+            fail $ unpack $ "formula is not an hypothesis:\n" 
+                <> pretty_print' hyp
 
 make_expr :: Monad m
-          => Either [String] a
+          => Either [Text] a
           -> TacticT m a
 make_expr e = do
         li <- get_line_info
@@ -584,7 +587,7 @@ instance Monad m => Monad (TacticT m) where
     return x       = TacticT $ return x
     fail msg       = do
             li <- get_line_info
-            TacticT $ hard_error [Error msg li]
+            TacticT $ hard_error [Error (pack msg) li]
 
 instance MonadState s m => MonadState s (TacticT m) where
     get = lift get
@@ -608,12 +611,12 @@ by_symmetry :: Monad m
             -> TacticT m Proof
 by_symmetry vs hyp mlbl proof = do
         cs <- lookup_hypothesis (ThmRef hyp [])
-        let err0 = [s|expecting a disjunction\n%s: %s|] (pretty hyp) $ pretty_print' cs
+        let err0 = [st|expecting a disjunction\n%s: %s|] (prettyText hyp) $ pretty_print' cs
         lbl  <- maybe (fresh_label "symmetry") return mlbl
         goal <- get_goal
         case cs of
             FunApp f cs
-                | view name f /= (z3Name "or") -> fail err0
+                | view name f /= (z3Name "or") -> fail $ unpack err0
                 | otherwise -> do
                     ps <- forM (permutations vs) $ \us -> do
                         hyp <- get_named_hyps
@@ -633,13 +636,13 @@ by_symmetry vs hyp mlbl proof = do
                         f xs = zip vs $ L.map Word xs
                     cs <- forM cs $ \x -> return (hyp,x,easy)
                     assert [(lbl,thm,clear_vars vs $ do
-                            us <- forM vs $ \(Var n t) -> new_fresh (render n) t
+                            us <- forM vs $ \(Var n t) -> new_fresh (renderText n) t
                             free_vars_goal (zip (L.map (view name) vs) 
                                                 (L.map (view name) us)) 
                               $ assume named goal proof)] $
                         instantiate_hyp_with thm (L.map f $ permutations vs) $ 
                             by_cases cs
-            _ -> fail err0
+            _ -> fail $ unpack err0
 
 indirect_inequality :: Monad m
                     => Either () () 
@@ -682,7 +685,7 @@ indirect_inequality dir op zVar@(Var _ t) proof = do
                                 , (y_decl,rhs) ]                    -- | for that, we need hypotheses 
                                 easy                                -- | to be named in sequents
                                                               
-            _ -> fail $ "expecting an inequality:\n" ++ pretty_print' goal
+            _ -> fail $ unpack $ "expecting an inequality:\n" <> pretty_print' goal
 
 indirect_equality :: Monad m
                   => Either () () 
@@ -720,7 +723,7 @@ indirect_equality dir op zVar@(Var _ t) proof = do
                                 , (y_decl,rhs) ]                    -- | for that, we need hypotheses 
                                 easy                                -- | to be named in sequents
                                                               
-            _ -> fail $ "expecting an equality:\n" ++ pretty_print' goal
+            _ -> fail $ unpack $ "expecting an equality:\n" <> pretty_print' goal
 
 intersectionsWith :: Ord a => (b -> b -> b) -> [Map a b] -> Map a b
 intersectionsWith _ [] = error "intersection of an empty list of sets"

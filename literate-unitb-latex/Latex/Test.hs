@@ -16,6 +16,9 @@ import Data.Either.Combinators
 import qualified Data.List as L
 import qualified Data.Map as M 
 import qualified Data.Maybe as MM
+import Data.Text as T
+import Data.Text.Arbitrary as T ()
+import Data.Text.IO as T
 
 import GHC.Generics.Instances
 
@@ -42,7 +45,7 @@ path3 = "Tests/sorted_sequences_err.tex"
 path3 :: FilePath
 
 result3 :: String
-result3 = concat
+result3 = L.concat
     [ "Left [Error \"unexpected: }; expected: node; expected: end keyword (equation)\" (LI \"\" 29 13)]"
     ]
 
@@ -52,7 +55,7 @@ path4 :: FilePath
 path5 = "Tests/integers.tex"
 path5 :: FilePath
 
-sections :: [String]
+sections :: [Text]
 sections = [
     "calculation",
     "theorem",
@@ -62,13 +65,13 @@ sections = [
     "invariant",
     "machine"]
 
-extract_structure :: String -> Either [Error] (M.Map String [LatexNode])
+extract_structure :: Text -> Either [Error] (M.Map Text [LatexNode])
 extract_structure ct = do
     xs <- latex_structure "" ct
     return (find_env sections xs)
 
-find_env :: [String] -> LatexDoc -> M.Map String [LatexNode]
-find_env kw xs = M.map reverse $ L.foldl' f (M.fromList $ zip kw $ repeat []) $ contents' xs
+find_env :: [Text] -> LatexDoc -> M.Map Text [LatexNode]
+find_env kw xs = M.map L.reverse $ L.foldl' f (M.fromList $ L.zip kw $ repeat []) $ contents' xs
     where
         f m (t@(EnvNode (Env _ name _ _ _)))
             | name `elem` kw = M.insertWith (++) name [t] m
@@ -77,21 +80,21 @@ find_env kw xs = M.map reverse $ L.foldl' f (M.fromList $ zip kw $ repeat []) $ 
 
 main :: FilePath -> IO String
 main path = do
-        let f (EnvNode (Env _ n _ doc _))   = ShowString $ [s|Env{%s} (%d)|] n (length $ contents' doc)
-            f (BracketNode (Bracket _ _ doc _)) = ShowString $ [s|Bracket (%d)|] (length $ contents' doc)
+        let f (EnvNode (Env _ n _ doc _))   = ShowString $ [s|Env{%s} (%d)|] n (L.length $ contents' doc)
+            f (BracketNode (Bracket _ _ doc _)) = ShowString $ [s|Bracket (%d)|] (L.length $ contents' doc)
             f (Text _)            = ShowString "Text {..}"
-        ct <- readFile path
-        return $ show $ M.map (map f) <$> extract_structure ct
+        ct <- T.readFile path
+        return $ show $ M.map (L.map f) <$> extract_structure ct
 
-tests :: FilePath -> IO String
+tests :: FilePath -> IO Text
 tests path = do
-        ct <- readFile path
+        ct <- T.readFile path
         let x = (do
                 tree <- latex_structure path ct
                 return (flatten' tree))
         return (case x of
             Right xs -> xs
-            Left msgs -> error $ L.unlines $ map report msgs)
+            Left msgs -> error $ unpack $ T.unlines $ L.map report msgs)
 
 instance Arbitrary LatexToken where
     arbitrary = genericArbitrary
@@ -100,23 +103,23 @@ instance Arbitrary LatexToken where
 instance Arbitrary LatexDoc where
     arbitrary = sized $ \sz -> makeLatex "foo.txt" <$> aux (ceiling $ fromIntegral sz ** (1.5 :: Float) + 1)
         where
-            char = arbitrary `suchThat` \c -> isPrint c && c `notElem` "%{}[]\\"
+            char = arbitrary `suchThat` \c -> isPrint c && c `L.notElem` ("%{}[]\\" :: String)
             cmd  = char `suchThat` (not.isSpace)
             aux :: Int -> Gen (LatexGen ())
             aux sz = do
-                oneof $ concat
+                oneof $ L.concat
                     [ [ do
                         name <- listOf1 cmd
                         n    <- choose (0,sz-2)
                         bins <- subtree_size (n+1) sz
-                        ts   <- mapM aux (tail bins)
-                        begin name ts <$> aux (head bins)
+                        ts   <- mapM aux (L.tail bins)
+                        begin (pack name) ts <$> aux (L.head bins)
                       , brackets <$> aux (sz - 1) ]
                     | sz > 1 ] ++
-                    [ text <$> listOf char ]
-    shrink = map (makeLatex "foo.txt" . texMonad) . sort . subtrees
+                    [ text . pack <$> listOf char ]
+    shrink = L.map (makeLatex "foo.txt" . texMonad) . sort . subtrees
         where
-            sort = map (($ ()) . snd) . L.sortOn fst . map (sz &&& id)
+            sort = L.map (($ ()) . snd) . L.sortOn fst . L.map (sz &&& id)
             sz x = size (x ())
 
 newtype Tokens = TokenStream [(LatexToken,LineInfo)]
@@ -132,7 +135,8 @@ instance Arbitrary Tokens where
     arbitrary = do
         let true = const True
             li   = LI "foo.txt" 1 1
-            char = arbitrary `suchThat` (`notElem` "\\[]{}%") `suchThat` (not . isSpace)
+            char = arbitrary `suchThat` (`L.notElem` ("\\[]{}%" :: String) )
+                             `suchThat` (not . isSpace)
         xs <- listOf $ return $ do
             (p,li) <- get
             (x,s') <- lift $ oneof 
@@ -143,16 +147,16 @@ instance Arbitrary Tokens where
                     t <- Close <$> arbitrary <*> pure li
                     return ((t,li),(true,end (t,li)))
                 , do 
-                    t <- TextBlock <$> listOf1 char <*> pure li
+                    t <- TextBlock . pack <$> listOf1 char <*> pure li
                     return ((t,li),(isn't _TextBlock,end (t,li)))
                 , do 
-                    t <- Command <$> (('\\':) <$> ((:) <$> (char `suchThat` isAlpha)
+                    t <- Command . pack <$> (('\\':) <$> ((:) <$> (char `suchThat` isAlpha)
                                                        <*> listOf (char `suchThat` isAlphaNum))) 
-                                 <*> pure li
+                                        <*> pure li
                     return ((t,li),(isn't _TextBlock,end (t,li)))
                 , do 
-                    t <- Blank <$> listOf1 (arbitrary `suchThat` isSpace) 
-                               <*> pure li
+                    t <- Blank . pack <$> listOf1 (arbitrary `suchThat` isSpace) 
+                                      <*> pure li
                     return ((t,li),(isn't _Blank,end (t,li)))
                 ] `suchThat` (p.fst.fst)
             put s'
@@ -171,10 +175,10 @@ instance Arbitrary MutatedTokens where
                 begin = _Command . _1 . only "\\begin" 
                 end :: Traversal' LatexToken ()
                 end = _Command . _1 . only "\\end"
-                important = MM.mapMaybe (\x -> p _Open x <|> p _Close x <|> p end x <|> p begin x) $ zip [0..] ts
-            return (important,ts)) (not . null . fst)
-        i <- QC.elements $ map fst important
-        return $ MutatedTokens $ take i ts ++ drop (i+1) ts
+                important = MM.mapMaybe (\x -> p _Open x <|> p _Close x <|> p end x <|> p begin x) $ L.zip [0..] ts
+            return (important,ts)) (not . L.null . fst)
+        i <- QC.elements $ L.map fst important
+        return $ MutatedTokens $ L.take i ts ++ L.drop (i+1) ts
 
 newtype MutatedTokens = MutatedTokens [(LatexToken,LineInfo)]
     deriving (Show)
@@ -206,10 +210,10 @@ prop_flatten_scan_inv_regression = regression prop_flatten_scan_inv cases
             [ Doc (LI "foo.txt" 1 1) [EnvNode $ Env (LI "foo.txt" 1 1) "\232y\171" (LI "foo.txt" 1 8) (Doc (LI "foo.txt" 1 12) [Text (TextBlock "\181" (LI "foo.txt" 1 12))] (LI "foo.txt" 1 13)) (LI "foo.txt" 1 18)] (LI "foo.txt" 1 22)
             ]
 
-prop_uncomment_inv :: String -> Property
+prop_uncomment_inv :: Text -> Property
 prop_uncomment_inv xs' = xs === uncomment xs
     where
-        xs = filter (/= '%') xs'
+        xs = T.filter (/= '%') xs'
 
 prop_uncomment_inv_regression :: Property
 prop_uncomment_inv_regression = regression prop_uncomment_inv cases
@@ -217,8 +221,8 @@ prop_uncomment_inv_regression = regression prop_uncomment_inv cases
         cases =
             [ "\r" ]
 
-prop_line_number_inv :: String -> Property
-prop_line_number_inv xs = xs === map fst (line_number "" xs)
+prop_line_number_inv :: Text -> Property
+prop_line_number_inv xs = unpack xs === L.map fst (line_number "" xs)
 
 prop_line_number_inv_regression :: Property
 prop_line_number_inv_regression = regression prop_line_number_inv cases
@@ -227,7 +231,7 @@ prop_line_number_inv_regression = regression prop_line_number_inv cases
             [ "\n" ]
 
 prop_flatten_scan_inv' :: Tokens -> Property
-prop_flatten_scan_inv' (TokenStream toks) = Right toks === scan_latex "foo.txt" (concatMap lexeme $ map fst toks)
+prop_flatten_scan_inv' (TokenStream toks) = Right toks === scan_latex "foo.txt" (T.concat $ L.map lexeme $ L.map fst toks)
 
 prop_flatten_scan_inv'_regression :: Property
 prop_flatten_scan_inv'_regression = regression prop_flatten_scan_inv' cases
@@ -237,11 +241,11 @@ prop_flatten_scan_inv'_regression = regression prop_flatten_scan_inv' cases
             ]
 
 prop_non_empty_parse_error :: MutatedTokens -> Property
-prop_non_empty_parse_error (MutatedTokens toks) = isLeft xs ==> all (not . null . message) (fromLeft' xs)
+prop_non_empty_parse_error (MutatedTokens toks) = isLeft xs ==> L.all (not . T.null . message) (fromLeft' xs)
     where 
         xs = latex_structure "foo.txt" (flatten toks)
 
-prop_non_empty_scan_error :: String -> Bool
+prop_non_empty_scan_error :: Text -> Bool
 prop_non_empty_scan_error str = isRight $ scan_latex "foo.txt" str
 
 --prop_counter_example0 :: Bool
@@ -263,7 +267,7 @@ counter1 = [(Close Curly (LI "foo.txt" 1 1),(LI "foo.txt" 1 1)),(TextBlock "Bhb~
     --Doc (LI "foo.txt" 1 1) [Env (LI "foo.txt" 1 1) "5" (LI "foo.txt" 1 8) (Doc (LI "foo.txt" 1 10) [Bracket Curly (LI "foo.txt" 1 10) (Doc (LI "foo.txt" 1 11) [Bracket Curly (LI "foo.txt" 1 11) (Doc (LI "foo.txt" 1 12) [Text (TextBlock "~B" (LI "foo.txt" 1 12))] (LI "foo.txt" 1 14)) (LI "foo.txt" 1 14)] (LI "foo.txt" 1 15)) (LI "foo.txt" 1 15)] (LI "foo.txt" 1 16)) (LI "foo.txt" 1 21)] (LI "foo.txt" 1 23)
 
 counter1' :: [(LatexToken,LineInfo)]
-counter1' = fromRight' $ scan_latex "foo.txt" (concatMap lexeme $ map fst counter1)
+counter1' = fromRight' $ scan_latex "foo.txt" (T.concat $ L.map lexeme $ L.map fst counter1)
 
 --counter2 :: LatexDoc
 --counter2 = Doc (LI "foo.txt" 1 1) [Env (LI "foo.txt" 1 1) "l\241V\203" (LI "foo.txt" 1 8) (Doc (LI "foo.txt" 1 13) [Bracket Curly (LI "foo.txt" 1 13) (Doc (LI "foo.txt" 1 14) [Env (LI "foo.txt" 1 14) "\177+" (LI "foo.txt" 1 21) (Doc (LI "foo.txt" 1 24) [] (LI "foo.txt" 1 24)) (LI "foo.txt" 1 24)] (LI "foo.txt" 1 32)) (LI "foo.txt" 1 32),Bracket Curly (LI "foo.txt" 1 33) (Doc (LI "foo.txt" 1 34) [Env (LI "foo.txt" 1 34) "? /s" (LI "foo.txt" 1 41) (Doc (LI "foo.txt" 1 46) [Text (TextBlock "\212Y" (LI "foo.txt" 1 46))] (LI "foo.txt" 1 48)) (LI "foo.txt" 1 48)] (LI "foo.txt" 1 58)) (LI "foo.txt" 1 58),Bracket Curly (LI "foo.txt" 1 59) (Doc (LI "foo.txt" 1 60) [Text (TextBlock "Z\190:" (LI "foo.txt" 1 60))] (LI "foo.txt" 1 63)) (LI "foo.txt" 1 63),Bracket Curly (LI "foo.txt" 1 64) (Doc (LI "foo.txt" 1 65) [Text (TextBlock "i\230*" (LI "foo.txt" 1 65))] (LI "foo.txt" 1 68)) (LI "foo.txt" 1 68),Bracket Curly (LI "foo.txt" 1 69) (Doc (LI "foo.txt" 1 70) [Text (TextBlock "k4" (LI "foo.txt" 1 70))] (LI "foo.txt" 1 72)) (LI "foo.txt" 1 72),Bracket Curly (LI "foo.txt" 1 73) (Doc (LI "foo.txt" 1 74) [Bracket Curly (LI "foo.txt" 1 74) (Doc (LI "foo.txt" 1 75) [Env (LI "foo.txt" 1 75) "j" (LI "foo.txt" 1 82) (Doc (LI "foo.txt" 1 84) [Bracket Curly (LI "foo.txt" 1 84) (Doc (LI "foo.txt" 1 85) [Text (TextBlock "6\240n" (LI "foo.txt" 1 85))] (LI "foo.txt" 1 88)) (LI "foo.txt" 1 88)] (LI "foo.txt" 1 89)) (LI "foo.txt" 1 89)] (LI "foo.txt" 1 96)) (LI "foo.txt" 1 96)] (LI "foo.txt" 1 97)) (LI "foo.txt" 1 97),Bracket Curly (LI "foo.txt" 1 98) (Doc (LI "foo.txt" 1 99) [] (LI "foo.txt" 1 99)) (LI "foo.txt" 1 99),Bracket Curly (LI "foo.txt" 1 100) (Doc (LI "foo.txt" 1 101) [] (LI "foo.txt" 1 101)) (LI "foo.txt" 1 101),Bracket Curly (LI "foo.txt" 1 102) (Doc (LI "foo.txt" 1 103) [Text (TextBlock ")h" (LI "foo.txt" 1 103))] (LI "foo.txt" 1 105)) (LI "foo.txt" 1 105)] (LI "foo.txt" 1 106)) (LI "foo.txt" 1 106)] (LI "foo.txt" 1 116)
@@ -289,13 +293,13 @@ cases = test_cases "latex parser" [
     (aCase "sorted seq err.tex" (main path3) result3),
     (CalcCase "reconstitute sample.tex" 
         (tests path2) 
-        (uncomment <$> readFile path2)),
+        (uncomment <$> T.readFile path2)),
     (CalcCase "reconstitute integers.tex" 
         (tests path5) 
-        (uncomment <$> readFile path5)),
+        (uncomment <$> T.readFile path5)),
     (CalcCase "reconstitute sorted seq.tex" 
         (tests path4) 
-        (uncomment <$> readFile path4)) ]
+        (uncomment <$> T.readFile path4)) ]
 
 test_case :: TestCase
 test_case = cases

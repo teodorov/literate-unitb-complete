@@ -19,6 +19,7 @@ import Control.Precondition
 import Data.List as L
 import Data.Map as M
 import Data.Set as S
+import Data.Text (Text)
 
 import GHC.Generics.Instances
 
@@ -153,25 +154,25 @@ include t = do
     updateSetting
 
 assume :: Pre
-       => String -> ExprP -> SequentM ()
+       => Text -> ExprP -> SequentM ()
 assume s e = assume' s (fromRight' e)
 
 assume' :: (HasExpr expr,Monad m)
-        => String -> expr 
+        => Text -> expr 
         -> SequentT expr m ()
 assume' lbl e = do
         collectDeclaration e
         SequentM $ tell' $ asms .= M.singleton (label lbl) e -- tell ([],[],[e'],[])
 
 assumeQ :: (FromDispExpr expr,HasExpr expr,Monad m)
-        => String -> (ParserSetting -> DispExpr) 
+        => Text -> (ParserSetting -> DispExpr) 
         -> SequentT expr m ()
 assumeQ lbl qexpr = do
         setting <- SequentM $ use _1
         assume' lbl $ fromDispExpr $ qexpr setting
 
 assumeE :: (FromDispExpr expr,HasExpr expr)
-        => (String, StringLi) -> SequentM' expr ()
+        => (Text, StringLi) -> SequentM' expr ()
 assumeE (lbl, str) = do
         setting <- SequentM $ use _1
         de <- hoistEither $ parse_expr setting str
@@ -223,15 +224,15 @@ checkE' str = do
         hoistEither $ parse_expr setting str
 
 declare :: (Pre,Monad m)
-        => String -> Type 
+        => Text -> Type 
         -> SequentT expr m ExprP
 declare n t = do
-        declare' $ Var (fromString'' n) t
+        declare' $ Var (fromText n) t
 
 declare_ :: Pre
-         => String -> Type -> SequentM ()
+         => Text -> Type -> SequentM ()
 declare_ n t = do
-        void $ declare' $ Var (fromString'' n) t
+        void $ declare' $ Var (fromText n) t
 
 declare' :: Monad m
          => Var 

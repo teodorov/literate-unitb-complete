@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies, OverloadedStrings, OverloadedLists #-}
+{-# LANGUAGE TypeFamilies, OverloadedStrings #-}
 module Latex.Parser where
 
     -- Modules
@@ -15,13 +15,14 @@ import Control.Precondition
 import Data.Char
 import Data.Either.Combinators
 import qualified Data.Foldable as F
-import Data.List ( intercalate )
+-- import Data.List ( intercalate )
 import qualified Data.List as L
 import Data.Monoid
 import Data.Semigroup hiding ( (<>) )
 import qualified Data.Semigroup as S 
-import Data.String.Lines as LN
+-- import Data.String.Lines as LN
 import Data.Text as T
+import Data.Text.Lens as T hiding (Text,_Text)
 import Data.Typeable
 
 import GHC.Generics (Generic)
@@ -95,7 +96,7 @@ instance Convertible LatexNode where
                "\\begin{" <> s <> "}"
             <> flatten' ct
             <> "\\end{" <> s <> "}"
-    flatten (BracketNode (Bracket b _ ct _)) = [openBracket b] <> flatten' ct <> [closeBracket b]
+    flatten (BracketNode (Bracket b _ ct _)) = openBracket b `T.cons` flatten' ct `T.snoc` closeBracket b
     flatten (Text xs) = lexeme xs
 
 instance Convertible [LatexToken] where
@@ -245,7 +246,7 @@ instance Syntactic LatexNode where
     line_info (Text t)           = line_info t
     after (Text t) = after t
     after (EnvNode (Env _ nm _ _ li))  = end (nm <> "}",li)
-    after (BracketNode (Bracket _ _ _ li)) = end ("}",li)
+    after (BracketNode (Bracket _ _ _ li)) = end ("}" :: String ,li)
     traverseLineInfo f (BracketNode (Bracket b li0 ct li1)) = fmap BracketNode $
             Bracket b <$> f li0 
                       <*> traverseLineInfo f ct 
@@ -273,10 +274,10 @@ tokens (Doc _ xs _) = L.concatMap f xs
         f (EnvNode (Env li0 name li1 ct li2)) = f begin ++ cont ++ f end
             where
                 f = L.map (id &&& line_info)
-                openLI = li0 & column %~ (L.length "\\begin"+)
+                openLI = li0 & column %~ (L.length ("\\begin" :: String) +)
                 closeLI = li1 & column %~ (T.length name+)
                 endLI = afterLast (closeLI & column %~ (1+)) cont
-                openLI' = endLI & column %~ (L.length "\\end"+)
+                openLI' = endLI & column %~ (L.length ("\\end" :: String)+)
                 closeLI' = li2 & column %~ (T.length name+)
                 begin = [ (Command "\\begin" li0)
                         , (Open Curly openLI)
@@ -314,26 +315,27 @@ end_kw   :: Text
 begin_kw = "\\begin"
 end_kw   = "\\end"
 
-is_identifier :: Text -> Maybe Int
-is_identifier t | not $ T.null $ T.filter isAlpha t = Just ln
+is_identifier :: String -> Maybe Int
+is_identifier t | not $ L.null $ L.filter isAlpha t = Just ln
                 | otherwise                         = Nothing
-    where ln = T.length (T.takeWhile isAlphaNum t)
+    where ln = L.length (L.takeWhile isAlphaNum t)
 
-is_command :: Text -> Maybe Int
-is_command []       = Nothing
-is_command (x:xs)   
-    | x == '\\'     =
-        (do n <- is_identifier xs
-            return (n+1)) `mplus`
-        (do guard (not $ L.null xs)
-            if isSymbol $ T.head xs
-                then return 2
-                else Nothing)
-    | otherwise     = Nothing
+is_command :: String -> Maybe Int
+is_command ys = case L.uncons ys of
+    Nothing -> Nothing
+    Just (x,xs)
+        | x == '\\'     ->
+            (do n <- is_identifier xs
+                return (n+1)) `mplus`
+            (do guard (not $ L.null xs)
+                if isSymbol $ L.head xs
+                    then return 2
+                    else Nothing)
+        | otherwise     -> Nothing
 
-is_space :: Text -> Maybe Int
+is_space :: String -> Maybe Int
 is_space xs = do
-        let n = T.length $ T.takeWhile isSpace xs
+        let n = L.length $ L.takeWhile isSpace xs
         guard (1 <= n)
         Just n
 
@@ -362,8 +364,8 @@ tex_tokens = do
                     xs <- tex_tokens
                     case xs of
                         (TextBlock ys _,_):zs -> 
-                            return ((TextBlock (d:ys) li,li):zs)
-                        _ ->return ((TextBlock [d] li,li):xs)
+                            return ((TextBlock (d `T.cons` ys) li,li):zs)
+                        _ ->return ((TextBlock (T.singleton d) li,li):xs)
 
 type Parser = P.Parsec [LatexToken] ()
 
@@ -399,8 +401,11 @@ latex_content' = do
                     (texToken' (_Command . notEnv) <?> "command")
                 <|> (texToken' _Blank     <?> "space")
                 <|> (texToken' _TextBlock <?> "text")
+        notEnv :: Applicative f
+               => ( (Text,LineInfo) -> f (Text,LineInfo) ) 
+               -> (Text,LineInfo) -> f (Text,LineInfo)
         notEnv f (x,li)
-            | x `notElem` ["\\begin","\\end"] = f (x,li)
+            | x `notElem` ["\\begin","\\end" :: Text] = f (x,li)
             | otherwise                       = pure (x,li)
         open     = texToken (_Open._1)
         close b  = texToken (_Close._1.only b)
@@ -408,7 +413,7 @@ latex_content' = do
         argument' n = argumentAux (only n)
         argumentAux :: Show a => Prism' Text a -> Parser (a,LineInfo)
         argumentAux p = do
-            optional $ texToken _Blank
+            _ <- optional $ texToken _Blank
             texToken (_Open._1.only Curly)    <?> "open curly"
             li  <- lineInfo
             arg <- texToken (_TextBlock._1.p) <?> "argument"
@@ -431,7 +436,7 @@ texTokenAux = tokenAux
 tokenAux :: ( Syntactic token,P.Stream xs Identity token
             , Token token)
          => (token -> Maybe a) -> P.Parsec xs () a
-tokenAux p = P.tokenPrim lexeme (const (\t -> const $ liToPos $ end (t,line_info t)) . posToLi) p
+tokenAux p = P.tokenPrim lexemeString (const (\t -> const $ liToPos $ end (t,line_info t)) . posToLi) p
 
 token' :: ( Syntactic token,P.Stream xs Identity token
           , PrettyPrintable token,Token token)
@@ -445,16 +450,16 @@ latex_content :: FilePath -> [(LatexToken,LineInfo)] -> (Int,Int) -> Either [Err
 latex_content fn toks (i,j) = mapLeft toErr $ P.parse parser fn $ L.map fst toks
     where toErr e = [Error (errMsg e) (posToLi $ P.errorPos e)]
           errMsg e = T.intercalate "; " $ L.nub $ L.concatMap f $ errorMessages e
-          f (SysUnExpect xs) = ["unexpected: " ++ xs]
-          f (UnExpect xs) = ["unexpected: " ++ xs]
-          f (Expect xs)   = ["expected: " ++ xs]
-          f (Message xs)  = [xs]
+          f (SysUnExpect xs) = ["unexpected: " <> pack xs]
+          f (UnExpect xs) = ["unexpected: " <> pack xs]
+          f (Expect xs)   = ["expected: " <> pack xs]
+          f (Message xs)  = [pack xs]
           parser = do
             P.setPosition (P.newPos fn i j)
             x <- latex_content'
             eof
             return x
-          eof = P.try (do{ c <- P.try (texToken' id); P.unexpected (lexeme c) }
+          eof = P.try (do{ c <- P.try (texToken' id); P.unexpected (lexemeString c) }
                                 <|> return ()
                                 )
 
@@ -518,7 +523,7 @@ skip_blank :: Scanner LatexToken ()
 skip_blank = do
         xs <- peek
         case xs of
-            (Blank _ _:_) -> do read_char ; return ()
+            (Blank _ _:_) -> do _ <- read_char ; return ()
             _  -> return ()
 
 
@@ -584,18 +589,21 @@ is_prefix :: Eq a => [a] -> [a] -> Bool
 is_prefix xs ys = xs == L.take (L.length xs) ys
 
 uncomment :: Text -> Text
-uncomment xs = F.concat $ fmap removeComment $ LN.lines' xs
+uncomment xs = F.fold $ fmap removeComment $ T.lines xs
     where
-        removeComment = uncurry (<>) . second (T.dropWhile (`notElem` "\n\r")) . T.span ('%' /=)
+        removeComment = uncurry (<>) . second (T.dropWhile (`notElem` ['\n','\r'])) . T.span ('%' /=)
 
 with_print :: Show a => a -> a
 with_print x = unsafePerformIO (do putStrLn $ show x ; return x)
 
 remove_ref :: Text -> Text
-remove_ref ('\\':'r':'e':'f':'{':xs) = remove_ref xs
-remove_ref ('}':xs) = remove_ref xs
-remove_ref (x:xs)   = x:remove_ref xs
-remove_ref []       = []
+remove_ref = unpacked %~ remove_ref'
+
+remove_ref' :: String -> String
+remove_ref' ('\\':'r':'e':'f':'{':xs) = remove_ref' xs
+remove_ref' ('}':xs) = remove_ref' xs
+remove_ref' (x:xs)   = x:remove_ref' xs
+remove_ref' []       = []
 
 addCol :: Int -> LineInfo -> LineInfo
 addCol n (LI fn i j) = LI fn i (j+n)

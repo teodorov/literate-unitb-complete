@@ -36,6 +36,7 @@ import           Data.List as L
 import qualified Data.Map as M
 import           Data.Serialize
 import qualified Data.Set as S
+import           Data.Text (Text)
 
 import GHC.Generics hiding (to,from)
 import GHC.Generics.Instances
@@ -208,7 +209,7 @@ instance (IsName n) => Translatable
     translate = fmap3 asInternal
 
 make_unique :: (IsGenExpr expr, Name ~ NameT expr)
-            => String               -- suffix to be added to the name of variables
+            => Text                 -- suffix to be added to the name of variables
             -> M.Map Name var       -- set of variables that must renamed
             -> expr                 -- expression to rewrite
             -> expr
@@ -234,19 +235,19 @@ instance Arbitrary Value where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-type P = Either [String]
+type P = Either [Text]
 
-type RawExprP = Either [String] RawExpr 
+type RawExprP = Either [Text] RawExpr 
 
-type ExprP = Either [String] Expr 
+type ExprP = Either [Text] Expr 
 
-type ExprP' = Either [String] Expr'
+type ExprP' = Either [Text] Expr'
 
-type ExprPG n t q = Either [String] (AbsExpr n t q)
+type ExprPG n t q = Either [Text] (AbsExpr n t q)
 
-type GenExprPG n t a q = Either [String] (GenExpr n t a q)
+type GenExprPG n t a q = Either [Text] (GenExpr n t a q)
 
-type ExprPC e = Either [String] e
+type ExprPC e = Either [Text] e
 
 class ( TypeSystem (TypeT expr)
       , TypeSystem (AnnotT expr)
@@ -368,7 +369,7 @@ unit = funApp (mkConstant "null" null_type) []
 pair :: (IsName n,TypeSystem t,IsQuantifier q) => AbsExpr n t q -> AbsExpr n t q -> AbsExpr n t q
 pair x y = funApp fun [x,y]
     where
-        fun = mk_fun [] (fromString'' "pair") [t0,t1] $ pair_type t0 t1
+        fun = mk_fun [] (fromText "pair") [t0,t1] $ pair_type t0 t1
         t0 = type_of x
         t1 = type_of y
 
@@ -502,22 +503,22 @@ instance (TypeSystem a, TypeSystem t
                              , e']
     as_tree' (Record (RecLit m) _)  = 
         Expr.List <$> liftA2 (:) 
-            (pure $ Str $ render (recordName m)) 
+            (pure $ Str $ renderText (recordName m)) 
             (traverse as_tree' $ M.elems m)
     as_tree' (Record (RecSet m) _)  = 
         Expr.List <$> liftA2 (:) 
-            (pure $ Str $ render (recordName m)) 
+            (pure $ Str $ renderText (recordName m)) 
             (traverse as_tree' $ M.elems m)
     as_tree' (Record (RecUpdate x m') _)  = 
             Expr.List <$> liftA2 (:) 
-                (pure $ Str $ render (recordName m)) 
+                (pure $ Str $ renderText (recordName m)) 
                 (traverse as_tree' $ M.elems m)
         where
           m = m' `M.union` lookupFields x
     as_tree' (Record (FieldLookup x field) _) =
         Expr.List <$> sequenceA [pure $ Str $ accessor field, as_tree' x]
-    as_tree' (Word (Var xs _))    = return $ Str $ render xs
-    as_tree' (Lit xs _)         = return $ Str $ pretty xs
+    as_tree' (Word (Var xs _))    = return $ Str $ renderText xs
+    as_tree' (Lit xs _)         = return $ Str $ prettyText xs
     as_tree' (FunApp f@(Fun _ _ _ _ t _) [])
             | isLifted f = Expr.List <$> sequence   
                                [ Expr.List 
@@ -538,7 +539,7 @@ instance (TypeSystem a, TypeSystem t
         xs' <- mapM as_tree' xs
         r'  <- as_tree' r
         xp' <- as_tree' xp
-        return $ Expr.List [ Str $ pretty q
+        return $ Expr.List [ Str $ prettyText q
                       , Expr.List xs'
                       , Expr.List 
                           [ merge_range q
@@ -715,7 +716,7 @@ instance (TypeSystem t,IsName n,Typeable q) => Named (AbsDef n t q) where
     type NameOf (AbsDef n t q) = n
     decorated_name' (Def ts x _ _ _) = do
             ts' <- mapM z3_decoration' ts
-            let suf = concat ts'
+            let suf = mconcat ts'
             onInternalName (addSuffix suf) 
                 $ adaptName x
 

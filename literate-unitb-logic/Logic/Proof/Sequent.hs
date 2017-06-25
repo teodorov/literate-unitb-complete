@@ -27,6 +27,7 @@ import qualified Data.Set  as S
 import Data.Serialize hiding (label,Partial)
 import Data.String.Lines
 import Data.Typeable
+import Data.Text as T
 import Data.Word
 
 import GHC.Generics.Instances
@@ -135,7 +136,7 @@ instance HasConstants (GenSequent n t q e) (M.Map n (AbsVar n t)) where
     constants = context.constants
 
 predefined :: [InternalName]
-predefined = map fromString''
+predefined = L.map fromString''
              [ "=","union","and","or","=>","<=","<",">","^"
              , "subset","select","true","false"
              , "intersect","+","-","*","/","not"
@@ -182,7 +183,7 @@ checkSequent :: Pre
              => Sequent -> Sequent
 checkSequent s = byPred msg (const $ L.null xs) (Pretty s) s
     where
-        msg = [Printf.s|Sequent scopes: \n%s|] $ L.unlines $ map pretty_print' xs
+        msg = unpack $ [Printf.st|Sequent scopes: \n%s|] $ T.unlines $ L.map pretty_print' xs
         checkScopes' e = do
             xs <- snd <$> listen (checkScopesAux e)
             unless (L.null xs)
@@ -254,32 +255,33 @@ empty_sequent :: (HasGenExpr expr)
 empty_sequent = (Sequent 3000 1 empty_ctx empty_monotonicity [] M.empty ztrue)
 
 instance (TypeSystem t, IsQuantifier q) => PrettyPrintable (AbsSequent t q) where
-    pretty s = L.unlines $ asms ++ ["|----",goal'] 
+    prettyText s = T.unlines $ asms ++ ["|----",goal'] 
         where
-            indent n = over traverseLines (replicate n ' ' ++)
-            indentAfter n = partsOf traverseLines %~ zipWith (++) ("" : repeat (replicate n ' '))
-            asms   = map (indent 1) $ 
-                    ["sort: " ++ intercalate ", " (L.filter (not.L.null) $ MM.mapMaybe f $ toList ss)]
-                    ++ (map pretty $ elems fs)
-                    ++ (map pretty $ sortDefs ds)
-                    ++ (map pretty $ elems vs)
-                    ++ map showWithLabel hs
-                    ++ map pretty_print' hs'
+            indent n = over traverseLinesText (T.replicate n " " <>)
+            indentAfter n = partsOf traverseLinesText %~ L.zipWith (<>) ("" : repeat (T.replicate n " "))
+            asms   = L.map (indent 1) $ 
+                    ["sort: " <> T.intercalate ", " (L.filter (not.T.null) $ MM.mapMaybe f $ toList ss)]
+                    ++ L.map prettyText (elems fs)
+                    ++ L.map prettyText (sortDefs ds)
+                    ++ L.map prettyText (elems vs)
+                    ++ L.map showWithLabel hs
+                    ++ L.map pretty_print' hs'
             goal' = indent 1 $ pretty_print' g
             Context ss vs fs ds _ = s^.context
-            hs  = map (_1 %~ (++":  ") . pretty) $ M.toList (s^.named)
+            -- hs :: TypeSystem t => [(Text,GenExpr Name t t q)]
+            hs  = L.map (_1 %~ (<> ":  ") . prettyText) $ M.toList (s^.named)
             hs' = s^.nameless
-            margin = maximum (0:map (length.fst) hs)
-            showWithLabel (lbl,x) = take margin (lbl ++ repeat ' ') ++ indentAfter margin (pretty_print' x)
+            margin = L.maximum (0:L.map (T.length.fst) hs)
+            showWithLabel (lbl,x) = T.take margin (lbl <> T.replicate margin " ") <> indentAfter margin (pretty_print' x)
             g  = s^.goal
             f (_, IntSort)  = Nothing
             f (_, BoolSort) = Nothing
             f (_, RealSort) = Nothing
             f (_, RecordSort _) = Nothing
-            f (x, Datatype args n _) = f (x, Sort n (asInternal n) $ length args)
-            f (x, DefSort y z xs _)  = f (x, Sort y z $ length xs)
-            f (_, Sort _ z 0) = Just $ render z
-            f (_, Sort _ z n) = Just $ [Printf.s|%s [%s]|] (render z) (intersperse ',' $ map chr $ take n [ord 'a' ..]) 
+            f (x, Datatype args n _) = f (x, Sort n (asInternal n) $ L.length args)
+            f (x, DefSort y z xs _)  = f (x, Sort y z $ L.length xs)
+            f (_, Sort _ z 0) = Just $ renderText z
+            f (_, Sort _ z n) = Just $ [Printf.st|%s [%s]|] (renderText z) (L.intersperse ',' $ L.map chr $ L.take n [ord 'a' ..]) 
 
 remove_type_vars :: Sequent' -> FOSequent
 remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m asm' hyp' goal'
@@ -287,26 +289,26 @@ remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m
         (Context ss _ _ dd _) = ctx
         _ = dd :: M.Map InternalName Def'
         asm_types = MM.catMaybes 
-                    $ map type_strip_generics 
+                    $ L.map type_strip_generics 
                     $ S.elems $ S.unions 
-                    $ map used_types $ map target (M.elems dd) ++ asm ++ M.elems hyp
+                    $ L.map used_types $ L.map target (M.elems dd) ++ asm ++ M.elems hyp
         seq_types = S.fromList asm_types `S.union` used_types goal'
         -- seq_types = S.unions $ L.map referenced_types $ asm_types ++ S.toList (used_types goal')
 
         const_types :: [FOType]
-        const_types = concatMap (universe.type_of) 
+        const_types = foldMap (universe.type_of) 
                         $ M.elems $ ctx'^.constants 
         decl_types :: S.Set FOType
-        decl_types = S.unions $ map used_types $ goal' : asm' ++ M.elems hyp'
+        decl_types = S.unions $ L.map used_types $ goal' : asm' ++ M.elems hyp'
         ctx' :: FOContext
         ctx'  = to_fol_ctx decl_types $ ctx
                     & sorts %~ M.union records
         records = symbol_table $ nubSort $ 
                     (S.toList decl_types ++ const_types)^.partsOf (traverse.foldSorts.filtered (is _RecordSort))
         asm' :: [FOExpr]
-        asm' = map snd $ concatMap (gen_to_fol seq_types (label "")) asm
+        asm' = L.map snd $ foldMap (gen_to_fol seq_types (label "")) asm
         hyp' :: M.Map Label FOExpr
-        hyp' = M.fromList $ concat $ M.elems $ M.mapWithKey (gen_to_fol seq_types) hyp
+        hyp' = M.fromList $ mconcat $ M.elems $ M.mapWithKey (gen_to_fol seq_types) hyp
         goal' :: FOExpr
         goal' = vars_to_sorts ss goal
 
@@ -323,22 +325,22 @@ one_point s = s & goal .~ g'
         g' = one_point_rule g
 
 differs_by_one :: Eq a => [a] -> [a] -> Maybe (ArgumentPos,a,a)
-differs_by_one xs ys = f $ zip ws $ zip xs ys
+differs_by_one xs ys = f $ L.zip ws $ L.zip xs ys
     where
-        ws = LeftArg : replicate (n-2) MiddleArg ++ [RightArg]
-        n = length xs
+        ws = LeftArg : L.replicate (n-2) MiddleArg ++ [RightArg]
+        n = L.length xs
         f [] = Nothing
         f ((i,(x,y)):xs) 
             | x == y        = f xs
-            | all (uncurry (==) . snd) xs = Just (i,x,y)
+            | L.all (uncurry (==) . snd) xs = Just (i,x,y)
             | otherwise     = Nothing
 
 flatten_assoc :: (IsAbsExpr expr,TypeT expr ~ Type) 
               => FunT expr -> [expr] -> [expr]
-flatten_assoc fun xs = concatMap f xs
+flatten_assoc fun xs = L.concatMap f xs
     where
         f (FunApp fun' xs)
-            | fun == fun' = concatMap f xs
+            | fun == fun' = L.concatMap f xs
         f e = [e]
 
 differs_by_segment :: Eq a => [a] -> [a] -> Maybe (ArgumentPos,[a],[a])
@@ -359,9 +361,9 @@ longestCommonPrefix xs ys = ([],xs,ys)
 
 longestCommonSuffix :: Eq a => [a] -> [a] -> ([a],[a],[a])
 longestCommonSuffix xs ys = longestCommonPrefix 
-                                    (reverse xs) 
-                                    (reverse ys) 
-                                & each %~ reverse
+                                    (L.reverse xs) 
+                                    (L.reverse ys) 
+                                & each %~ L.reverse
 
 apply_monotonicity :: Sequent -> Sequent
 apply_monotonicity po = fromMaybe po $
@@ -403,7 +405,7 @@ apply_monotonicity po = fromMaybe po $
                                 return $ apply_monotonicity $
                                     po' & goal .~ (zforall vs ztrue $ r0 `zeq` r1)
                     (FunApp g0 xs, FunApp g1 ys)
-                        | (length xs /= length ys && isNothing (isAssociative mm' g0))
+                        | (L.length xs /= L.length ys && isNothing (isAssociative mm' g0))
                             || g0 /= g1 -> Nothing
                         | z3_name f == [smt|=|] -> do
                             (_,x,y) <- difference g0 xs ys
@@ -451,7 +453,7 @@ apply_monotonicity po = fromMaybe po $
                 (c,x,y) <- differs_by_segment 
                     (flatten_assoc g0 xs) 
                     (flatten_assoc g0 ys)
-                let f = typ_fun2 $ g0 & argumentTypes %~ take 2
+                let f = typ_fun2 $ g0 & argumentTypes %~ L.take 2
                     funApp (x:xs) = L.foldl' f (Right x) $ L.map Right xs
                     funApp [] = unit
                 return (c,fromRight'$ funApp x,fromRight'$ funApp y)

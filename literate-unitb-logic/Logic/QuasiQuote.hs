@@ -23,7 +23,9 @@ import Control.Monad.State  hiding (lift)
 import Data.List
 import Data.Map as M
 import Data.Maybe
-import Data.String.Utils as S
+import Data.Monoid
+import           Data.Text (Text,unpack,pack)
+import qualified Data.Text as T
 
 import Language.Haskell.TH hiding (Name)
 import Language.Haskell.TH.Quote
@@ -49,7 +51,7 @@ var = QuasiQuoter
 
 carrier :: QuasiQuoter
 carrier = QuasiQuoter
-    { quoteExp  = parseTypeDecl
+    { quoteExp  = parseTypeDecl . pack
     , quotePat  = undefined
     , quoteDec  = undefined
     , quoteType = undefined }
@@ -61,23 +63,23 @@ field = QuasiQuoter
     , quoteDec  = undefined
     , quoteType = undefined }
 
-type Parser a = Loc -> ParserSetting -> String -> a
+type Parser a = Loc -> ParserSetting -> Text -> a
 
 parseParts :: (a -> b -> c) 
-           -> String
-           -> String
+           -> Text
+           -> Text
            -> Parser a -> Parser b -> Parser c
-parseParts f sep kind pars0 pars1 loc p str | sep `isInfixOf` str = f v e
-                                            | otherwise           = err
+parseParts f sep kind pars0 pars1 loc p str | sep `T.isInfixOf` str = f v e
+                                            | otherwise             = err
     where
-        (rVar,rExpr) = second (intercalate sep) $ fromMaybe err $ uncons (S.split sep str)
+        (rVar,rExpr) = second (T.intercalate sep) $ fromMaybe err $ uncons (T.splitOn sep str)
         v  = pars0 loc p rVar
         e  = pars1 loc p rExpr
         --p' = p & expected_type .~ Just t
         li  = asLI loc
-        err = error $ "\n"++ show_err [Error ([s|misshapen %s: '%s'|] kind str) li]
+        err = error $ unpack $ "\n" <> show_err [Error ([st|misshapen %s: '%s'|] kind str) li]
 
-parseVarDecl :: Loc -> String -> State ParserSetting ()
+parseVarDecl :: Loc -> Text -> State ParserSetting ()
 parseVarDecl loc str = do
         ctx <- gets contextOf
         let e  = fromList $ run $ get_variables'' ctx (asStringLi li str) li
@@ -86,15 +88,15 @@ parseVarDecl loc str = do
         decls %= M.union e
     where
         li  = asLI loc
-        run = either (error.("\n"++).show_err) id
+        run = either (error.unpack.("\n"<>).show_err) id
 
-parseTypeDecl :: String -> ExpQ -- State ParserSetting ()
+parseTypeDecl :: Text -> ExpQ -- State ParserSetting ()
 parseTypeDecl str = do
         --str' <- either (fail . unlines) return 
         --    $ isName $ strip str
         --let texName = str'^.asInternal
         --    s = Sort str' texName 0
-        let str' = strip str
+        let str' = T.strip str
         [e| do
                 let t   = set_type $ make_type s []
                     s   = Sort n (asInternal n) 0
@@ -109,27 +111,27 @@ primable cmd = do
     s' <- use decls
     primed_vars %= M.union (s' `M.difference` s)
 
-parseVar :: Loc -> ParserSetting -> String -> Var
+parseVar :: Loc -> ParserSetting -> Text -> Var
 parseVar loc p str = fromMaybe err $ do
         n' <- isName' n
         M.lookup n' $ p^.decls
     where
-        n = strip str
-        err = error $ "\n"++ show_err [Error ([s|unknown variables: '%s'|] n) li]
+        n = T.strip str
+        err = error $ unpack $ "\n" <> show_err [Error ([st|unknown variables: '%s'|] n) li]
         li = asLI loc
 
-parseExpr :: Loc -> ParserSetting -> String -> DispExpr
-parseExpr loc p str = either (error.("\n"++).show_err) id
+parseExpr :: Loc -> ParserSetting -> Text -> DispExpr
+parseExpr loc p str = either (error.unpack.("\n"<>).show_err) id
             $ parse_expr p (asStringLi li str)
     where li = asLI loc
     -- either fail lift.
 
 type Ctx = (ParserSetting -> DispExpr) -> DispExpr
 
---impFunctions :: (String,Theory)
+--impFunctions :: (Text,Theory)
 --impFunctions = ("functions",function_theory)
 
---impSets :: (String,Theory)
+--impSets :: (Text,Theory)
 --impSets = ("sets",set_theory)
 
 ctxWith :: [Theory] 

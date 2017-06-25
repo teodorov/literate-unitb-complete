@@ -17,14 +17,17 @@ import Control.Lens hiding (Context,rewrite)
 import           Data.List as L
 import           Data.Maybe as M 
 import qualified Data.Map as M 
+import           Data.Monoid
 import           Data.Serialize hiding (label)
 import           Data.Set as S 
+import           Data.Text as T (Text,intercalate)
 import           Data.Typeable
 
 import GHC.Generics (Generic)
 
 import Test.QuickCheck.ZoomEq
 
+import TextShow
 import Text.Printf.TH as Printf
 
 import Utilities.Syntactic
@@ -128,26 +131,26 @@ instance (Eq expr,IsExpr expr) => ProofRule (ProofBase expr) where
     proof_po (ByCases xs li) lbl po = do
             dis <- toErrors li $ mzsome (L.map (\(_,x,_) -> Right x) xs)
             let c  = completeness dis
-            cs <- zipWithM case_a [1..] xs
+            cs <- zipWithM case_a [1 :: Int ..] xs
             return (c : concat cs)
         where
             completeness dis = 
                     ( (f "completeness") 
                     , po & goal .~ dis )
-            case_a n (_,x,p) = proof_po p (f ("case " ++ show n))
+            case_a n (_,x,p) = proof_po p (f ("case " <> showt n))
                     $ po & nameless %~ (x:)
             f x     = composite_label [lbl,label x]
 
     proof_po (ByParts xs _) lbl po = do
             let conj = L.map (\(x,_) -> x) xs
                 c  = completeness conj
-            cs <- zipWithM part [1..] xs
+            cs <- zipWithM part [1 :: Int ..] xs
             return (c : concat cs)
         where
             completeness conj = 
                     ( (f "completeness") 
                     , po & nameless .~ conj )
-            part n (x,p) = proof_po p (f ("part " ++ show n))
+            part n (x,p) = proof_po p (f ("part " <> showt n))
                     $ po & goal .~ x
             f x     = composite_label [lbl,label x]
 
@@ -161,8 +164,8 @@ instance (Eq expr,IsExpr expr) => ProofRule (ProofBase expr) where
                     | are_fresh [u] po = return $ zforall (L.filter ((v /=) . view name) ds) 
                                                 (rename v u r)
                                                 (rename v u expr)
-                    | otherwise        = Left $ [Error ([s|variable '%s' cannot be freed as '%s'|] 
-                                                    (render v) (render u)) li]
+                    | otherwise        = Left $ [Error ([st|variable '%s' cannot be freed as '%s'|] 
+                                                    (renderText v) (renderText u)) li]
             free_vars expr = return expr
 
     proof_po (Easy t _) lbl po = 
@@ -183,7 +186,7 @@ instance (Eq expr,IsExpr expr) => ProofRule (ProofBase expr) where
                 clashes = decl `M.intersection` M.mapKeys (view name) defs
                 defs' = L.map (uncurry zeq . first Word) $ M.toList defs
             unless (M.null clashes) $
-                Left [Error ([Printf.s|Symbols %s are already defined|] $ intercalate "," $ L.map render $ M.keys clashes) li]
+                Left [Error ([Printf.st|Symbols %s are already defined|] $ T.intercalate "," $ L.map renderText $ M.keys clashes) li]
             proof_po p lbl $ 
                 s & constants %~ (M.union $ symbol_table $ M.keys defs)
                   & nameless  %~ (defs' ++)
@@ -216,12 +219,12 @@ instance (Eq expr,IsExpr expr) => ProofRule (ProofBase expr) where
                             then return $ zimplies re te
                             else return $ zforall new_vs re te
                 _ -> Left [Error ("hypothesis is not a universal quantification:\n" 
-                        ++ pretty_print' hyp) li]
+                        <> pretty_print' hyp) li]
             proof_po proof lbl $
                 po & nameless %~ (newh:)
         else
             Left [Error ("formula is not an hypothesis:\n" 
-                ++ pretty_print' hyp) li]
+                <> pretty_print' hyp) li]
 
     proof_po (Keep ctx unnamed' named' proof _) lbl po = do
         proof_po proof lbl
@@ -229,17 +232,17 @@ instance (Eq expr,IsExpr expr) => ProofRule (ProofBase expr) where
                  & nameless .~ unnamed'
                  & named    .~ named'
 
-chain :: Notation -> BinOperator -> BinOperator -> Either [String] BinOperator
+chain :: Notation -> BinOperator -> BinOperator -> Either [Text] BinOperator
 chain n x y 
     | x == equal = Right y
     | y == equal = Right x
     | otherwise  = case (x,y) `L.lookup` (n^.chaining) of
                     Just z -> Right z
-                    Nothing -> Left [[s|chain: operators %s and %s don't chain|] 
-                                    (pretty x) (pretty y)]
+                    Nothing -> Left [[st|chain: operators %s and %s don't chain|] 
+                                    (prettyText x) (prettyText y)]
 
 
-infer_goal :: Calculation -> Notation -> Either [String] Expr
+infer_goal :: Calculation -> Notation -> Either [Text] Expr
 infer_goal (Calc _ _ s0 xs _) n = do
         op <- mk_expr <$> foldM (chain n) equal (L.map g xs)
         case reverse $ L.map f xs of
@@ -307,12 +310,12 @@ rename_all vs (Binder q ds r xp t) = Binder q ds (rename_all us r) (rename_all u
 rename_all vs e = rewrite (rename_all vs) e 
 
 steps_po :: Context -> Sequent -> Calculation -> Either [Error] [(Label, Sequent)]
-steps_po ctx s (Calc d _ e0 es _) = f e0 es [1..]
+steps_po ctx s (Calc d _ e0 es _) = f e0 es [1 :: Int ..]
     where
         f _ [] _ = return []
         f e0 ((r0, e1, a0,li):es) ns = do
                 expr <- with_li li $ mk_expr r0 e0 e1
-                let step = ( label ("step " ++ show (head ns))
+                let step = ( label ("step " <> showt (head ns))
                            , s & context  .~ (ctx `merge_ctx` d)
                                & nameless %~ (a0++)
                                & named .~ M.empty

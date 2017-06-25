@@ -15,10 +15,11 @@ import Control.Lens hiding (Context,from)
 import           Control.Monad
 
 import           Data.Char
+import           Data.Text (Text)
 
 import Text.Printf.TH
 
-pattern Number :: String -> ExprToken
+pattern Number :: Text -> ExprToken
 pattern Number x = Literal (NumLit x)
 
 data Bracket = Curly | QuotedCurly | Round | Square
@@ -27,20 +28,20 @@ data Bracket = Curly | QuotedCurly | Round | Square
 data ExprToken = 
         Open Bracket 
         | Close Bracket 
-        | Ident String 
+        | Ident Text 
         | Assign
         | Literal ExprLit 
-        | Operator String
+        | Operator Text
         | Comma | Colon
     deriving (Show, Eq)
 
-data ExprLit = NumLit String | NameLit Name
+data ExprLit = NumLit Text | NameLit Name
     deriving (Show, Eq)
 
 makePrisms ''ExprToken
 makePrisms ''ExprLit
 
-instance IsBracket Bracket String where
+instance IsBracket Bracket Text where
     bracketPair Curly  = ("{","}")
     bracketPair QuotedCurly = ("\\{","\\}")
     bracketPair Round  = ("(", ")")
@@ -51,7 +52,7 @@ instance Token ExprToken where
     lexeme (Close b)  = closeBracket b
     lexeme (Ident n)  = n
     lexeme (Literal (NumLit n)) = n
-    lexeme (Literal (NameLit n)) = '\'' : render n
+    lexeme (Literal (NameLit n)) = '\'' <| renderText n
     lexeme (Operator op) = op
     lexeme Assign     = ":="
     lexeme Comma      = ","
@@ -93,14 +94,14 @@ scan_expr n = do
                 , do
                     _ <- read_list "'"
                     Literal . NameLit . fromString'' <$> identString
-                , match_char (`elem` ['.',';']) >>= \x -> return $ Operator [x]
+                , match_char (`elem` ['.',';']) >>= \x -> return $ Operator $ x <| ""
                 , do
                     zs <- fromString'' <$> identString
                     if isOper n zs
-                        then return $ Operator $ render zs
-                        else return $ Ident $ render zs
-                , match_char isSymbol >>= \x -> return $ Operator [x]
-                , match_char isPunctuation >>= \x -> return $ Operator [x]
+                        then return $ Operator $ renderText zs
+                        else return $ Ident $ renderText zs
+                , match_char isSymbol >>= \x -> return $ Operator $ x <| ""
+                , match_char isPunctuation >>= \x -> return $ Operator $ x <| ""
                 , do
                     x  <- match_char isDigit
                     xs <- many $ match_char isDigit
@@ -108,7 +109,7 @@ scan_expr n = do
                     when (any isWord $ take 1 ys) $ 
                         fail ""
                         -- return ()
-                    return $ Number $ x : xs ]
+                    return $ Number $ pack $ x <| xs ]
                 (do 
                     cs <- peek
                     let b  = take 5 ys == take 5 cs 
@@ -135,7 +136,7 @@ bracketedJunk = do
 bracketedJunk' :: Int -> Scanner Char ()
 bracketedJunk' 0 = return ()
 bracketedJunk' n = do
-    _ <- many (match_char (`notElem` "{}")) 
+    _ <- many (match_char (`notElem` ['{','}'])) 
         -- , bracketedJunk ]
         -- (return ()) return)
     n' <- choice 

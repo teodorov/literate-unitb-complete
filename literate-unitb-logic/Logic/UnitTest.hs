@@ -17,8 +17,11 @@ import Control.Precondition
 
 import           Data.List
 import qualified Data.Map as M
-import           Data.Typeable
+import           Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import           Data.Tuple
+import           Data.Typeable
 
 import GHC.Stack
 
@@ -30,12 +33,12 @@ import Test.UnitTest
 
 import Text.Printf.TH
 
-data POCase = POCase String (IO (String, M.Map Label Sequent)) String
+data POCase = POCase Text (IO (Text, M.Map Label Sequent)) Text
 
 poCase :: Pre
-       => String 
-       -> IO (String, M.Map Label Sequent) 
-       -> String
+       => Text 
+       -> IO (Text, M.Map Label Sequent) 
+       -> Text
        -> TestCase
 poCase n test res = WithLineInfo (?loc) $ Other $ POCase n test res
 
@@ -58,9 +61,9 @@ instance IsTestCase POCase where
             let cmd = catch (test & mapped._2 %~ print_po) handler
                 handler exc = do
                     putStrLn "*** EXCEPTION ***"
-                    putStrLn n
+                    T.putStrLn n
                     print exc
-                    return (show (exc :: SomeException), logNothing)
+                    return (pack $ show (exc :: SomeException), logNothing)
             return UT
                 { name = n
                 , routine = cmd
@@ -72,23 +75,23 @@ instance IsTestCase POCase where
                 }
     nameOf f (POCase n test res) = (\n' -> POCase n' test res) <$> f n
 
-print_po :: M.Map Label Sequent -> CallStack -> String -> String -> String -> M ()
+print_po :: M.Map Label Sequent -> CallStack -> Text -> Text -> Text -> M ()
 print_po pos cs name actual expected = do
     n <- get
     liftIO $ do
         let ma = f actual
             me = f expected
-            f :: String -> M.Map String Bool
-            f xs = M.map (== "  o  ") $ M.fromList $ map (swap . splitAt 5) $ lines xs
+            f :: Text -> M.Map Text Bool
+            f xs = M.map (== "  o  ") $ M.fromList $ map (swap . T.splitAt 5) $ T.lines xs
             mr = M.keys $ M.filter not $ M.unionWith (==) (me `M.intersection` ma) ma
-        forM_ (zip [0..] mr) $ \(i,po) -> do
+        forM_ (zip [0 :: Int ..] mr) $ \(i,po) -> do
             if label po `M.member` pos then do
                 withFile ([s|po-%d-%d.z3|] n i) WriteMode $ \h -> do
-                    hPutStrLn h $ "; " ++ name
-                    hPutStrLn h $ "; " ++ po
-                    hPutStrLn h $ "; " ++ if not $ ma ! po 
-                                          then  "does {not discharge} automatically"
-                                          else  "{discharges} automatically"
-                    forM_ (callStackLineInfo cs) $ hPutStrLn h . ("; " ++)
-                    hPutStrLn h $ unlines $ z3_code (pos ! label po) : ["; " ++ po]
+                    T.hPutStrLn h $ "; " <> name
+                    T.hPutStrLn h $ "; " <> po
+                    T.hPutStrLn h $ "; " <> if not $ ma ! po 
+                                            then  "does {not discharge} automatically"
+                                            else  "{discharges} automatically"
+                    forM_ (callStackLineInfo cs) $ T.hPutStrLn h . ("; " <>)
+                    T.hPutStrLn h $ T.unlines $ z3_code (pos ! label po) : ["; " <> po]
             else return ()

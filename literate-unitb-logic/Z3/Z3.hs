@@ -60,6 +60,9 @@ import           Data.Either.Combinators
 import           Data.List as L hiding (union)
 import           Data.Monoid
 import qualified Data.Set as S
+import           Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import           Data.Typeable 
 
 import GHC.Generics (Generic)
@@ -67,8 +70,10 @@ import GHC.Word
 
 import System.Exit
 import System.IO.Unsafe
-import System.Process
+-- import System.Process
+import System.Process.Text
 
+import TextShow (showt)
 import Text.Printf.TH
 
 import qualified Data.Map as M
@@ -83,8 +88,8 @@ instance Tree Z3Command where
     as_tree (Decl d)      = as_tree d
     as_tree (SetOption name b) = Expr.List 
                         [ Str "set-option"
-                        , Str $ ':' : name
-                        , Str $ map toLower b]
+                        , Str $ ':' <| name
+                        , Str $ T.map toLower b]
     as_tree GetUnsatCore  = Expr.List [Str "get-unsat-core"]
     as_tree (Assert xp _n) = Expr.List [Str "assert", f $ g xp]
         where
@@ -104,7 +109,7 @@ instance Tree Z3Command where
             -- f x = case n of 
             --         Nothing -> x
             --         Just n  -> List [Str "!",x,Str ":named",Str n]
-    as_tree (Comment str) = Str $ intercalate "\n" $ map ("; " ++) $ lines str
+    as_tree (Comment str) = Str $ T.intercalate "\n" $ map ("; " <>) $ T.lines str
     as_tree (CheckSat)    = Expr.List [Str "check-sat-using", 
                                     strat
                                          [ [ Str "qe"
@@ -179,7 +184,7 @@ z3_pattern vs e = runReader (head e) False
             | vs `S.isSubsetOf` used_var e = return [e]
             | otherwise                    = return []
 
-feed_z3 :: String -> Int -> IO (ExitCode, String, String)
+feed_z3 :: Text -> Int -> IO (ExitCode, Text, Text)
 feed_z3 = unsafePerformIO $ do
     b <- check_z3_bin
     unless b $ fail "bad z3 setup"
@@ -198,25 +203,25 @@ data Validity = Valid | Invalid | ValUnknown
     deriving (Show, Eq, Typeable, Generic)
 
 data Z3Command = Decl FODecl 
-        | Assert FOExpr (Maybe String)
-        | SetOption String String
+        | Assert FOExpr (Maybe Text)
+        | SetOption Text Text
         | CheckSat 
         | GetUnsatCore
         | GetModel 
         | Push | Pop 
-        | Comment String
+        | Comment Text
     deriving (Generic)
 
 instance PrettyPrintable Validity where
     pretty = show
 
-z3_code :: Sequent -> String
+z3_code :: Sequent -> Text
 z3_code = makePretty . z3_commands
 
-makePretty :: Z3Code -> String
-makePretty (Z3Code _ cmds _) = unlines . L.map pretty_print' $ cmds
+makePretty :: Z3Code -> Text
+makePretty (Z3Code _ cmds _) = T.unlines . L.map pretty_print' $ cmds
 
-data Z3Code = Z3Code Word32 [Z3Command] String
+data Z3Code = Z3Code Word32 [Z3Command] Text
 
 instance HasTimeout Z3Code Word32 where
     timeout f (Z3Code to cmds xs) = (\to' -> Z3Code to' cmds xs) <$> f to
@@ -230,12 +235,12 @@ timeoutPrefix f code = prefix cmds code'
         code' = code & timeout %~ f
         cmds = 
             [SetOption "auto-config" "false"
-            ,SetOption "smt.timeout" $ show (code'^.timeout) ]
+            ,SetOption "smt.timeout" $ showt (code'^.timeout) ]
 
 prefix :: [Z3Command] -> Z3Code -> Z3Code
-prefix cmds' (Z3Code po cmds out) = Z3Code po (cmds' ++ cmds) (out' ++ out)
+prefix cmds' (Z3Code po cmds out) = Z3Code po (cmds' <> cmds) (out' <> out)
     where
-        out' = concatMap ((++ "\n") . pretty . as_tree) cmds'
+        out' = foldMap ((<> "\n") . prettyText . as_tree) cmds'
 
 z3_commands' :: Bool -> Sequent -> Maybe Z3Code
 z3_commands' skip po 
@@ -245,27 +250,27 @@ z3_commands' skip po
         cmd = D.toList
                 (      D.fromList (map Decl (concatMap decl [maybe_sort,null_sort] ))
                     <> D.fromList (map Decl (decl d))
-                    <> D.fromList (zipWith (\x y -> Assert x $ Just $ "s" ++ show y) 
-                            assume [0..])
-                    <> D.concat (map (D.fromList.f) (zip (M.toAscList hyps) [0..]))
+                    <> D.fromList (zipWith (\x y -> Assert x $ Just $ "s" <> showt y) 
+                            assume [0 :: Int ..])
+                    <> D.concat (map (D.fromList.f) (zip (M.toAscList hyps) [0 :: Int ..]))
                     <> D.fromList [Assert (znot assert) $ Just "goal"]
                     <> D.fromList [CheckSat]
                     <> D.fromList [] )
         (Sequent _ _ d _ assume hyps assert) = firstOrderSequent po
-        f ((lbl,xp),n) = [ Comment $ pretty lbl
-                         , Assert xp $ Just $ "h" ++ show n]
+        f ((lbl,xp),n) = [ Comment $ prettyText lbl
+                         , Assert xp $ Just $ "h" <> showt n]
 
 smoke_test :: Label -> Sequent -> IO Validity
 smoke_test lbl po = discharge lbl (po & goal .~ zfalse)
 
 
 
-discharge_on :: Label -> Sequent -> IO (MVar (Either String Validity))
+discharge_on :: Label -> Sequent -> IO (MVar (Either Text Validity))
 discharge_on lbl po = do
     res <- newEmptyMVar
     _   <- forkIO $ do
         r <- try (discharge lbl po)
-        let f e = show (e :: SomeException)
+        let f e = pack $ show (e :: SomeException)
             r'  = mapLeft f r
         putMVar res r'
     return res
@@ -289,7 +294,7 @@ discharge_all xs = do
                 res
         return rs
 
-data Z3Exception = Z3Exception Int String
+data Z3Exception = Z3Exception Int Text
     deriving (Show,Typeable)
 
 instance Exception Z3Exception
@@ -332,7 +337,7 @@ tryDischarge :: Int        -- Timeout in seconds
              -> (Word32 -> Word32)
              -> Label
              -> Z3Code
-             -> EitherT (Maybe String) IO Bool
+             -> EitherT (Maybe Text) IO Bool
 tryDischarge t fT lbl code = do
         let code' = timeoutPrefix fT code
         lift (verify' lbl code' t) >>= \case
@@ -341,7 +346,7 @@ tryDischarge t fT lbl code = do
             Right SatUnknown -> do
                 left Nothing
             Left xs -> do
-                left $ Just $ "discharge: " ++ xs
+                left $ Just $ "discharge: " <> xs
 
 dischargeBoth :: HasExpr expr
               => Label
@@ -371,46 +376,45 @@ discharge lbl po
                 case x of
                     Right True  -> return Valid
                     Right False -> return Invalid
-                    Left (Just xs) -> fail xs
+                    Left (Just xs) -> fail $ T.unpack xs
                     Left Nothing   -> return ValUnknown
             Nothing -> return Valid
 
 log_count :: MVar Int
 log_count = unsafePerformIO $ newMVar 0
 
-verify :: Label -> [Z3Command] -> Int -> IO (Either String Satisfiability)
+verify :: Label -> [Z3Command] -> Int -> IO (Either Text Satisfiability)
 verify lbl xs n = do
         let code = makeZ3Code 3 xs
         verify' lbl code n
 
-renderZ3Code :: Z3Code -> String
+renderZ3Code :: Z3Code -> Text
 renderZ3Code (Z3Code _ _ code) = code
 
-makeZ3Code :: Integral n 
-           => n -> [Z3Command] -> Z3Code
-makeZ3Code to xs = Z3Code (fromIntegral to) xs code
+makeZ3Code :: Word32 -> [Z3Command] -> Z3Code
+makeZ3Code to xs = Z3Code to xs code
         where
             ys = concatMap reverse $ groupBy eq xs
-            code = unlines $ map (pretty . as_tree) ys
+            code = T.unlines $ map (prettyText . as_tree) ys
             eq x y = is_assert x && is_assert y
             is_assert (Assert _ _) = True
             is_assert _            = False
 
-verify' :: Label -> Z3Code -> Int -> IO (Either String Satisfiability)
+verify' :: Label -> Z3Code -> Int -> IO (Either Text Satisfiability)
 verify' lbl code n = do
         (_,out,_err) <- feed_z3 (renderZ3Code code) n
-        let lns = lines out
-            res = take 1 $ dropWhile ("WARNING" `isPrefixOf`) lns
+        let lns = T.lines out
+            res = take 1 $ dropWhile ("WARNING" `T.isPrefixOf`) lns
         if length lns == 0 ||
             (length lns > 1 && lns ! 1 /= "timeout") ||
                 (      res /= ["sat"]
                     && res /= ["unsat"]
                     && res /= ["unknown"]
                     && res /= ["timeout"]) then do
-            let header = Comment $ pretty lbl
+            let header = Comment $ prettyText lbl
             n <- modifyMVar log_count $ 
                 return . ((1+) &&& id)
-            writeFile ([s|log%d-1.z3|] n) (renderZ3Code . prefix [header] $ code)
+            T.writeFile ([s|log%d-1.z3|] n) (renderZ3Code . prefix [header] $ code)
             return $ Right SatUnknown
         else if res == ["sat"] then do
             return $ Right Sat

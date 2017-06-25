@@ -18,11 +18,13 @@ import Control.Precondition
 
 import           Data.Graph.Array
 import qualified Data.Map as M
+import           Data.Monoid
 import           Data.Typeable
 
 import GHC.Generics.Instances
 
 import Text.Pretty
+import TextShow
 
 import Utilities.Functor
 
@@ -54,12 +56,12 @@ instance (TypeSystem t,Typeable q) => Named (AbsDecl t q) where
     type NameOf (AbsDecl t q) = InternalName
     decorated_name' d@(FunDef ts _ _ _ _) = do
         ts' <- mapM z3_decoration' ts
-        let suf = concat ts'
+        let suf = mconcat ts'
         onInternalName (addSuffix suf) 
             $ adaptName $ d^.name
     decorated_name' d@(FunDecl ts _ _ _)  = do
         ts' <- mapM z3_decoration' ts
-        let suf = concat ts'
+        let suf = mconcat ts'
         onInternalName (addSuffix suf) 
             $ adaptName $ d^.name
     decorated_name' (ConstDecl n _)     = adaptName n
@@ -69,19 +71,19 @@ instance (TypeSystem t, IsQuantifier q) => Tree (AbsDecl t q) where
     as_tree' d@(FunDecl _ _ dom ran) = do
             argt <- mapM as_tree' dom
             t    <- as_tree' ran
-            n    <- onOutputName render $
+            n    <- onOutputName renderText $
                     decorated_name' d
             return $ Expr.List [ Str "declare-fun", 
                 Str n, 
                 (Expr.List argt), t ]
     as_tree' (ConstDecl n t) = do
             t' <- as_tree' t
-            return $ Expr.List [ Str "declare-const", Str $ render n, t' ]
+            return $ Expr.List [ Str "declare-const", Str $ renderText n, t' ]
     as_tree' d@(FunDef _ _ dom ran val) = do
             argt <- mapM as_tree' dom
             rt   <- as_tree' ran
             def  <- as_tree' val
-            n    <- onOutputName render $
+            n    <- onOutputName renderText $
                     decorated_name' d
             return $ Expr.List [ Str "define-fun", 
                 Str n, (Expr.List argt), 
@@ -92,29 +94,29 @@ instance (TypeSystem t, IsQuantifier q) => Tree (AbsDecl t q) where
     as_tree' (SortDecl (RecordSort m)) = as_tree' (SortDecl (Datatype args rec 
             [(make,zip fields (GENERIC . asInternal <$> args))]) :: AbsDecl t q)
         where
-            args = [ makeZ3Name $ "a" ++ show i | i <- [1..M.size m] ]
+            args = [ makeZ3Name $ "a" <> showt i | i <- [1..M.size m] ]
             rec    = recordName m
             make   = makeZ3Name $ z3Render rec
             fields = accessorName <$> M.keys m
     as_tree' (SortDecl s@(Sort _ _ n)) = do
             return $ Expr.List [ 
                 Str "declare-sort",
-                Str (render $ z3_name s),
-                Str $ show n ]
+                Str (renderText $ z3_name s),
+                Str $ pack $ show n ]
     as_tree' (SortDecl s@(DefSort _ _ xs def)) = do
             def' <- as_tree' def 
             return $ Expr.List 
                 [ Str "define-sort"
-                , Str (render $ z3_name s)
-                , Expr.List $ map (Str . render) xs
+                , Str (renderText $ z3_name s)
+                , Expr.List $ map (Str . renderText) xs
                 , def'
                 ]
     as_tree' (SortDecl (Datatype xs n alt)) = do
-            alt' <- mapM (f.(render *** map (first render))) alt
+            alt' <- mapM (f.(renderText *** map (first renderText))) alt
             return $ Expr.List 
                 [ Str "declare-datatypes"
-                , Expr.List $ map (Str . render) xs
-                , Expr.List [Expr.List (Str (render n) : alt')] ]
+                , Expr.List $ map (Str . renderText) xs
+                , Expr.List [Expr.List (Str (renderText n) : alt')] ]
         where
             f (x,[])    = return $ Str x
             f (x,xs)    = do

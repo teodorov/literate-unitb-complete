@@ -5,8 +5,11 @@ import Control.Lens
 import Data.DList as D
 import Data.List  as L
 
-intercalate :: String -> [DList Char] -> DList Char
-intercalate xs xss = D.concat (intersperse (D.fromList xs) xss)
+intercalate :: [a] -> [DList a] -> DList a
+intercalate xs xss = D.concat (L.intersperse (D.fromList xs) xss)
+
+intersperse :: a -> [DList a] -> DList a
+intersperse xs xss = D.concat (L.intersperse (D.singleton xs) xss)
 
 concatMap :: (a -> DList b) 
           -> [a]

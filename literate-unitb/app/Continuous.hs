@@ -203,7 +203,7 @@ focus _ = Nothing
 _myTimeout :: IO () -> IO ()
 _myTimeout cmd = do
         let dt = 4 * 60 * 1000000
-        timeout dt cmd
+        _ <- timeout dt cmd
         putStrLn "!!!TIMEOUT!!!"
 
 printUnitBVersion :: IO ()

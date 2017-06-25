@@ -56,7 +56,7 @@ instance IsName n => Translatable (AbsVar n t) (AbsVar InternalName t) where
 instance (TypeSystem t,IsName n) => Tree (AbsVar n t) where
     as_tree' (Var vn vt) = do
         t <- as_tree' vt
-        return $ Expr.List [Str $ render vn, t]
+        return $ Expr.List [Str $ renderText vn, t]
     rewriteM _ = pure
 
 instance (TypeSystem t) => Typed (AbsVar n t) where

@@ -20,6 +20,8 @@ import Control.Precondition
 import Data.Default
 import Data.List as L
 import Data.Map as M
+import Data.Monoid
+import Data.Text (Text)
 
 import Text.Printf.TH as Printf
 
@@ -225,9 +227,9 @@ mk_zrecord_set = zrecord_set . runMap'
 zrecord_set :: Map Field ExprP
             -> ExprP
 zrecord_set m = do
-        let msg e = [s|Expecting a set type for: %s\n  of type: %s|] 
-                      (pretty e) (pretty $ type_of e)
-            getElements :: ExprP -> Either [String] Type
+        let msg e = [st|Expecting a set type for: %s\n  of type: %s|] 
+                      (prettyText e) (prettyText $ type_of e)
+            getElements :: ExprP -> Either [Text] Type
             getElements e = e >>= \e -> maybe (Left [msg e]) Right $ type_of e^?_ElementType
         (r,r_decl) <- var "r" . recordTypeOfFields <$> traverseValidation getElements m
         let range = mzall $ mapWithKey (\field e -> zfield r field `zelem` e) m
@@ -302,14 +304,14 @@ st_subset_fun = mk_fun' [gA] "st-subset" [set_type gA,set_type gA] bool
 subset_fun :: IsName n => AbsFun n Type
 subset_fun = mk_fun' [] "subset" [set_type gA,set_type gA] bool
 
-dec :: String -> Type -> String
-dec x t = x ++ z3_decoration t
+dec :: Text -> Type -> Text
+dec x t = x <> z3_decoration t
 
-item_type :: Type -> Either String Type
+item_type :: Type -> Either Text Type
 item_type t0@(Gen s [t])
         | s == set_sort         = Right t
-        | otherwise             = Left $ [Printf.s| %s is not a set |] (pretty t0)
-item_type t0                    = Left $ [Printf.s| %s is not a set |] (pretty t0)
+        | otherwise             = Left $ [Printf.st| %s is not a set |] (prettyText t0)
+item_type t0                    = Left $ [Printf.st| %s is not a set |] (prettyText t0)
 
     -- set theory
 set_union   :: BinOperator
@@ -350,8 +352,8 @@ set_notation = create $ do
     left_assoc  .= [[set_union]]
     right_assoc .= []
     relations   .= []
-    quantifiers .= [ (fromString'' "\\qset",comprehension)
-                   , (fromString'' "\\qunion",qunion) ]
+    quantifiers .= [ (fromText "\\qset",comprehension)
+                   , (fromText "\\qunion",qunion) ]
     commands    .= [ make Command "\\emptyset" "empty-set" 0 zempty_set_fun
                    , make Command "\\all" "all" 0 zset_all_fun
                    , make Command "\\pow" "pow" 1 zpow_set_fun

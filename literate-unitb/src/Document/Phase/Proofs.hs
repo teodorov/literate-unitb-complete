@@ -351,6 +351,9 @@ liveness m = withLineInfo $ proc () -> do
         step :: LatexParserA (RawProgressProp,RuleProxy) VoidInference
         step = insideOneEnvOf ["step","flatstep"] $ 
             second (viewA cell) >>> existsA1Pair' (stepList m)
+            -- proc (goal,prxy) -> do 
+            --     Cell prxy' <- arr (view cell) -< prxy
+            --     stepList m -< (goal,Inst prxy')
 
 type VoidInference = Cell1 (Compose Inference Proxy) RuleParser
 

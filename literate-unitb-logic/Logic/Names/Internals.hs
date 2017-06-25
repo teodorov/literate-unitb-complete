@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies,CPP,TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies,CPP,TemplateHaskell,OverloadedStrings #-}
 module Logic.Names.Internals 
     ( module Logic.Names.Internals
     , NonEmpty((:|))
@@ -18,7 +18,7 @@ import Data.Data
 import Data.Either.Combinators
 import Data.Hashable
 import Data.List as L
-import Data.List.Lens as L
+-- import Data.List.Lens as L
 import qualified Data.List.Ordered as Ord
 #if MIN_VERSION_semigroups(0,18,0)
 import Data.List.NonEmpty as NE
@@ -28,6 +28,8 @@ import Data.List.NonEmpty as NE hiding (unlines)
 import qualified Data.Map as M
 import Data.Serialize
 import Data.Semigroup hiding (option)
+import           Data.Text      as T
+-- import qualified Data.Text.Lens as T
 import Data.Tuple
 import Data.Word
 
@@ -57,12 +59,12 @@ type NEString = NonEmpty Char
     -- ^ by using `substToZ3` and `substToLatex` to translate them
 data Name = Name 
         { _backslash :: Bool 
-        , _base :: NEString 
+        , _base :: NEText 
         , _primes :: Word8 
-        , _suffix :: String
+        , _suffix :: Text
         } deriving (Data,Generic,Eq,Ord,Show)
 
-data InternalName = InternalName String Name String
+data InternalName = InternalName Text Name Text
     deriving (Eq,Ord,Data,Generic,Show)
 
 #else
@@ -72,12 +74,12 @@ data InternalName = InternalName String Name String
     -- ^ by using `substToZ3` and `substToLatex` to translate them
 data Name = Name 
         { _backslash :: !Bool 
-        , _base :: !NEString 
+        , _base :: !NEText 
         , _primes :: !Word8 
-        , _suffix :: !String
+        , _suffix :: !Text
         } deriving (Data,Generic,Eq,Ord,Show)
 
-data InternalName = InternalName !String !Name !String
+data InternalName = InternalName !Text !Name !Text
     deriving (Eq,Ord,Data,Generic,Show)
 
 #endif
@@ -87,9 +89,9 @@ data Encoding = Z3Encoding | LatexEncoding
 
 makeLenses ''Name
 
-name :: Bool -> NEString
+name :: Bool -> NEText
              -> Word8
-             -> String
+             -> Text
              -> Encoding
              -> Name
 name bl base pr suff Z3Encoding = Name bl base pr suff
@@ -105,40 +107,63 @@ instance PrettyPrintable InternalName where
 
 class (Show a,Ord a,Hashable a,Data a) => IsBaseName a where
     render :: a -> String
+    render = unpack . renderText
+    renderText :: a -> Text
+    renderText = pack . render
     asInternal' :: a -> InternalName
     asName'  :: a -> Name
     fromString'' :: Pre => String -> a
+    fromString'' = fromText . pack
+    fromText :: Pre => Text -> a
+    fromText = fromString'' . unpack
     addPrime :: a -> a
     generateNames :: a -> [a]
     language :: Proxy a -> Language a
     texName :: Pre 
             => String -> a
+    texName = texNameText . pack
+    texNameText :: Pre 
+                => Text -> a
+    texNameText = texName . unpack
     z3Name :: Pre 
            => String -> a
+    z3Name = z3NameText . pack
+    z3NameText :: Pre 
+               => Text -> a
+    z3NameText = z3Name . unpack
+    {-# MINIMAL (fromText | fromString''), 
+                (render | renderText), 
+                (texName | texNameText), 
+                (z3Name | z3NameText),
+                asInternal', asName', addPrime, 
+                generateNames, language  #-}
 
-_Name :: IsName a => Prism' String a
-_Name = prism' render (fmap fromName . isZ3Name')
+_Name :: IsName a => Prism' Text a
+_Name = prism' renderText (fmap fromName . isZ3Name')
 
-renderAsLatex :: Name -> String
-renderAsLatex (Name b base' p suff') = concat [slash,toList base,replicate (fromIntegral p) '\'',suffix]
+renderAsLatex :: Name -> Text
+renderAsLatex (Name b (NEText base') p suff') = T.concat [slash,base,T.replicate (fromIntegral p) "\'",suffix]
     where
-        base = replaceAll' substToLatex base'
+        base = replaceAll substToLatex base'
         suff = replaceAll substToLatex suff'
 
         slash  | b          = "\\"
                | otherwise  = ""
-        suffix | L.null suff = ""
-               | otherwise   = [s|_{%s}|] suff
+        suffix | T.null suff = ""
+               | otherwise   = [st|_{%s}|] suff
+
+numbered :: Int -> NEText -> NEText
+numbered n (NEText str) = NEText $ str <> pack (show n)
 
 instance IsBaseName Name where
-    render = renderAsLatex
+    renderText = renderAsLatex
     asInternal' n = InternalName "" n ""
     asName' = id
-    fromString'' = makeName
+    fromText = makeName
     addPrime = primes %~ (+1)
-    generateNames n = n : [ n & base %~ (<+ show i) | i <- [0..] ]
+    generateNames n = n : [ n & base %~ numbered i | i <- [0 ..] ]
     language Proxy = latexName
-    z3Name = either (assertFalse' . unlines) id . isZ3Name
+    z3NameText = either (assertFalse' . L.unlines) id . isZ3Name
     texName = fromString''
 
 class IsBaseName n => IsName n where
@@ -177,91 +202,91 @@ make' f = f . fromString''
 (<+) (x :| xs) ys = x :| (xs ++ ys)
 
 instance IsBaseName InternalName where
-    render (InternalName pre x suf) = prefix ++ z3Render x ++ suf
+    renderText (InternalName pre x suf) = prefix <> z3Render x <> suf
         where
-            prefix | null pre  = ""
-                   | otherwise = [s|@@%s@@_|] pre
+            prefix | T.null pre  = ""
+                   | otherwise   = [st|@@%s@@_|] pre
     asInternal' = id
     asName' (InternalName _ n _) = n
-    fromString'' = fromString'
+    fromText = fromText'
     addPrime = internal %~ addPrime
     generateNames (InternalName pre n suf) = 
             InternalName pre <$> generateNames n <*> pure suf
     language Proxy = asInternal' <$> z3Name'
-    z3Name = either (assertFalse' . unlines) id . isZ3InternalName
+    z3NameText = either (assertFalse' . L.unlines) id . isZ3InternalName
     texName str = asInternal' $ (texName str :: Name)
 
 instance Hashable Name where
 instance Hashable InternalName where
 instance Hashable Encoding where
 
-z3Render :: Name -> String
-z3Render (Name sl xs ps suf) 
-        = concat $ [slash,NE.toList xs] ++ replicate (fromIntegral ps) "@prime" ++ [suf']
+z3Render :: Name -> Text
+z3Render (Name sl (NEText xs) ps suf) 
+        = T.concat $ [slash,xs,T.replicate (fromIntegral ps) "@prime",suf']
     where
         slash | sl        = "sl$"
               | otherwise = ""
-        suf'  | null suf  = ""
-              | otherwise = "@" ++ suf
+        suf'  | T.null suf  = ""
+              | otherwise   = "@" <> suf
 
-setSuffix :: String -> Name -> Name
+setSuffix :: Text -> Name -> Name
 setSuffix suff = suffix .~ suff
 
-fromString' :: Pre => String -> InternalName
-fromString' nm = InternalName "" (fromJust' $ isZ3Name' n) suf
+fromText' :: Pre => Text -> InternalName
+fromText' nm = InternalName "" (fromJust' $ isZ3Name' n) suf
     where
-        (n,suf) = L.span ('@' /=) nm
+        (n,suf) = T.span ('@' /=) nm
 
 
-isZ3Name' :: String -> Maybe Name
+isZ3Name' :: Text -> Maybe Name
 isZ3Name' = rightToMaybe . isZ3Name
 
-isZ3Name :: String -> Either [String] Name
+isZ3Name :: Text -> Either [String] Name
 isZ3Name = parseLanguage z3Name'
 
-parseLanguage :: Language a -> String -> Either [String] a
+parseLanguage :: Language a -> Text -> Either [String] a
 parseLanguage lang str = mapLeft (\x -> [err,show x]) $ parse' lang "" str
     where
         err = [s|invalid name: '%s'|] str
 
-isName :: String -> Either [String] Name
+isName :: Text -> Either [String] Name
 isName = parseLanguage latexName
 
-isName' :: String -> Maybe Name
+isName' :: Text -> Maybe Name
 isName' = either (const Nothing) Just . isName
 
-makeZ3Name :: Pre => String -> Name
+makeZ3Name :: Pre => Text -> Name
 makeZ3Name = fromJust' . isZ3Name'
 
-makeName :: Pre => String -> Name
+makeName :: Pre => Text -> Name
 makeName = fromJust' . isName'
 
 addBackslash :: Name -> Name
 addBackslash = backslash .~ True
 
-addSuffix :: String -> InternalName -> InternalName
-addSuffix n1 (InternalName pre n0 suf) = InternalName pre n0 $ suf ++ n1
+addSuffix :: Text -> InternalName -> InternalName
+addSuffix n1 (InternalName pre n0 suf) = InternalName pre n0 $ suf <> n1
 
-addPrefix :: String -> InternalName -> InternalName
-addPrefix n1 (InternalName pre n0 suf) = InternalName (n1 ++ pre) n0 suf
+addPrefix :: Text -> InternalName -> InternalName
+addPrefix n1 (InternalName pre n0 suf) = InternalName (n1 <> pre) n0 suf
 
 dropSuffix :: InternalName -> InternalName
 dropSuffix (InternalName pre ns _) = InternalName pre ns ""
 
 
-reserved :: String -> Int -> InternalName
-reserved pre n = InternalName pre (makeName $ show n) ""
+reserved :: Text -> Int -> InternalName
+reserved pre n = InternalName pre (makeName $ pack $ show n) ""
 
 internal :: Lens' InternalName Name
 internal f (InternalName pre n suf) = (\n' -> InternalName pre n' suf) <$> f n
 
-isZ3InternalName :: String -> Either [String] InternalName
+isZ3InternalName :: Text -> Either [String] InternalName
 isZ3InternalName = parseLanguage z3InternalName
  
 z3InternalName :: Language InternalName
-z3InternalName = InternalName <$> prefix 
+z3InternalName = InternalName <$> (pack <$> prefix) 
                               <*> z3Name' 
-                              <*> (option "" $ string "$")
+                              <*> (option "" $ text "$")
     where
         prefix = option "" (string "@@" >> many1' z3NameChar >> string "@@_")
 
@@ -270,11 +295,13 @@ z3Name' = symb <|> name
     where
         name = 
             Name <$> option False (try (string "sl$" >> pure True)) 
-                 <*> many1' z3NameChar
+                 <*> many1Text' z3NameChar
                  <*> (fromIntegral.L.length 
                         <$> many (string "@prime"))
                  <*> pure ""
-        symb = Name False . sconcat <$> many1' symbol <*> pure 0 <*> pure ""
+        symb = Name False <$> many1Text' symbol 
+                          <*> pure 0 
+                          <*> pure ""
 
 z3NameChar :: Language Char
 z3NameChar = alphaNum <|> char '-'
@@ -287,24 +314,24 @@ latexName = symb <|> name'
     where
         name' = 
             name <$> option False (string "\\" >> pure True) 
-                 <*> many1' latexNameChar
+                 <*> many1Text' latexNameChar
                  <*> (fromIntegral.L.length 
                         <$> many (string "\'"))
                  <*> pure ""
                  <*> pure LatexEncoding
-        symb = name False <$> symbol' 
+        symb = name False <$> (NEText . T.singleton <$> symbol')
                           <*> pure 0 
                           <*> pure ""
                           <*> pure LatexEncoding
         symbol' = symbol <|> texSymbol
 
-texSymbol :: Language NEString
-texSymbol = (:| []) <$> oneOf [';','.']
+texSymbol :: Language Char
+texSymbol = oneOf [';','.']
 
-symbol :: Language NEString
-symbol = ((:| []) <$> (oneOf ['-','*','/'] <|> satisfy isSymbol)) <?> "symbol"
+symbol :: Language Char
+symbol = (oneOf ['-','*','/'] <|> satisfy isSymbol) <?> "symbol"
 
-data SubstPattern = SPat [(String,String)] [(String,String)] [(String,String)]
+data SubstPattern = SPat [(Text,Text)] [(Text,Text)] [(Text,Text)]
     deriving Show
 
 inverse :: SubstPattern -> SubstPattern
@@ -320,33 +347,43 @@ shuffle' :: SubstPattern -> Gen SubstPattern
 shuffle' (SPat x y z) = SPat <$> shuffle x <*> shuffle y <*> shuffle z
 
 replaceAll' :: Pre 
-            => SubstPattern -> NonEmpty Char -> NonEmpty Char
-replaceAll' sub = nonEmpty' . replaceAll sub . toList
+            => SubstPattern -> NEText -> NEText
+replaceAll' sub = NEText . replaceAll sub . getText
 
-preSubtituted :: String -> (String,String) -> Maybe (String,String)
-preSubtituted xs (pat,sub) = (sub,) <$> xs^?prefixed pat
+prefixedText :: Text -> Prism' Text Text
+prefixedText pre = prism' 
+        (pre <>) 
+        (\x -> guard (pre `T.isPrefixOf` x) >> return (T.drop (T.length x) x))
 
-postSubtituted :: String -> (String,String) -> Maybe (String,String)
-postSubtituted xs (pat,sub) = (,sub) <$> xs^?suffixed pat
+suffixedText :: Text -> Prism' Text Text
+suffixedText suf = prism' 
+        (<> suf) 
+        (\x -> guard (suf `T.isSuffixOf` x) >> return (T.drop (T.length x) x))
 
-midSubtituted :: String -> (String,String) -> Maybe (String,String)
-midSubtituted xs (pat,sub) = (_1 %~ (++ sub)) <$> xs^?foldSplits . below (prefixed pat)
+preSubtituted :: Text -> (Text,Text) -> Maybe (Text,Text)
+preSubtituted xs (pat,sub) = (sub,) <$> xs^?prefixedText pat
 
-foldSplits :: Fold [a] ([a],[a])
-foldSplits = folding $ \xs -> L.zip (L.inits xs) (L.tails xs)
+postSubtituted :: Text -> (Text,Text) -> Maybe (Text,Text)
+postSubtituted xs (pat,sub) = (,sub) <$> xs^?suffixedText pat
 
-replaceAll :: SubstPattern -> String -> String
+midSubtituted :: Text -> (Text,Text) -> Maybe (Text,Text)
+midSubtituted xs (pat,sub) = (_1 %~ (<> sub)) <$> xs^?foldSplits . below (prefixedText pat)
+
+foldSplits :: Fold Text (Text,Text)
+foldSplits = folding $ \xs -> L.zip (T.inits xs) (T.tails xs)
+
+replaceAll :: SubstPattern -> Text -> Text
 replaceAll (SPat pre mid suff) = substPre
     where
         substPre xs = fromMaybe (substPost xs) $ do
                 (p,s) <- pre^?traverse.folding (preSubtituted xs)
-                return $ p ++ substPre s
+                return $ p <> substPre s
         substPost xs = fromMaybe (substMid xs) $ do
                 (p,s) <- suff^?traverse.folding (postSubtituted xs)
-                return $ substPost p ++ s
+                return $ substPost p <> s
         substMid xs = fromMaybe xs $ do
                 (p,s) <- mid^?traverse.folding (midSubtituted xs)
-                return $ p ++ substMid s
+                return $ p <> substMid s
 
 smt :: QuasiQuoter
 smt = QuasiQuoter
@@ -363,26 +400,26 @@ tex = QuasiQuoter
     , quoteType = undefined }
 
 parseZ3Name :: String -> ExpQ
-parseZ3Name str = either (fail . unlines) TH.lift $ isZ3Name str
+parseZ3Name str = either (fail . L.unlines) TH.lift $ isZ3Name $ pack str
 
 parseTexName :: String -> ExpQ
-parseTexName str = either (fail . unlines) TH.lift $ isName str
+parseTexName str = either (fail . L.unlines) TH.lift $ isName $ pack str
 
-prop_subst_idempotent :: String -> Property
+prop_subst_idempotent :: Text -> Property
 prop_subst_idempotent xs = replaceAll substToZ3 (replaceAll substToZ3 xs) === replaceAll substToZ3 xs
 
-prop_rev_substToZ3_idempotent :: String -> Property
+prop_rev_substToZ3_idempotent :: Text -> Property
 prop_rev_substToZ3_idempotent xs = replaceAll substToLatex (replaceAll substToLatex xs) === replaceAll substToLatex xs
 
-prop_subst_order_independent :: String -> Property
+prop_subst_order_independent :: Text -> Property
 prop_subst_order_independent xs = forAll (shuffle' substToZ3) $ \s -> replaceAll s xs === replaceAll substToZ3 xs
 
-prop_rev_subst_order_independent :: String -> Property
+prop_rev_subst_order_independent :: Text -> Property
 prop_rev_subst_order_independent xs = forAll (shuffle' substToLatex) $ \s -> replaceAll s xs === replaceAll substToLatex xs
 
 prop_subst_left_inv :: Name -> Property
 prop_subst_left_inv xs = 
-        replaceAll substToLatex (replaceAll substToZ3 $ render xs) === render xs
+        replaceAll substToLatex (replaceAll substToZ3 $ renderText xs) === renderText xs
 
 prop_subst_left_inv_regression :: Property
 prop_subst_left_inv_regression = regression
@@ -390,28 +427,28 @@ prop_subst_left_inv_regression = regression
         [ name0, name1, name2 ]
 
 name0 :: Name
-name0 = Name True ('s' :| "l") 1 ""
+name0 = Name True (NEText "sl") 1 ""
 
 name1 :: Name
-name1 = Name True ('p' :| "rime") 1 ""
+name1 = Name True (NEText "prime") 1 ""
 
 name2 :: Name
-name2 = Name {_backslash = False, _base = 's' :| "l", _primes = 1, _suffix = ""}
+name2 = Name {_backslash = False, _base = NEText "sl", _primes = 1, _suffix = ""}
 
 prop_subst_right_inv :: InternalName -> Property
 prop_subst_right_inv xs = 
-        replaceAll substToZ3 (replaceAll substToLatex $ render xs) === render xs
+        replaceAll substToZ3 (replaceAll substToLatex $ renderText xs) === renderText xs
 
-prop_subst_preserves_non_emptiness :: NonEmptyList Char -> Property
-prop_subst_preserves_non_emptiness (NonEmpty xs) = replaceAll substToZ3 xs =/= []
+prop_subst_preserves_non_emptiness :: NEText -> Property
+prop_subst_preserves_non_emptiness (NEText xs) = replaceAll substToZ3 xs =/= ""
 
-prop_substToLatex_preserves_non_emptiness :: NonEmptyList Char -> Property
-prop_substToLatex_preserves_non_emptiness (NonEmpty xs) = replaceAll substToLatex xs =/= []
+prop_substToLatex_preserves_non_emptiness :: NEText -> Property
+prop_substToLatex_preserves_non_emptiness (NEText xs) = replaceAll substToLatex xs =/= ""
 
-prop_insertAt :: (Eq a,Show a) => Int -> [a] -> NonEmpty a -> Property
-prop_insertAt n xs ys = NE.toList (insertAt n xs ys) === L.take n ys' ++ xs ++ L.drop n ys'
+prop_insertAt :: Int -> Text -> NEText -> Property
+prop_insertAt n xs ys = getText (insertAt n xs ys) === T.take n ys' <> xs <> T.drop n ys'
     where
-        ys' = NE.toList ys
+        ys' = getText ys
 
 prop_render_isomorphic :: Name -> Name -> Property
 prop_render_isomorphic xs ys = counterexample 
@@ -425,10 +462,9 @@ infix 4 =/=
 (=/=) :: (Eq a, Show a) => a -> a -> Property
 x =/= y = counterexample (show x ++ " == " ++ show y) (x /= y)
 
-insertAt :: Int -> [a] -> NonEmpty a -> NonEmpty a
-insertAt n xs ne@(y :| ys) 
-    | n <= 0    = foldr (NE.<|) ne xs
-    | otherwise = y :| (L.take (n-1) ys ++ xs ++ L.drop (n-1) ys)
+insertAt :: Int -> Text -> NEText -> NEText
+insertAt n xs (NEText ys) = 
+    NEText (T.take n ys <> xs <> T.drop n ys)
 
 instance ZoomEq Name where
     (.==) = (I.===)
@@ -441,13 +477,13 @@ instance Arbitrary Name where
         r <- oneof 
             [ word latexName
             , word z3Name' ]
-        let sl    = 's' :| "l"
-            prime = 'p' :| "rime"
+        let sl    = NEText "sl"
+            prime = NEText "prime"
         oneof 
             [ do 
                 n <- choose (0,3)
                 let cmd n = do
-                        i  <- QC.elements [0,NE.length $ n^.base]
+                        i  <- QC.elements [0,T.length $ getText $ n^.base]
                         kw <- QC.elements ["sl","prime"]
                         return $ ((),n & base %~ insertAt i kw)
                 execStateT (replicateM_ n $ StateT cmd) r

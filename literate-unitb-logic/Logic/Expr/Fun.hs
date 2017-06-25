@@ -17,6 +17,7 @@ import Control.Precondition
 import           Data.Data
 import           Data.Hashable
 import           Data.List as L
+import           Data.Monoid
 import           Data.Serialize
 
 import GHC.Generics.Instances
@@ -103,7 +104,7 @@ instance (IsName n,TypeSystem t) => Named (AbsFun n t) where
     type NameOf (AbsFun n t) = n
     decorated_name' (Fun ts x _ _ _ _) = do
             ts' <- mapM z3_decoration' ts
-            let suf = concat ts'
+            let suf = mconcat ts'
             onInternalName (addSuffix suf) 
                 $ adaptName x
 
@@ -123,7 +124,7 @@ mkConstant n t = mk_fun [] (fromString'' n) [] t
 
     -- replace it everywhere (replace what? with what?)
 z3_fun_name :: Fun -> InternalName
-z3_fun_name (Fun xs ys _ _ _ _) = fromString'' $ render ys ++ concatMap z3_decoration xs
+z3_fun_name (Fun xs ys _ _ _ _) = fromText $ renderText ys <> foldMap z3_decoration xs
 
 isLifted :: AbsFun n t -> Bool
 isLifted (Fun _ _ lf _ _ _) = lf == Lifted

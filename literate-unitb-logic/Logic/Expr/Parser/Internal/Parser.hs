@@ -31,12 +31,14 @@ import           Control.Precondition
 
 import           Data.Char
 import           Data.Either
+import           Data.Either.Validation
 import           Data.List as L
 import           Data.Map as M hiding ( map )
 import qualified Data.Map as M
 import           Data.Semigroup hiding (option)
 import qualified Data.Set as S
-import           Data.Either.Validation
+import           Data.Text (Text,unpack)
+import qualified Data.Text as T
 
 import Text.Printf.TH as Printf
 
@@ -84,14 +86,14 @@ operator :: Parser Name
 operator = do
     x <- liftP read_char
     case x of
-        Operator n -> return $ fromString'' n
+        Operator n -> return $ fromText n
         _ -> fail "expecting an operator"
 
 word_or_command :: Parser Name
 word_or_command = do
     x <- liftP read_char
     case x of
-        Ident xs -> return $ fromString'' xs
+        Ident xs -> return $ fromText xs
         _ -> fail "expecting an identifier"
 
 from :: [(Name,a)] -> Parser a
@@ -108,7 +110,7 @@ type_t = choose_la
         t  <- choiceP 
             [ word_or_command
             , operator ]
-            (liftP read_char >>= \c -> fail $ "expecting word or command: " ++ lexeme c) 
+            (liftP read_char >>= \c -> fail $ unpack $ "expecting word or command: " <> lexeme c) 
             return
         b1 <- look_aheadP $ read_listP [Open Square]
         ts <- if b1
@@ -126,7 +128,7 @@ type_t = choose_la
                         (typeParams s) 
                         (length ts)
                 return $ Gen s ts
-            Nothing -> fail ("Invalid sort: '" ++ render t ++ "'")
+            Nothing -> fail $ unpack ("Invalid sort: '" <> renderText t <> "'")
         b2 <- look_aheadP $ read_listP [ Ident "\\pfun" ]               
         if b2 
         then do
@@ -206,7 +208,7 @@ unary = do
             return
     where
         f op@(UnaryOperator _ tok _) = do
-            _ <- read_listP [Operator $ render tok]
+            _ <- read_listP [Operator $ renderText tok]
             return op
 
 oper :: Parser BinOperator
@@ -221,7 +223,7 @@ oper = do
             return
     where
         f op@(BinOperator _ tok _ _) = do
-            _ <- read_listP [Operator $ render tok]
+            _ <- read_listP [Operator $ renderText tok]
             return op
 
 data FunOperator = Domain | Range
@@ -231,13 +233,13 @@ apply_fun_op :: Command -> UntypedExpr -> Parser Term
 apply_fun_op (Command _ _ _ fop) x = do
         return $ UE $ fun1 fop x
 
-suggestion :: Name -> Map Name String -> [String]
-suggestion xs m = map (\(x,y) -> render x ++ " (" ++ y ++ ")") $ toAscList ws
+suggestion :: Name -> Map Name Text -> [Text]
+suggestion xs m = map (\(x,y) -> renderText x <> " (" <> y <> ")") $ toAscList ws
   where
-    xs' = map toLower $ render xs
-    p ys _ = 2 * dist xs' ys' <= (length xs' `max` length ys') + 1
+    xs' = T.map toLower $ renderText xs
+    p ys _ = 2 * distText xs' ys' <= (T.length xs' `max` T.length ys') + 1
       where
-        ys' = map toLower $ render ys
+        ys' = T.map toLower $ renderText ys
     ws = M.filterWithKey p m
 
 nameLit :: Parser Field
@@ -266,9 +268,9 @@ data Term =
     deriving (Show)
 
 instance PrettyPrintable Term where
-    pretty (Cmd c)   = [s|Command: %s|] (pretty c)
-    pretty (UE ue)   = [s|UntypedExpr:  %s|] (pretty ue)
-    pretty (Field n) = [s|Field: %s|] (pretty n)
+    prettyText (Cmd c)   = [st|Command: %s|] (prettyText c)
+    prettyText (UE ue)   = [st|UntypedExpr:  %s|] (prettyText ue)
+    prettyText (Field n) = [st|Field: %s|] (prettyText n)
 
 term :: Parser Term
 term = do
@@ -336,12 +338,13 @@ term = do
                     sug     = suggestion xs $ M.unions 
                             [ cmd', quants'
                             , oftype', vars' ]
-                fail (   "unrecognized term: "
-                      ++ render xs ++ if not $ L.null sug then
+                fail $ unpack (   "unrecognized term: "
+                      <> renderText xs 
+                      <> if not $ L.null sug then
                             "\nPerhaps you meant:\n"
-                      ++ intercalate "\n" sug else "")
+                      <> T.intercalate "\n" sug else "")
         , do    xs <- attempt number
-                return $ UE $ zint $ read xs
+                return $ UE $ zint $ read $ unpack xs
         , do    Field <$> nameLit
         ]
 
@@ -378,8 +381,8 @@ validateFields xs = raiseErrors $ traverseWithKey f xs'
     where
         xs' = fromListWith (<>) $ xs & mapped._2 %~ pure
         f _ ((x,_):|[]) = Success x
-        f k xs = Failure [MLError (msg $ pretty k) $ xs & mapped._1 .~ " - "]
-        msg = [s|Multiple record entry with label '%s'|]
+        f k xs = Failure [MLError (msg $ prettyText k) $ xs & mapped._1 .~ " - "]
+        msg = [st|Multiple record entry with label '%s'|]
         raiseErrors :: Validation [Error] a -> Parser a
         raiseErrors = either (liftP . Scanner . const . Left) 
                              return . validationToEither
@@ -416,7 +419,7 @@ dummy_types vs (Context _ _ _ _ dums) = map f vs
     where
         f x = fromMaybe (Var x gA) $ M.lookup x dums
 
-number :: Parser String
+number :: Parser Text
 number = getToken (_Literal._NumLit) "number"
                 
 open_square :: Parser [ExprToken]
@@ -441,18 +444,18 @@ applyRecUpdate :: [Map Field UntypedExpr] -> Term -> Parser Term
 applyRecUpdate rUpd (UE ue) = return $ UE $ L.foldl (fmap (`Record` ()) . RecUpdate) ue rUpd
 applyRecUpdate xs e@(Cmd op)
         | L.null xs = return e
-        | otherwise = fail $ "Cannot apply a record update to an operator: " ++ pretty op
+        | otherwise = fail $ unpack $ "Cannot apply a record update to an operator: " <> prettyText op
 applyRecUpdate xs e@(Field op)
         | L.null xs = return e
-        | otherwise = fail $ "Cannot apply a record update to a record field: " ++ pretty op
+        | otherwise = fail $ unpack $ "Cannot apply a record update to a record field: " <> prettyText op
 
 expr :: Parser UntypedExpr
 expr = do
         r <- read_term []
         case r of
             UE ue -> return ue
-            Cmd op -> fail $ [s|unapplied functional operator: %s|] (pretty op)
-            Field n -> fail $ [s|record field out of context: %s|] (pretty n)
+            Cmd op -> fail $ unpack $ [st|unapplied functional operator: %s|] (prettyText op)
+            Field n -> fail $ unpack $ [st|record field out of context: %s|] (prettyText n)
     where
         read_term :: [([UnaryOperator], Term, BinOperator)] 
                   -> Parser Term
@@ -471,10 +474,10 @@ expr = do
                         ue <- return $ zset_enum' rs
                         add_context "parsing \\{" $
                             read_op xs us $ UE ue
-                ,   add_context ("ready for <term>: " ++ show xs) $
+                ,   add_context ("ready for <term>: " <> prettyText xs) $
                         do  t  <- term
                             rUpd <- manyP (recordFields $ binding assignTok)
-                            add_context ("parsed <term>: " ++ pretty t) $
+                            add_context ("parsed <term>: " <> prettyText t) $
                                 read_op xs us =<< applyRecUpdate rUpd t
                 ]
         read_op :: [([UnaryOperator], Term, BinOperator)] 
@@ -508,7 +511,7 @@ expr = do
                     e2 <- apply_op op0 e0 e1
                     reduce ys vs e2 op1
                 RightAssoc -> read_term (([],e1,op1):xs)
-                NoAssoc ->  fail $ [s|ambiguous expression: '%s' and '%s' are not associative|] (pretty op0) (pretty op1)
+                NoAssoc ->  fail $ unpack $ [st|ambiguous expression: '%s' and '%s' are not associative|] (prettyText op0) (prettyText op1)
         reduce xs (u:us) e0 op0 = do
             r <- binds u op0
             case r of
@@ -545,11 +548,11 @@ apply_unary op e = do
             UE ue -> do
                 x2 <- return $ mk_unary' op ue
                 return $ UE x2
-            Cmd oper -> fail $ err_msg (pretty oper) (pretty op)
-            Field n  -> fail $ err_msg_2 (pretty n) (pretty op)
+            Cmd oper -> fail $ unpack $ err_msg (prettyText oper) (prettyText op)
+            Field n  -> fail $ unpack $ err_msg_2 (prettyText n) (prettyText op)
     where
-        err_msg   = [s|functional operator cannot be the operand of any unary operator: %s, %s|]
-        err_msg_2 = [s|field names cannot be the operand of any unary operator: %s, %s|]
+        err_msg   = [st|functional operator cannot be the operand of any unary operator: %s, %s|]
+        err_msg_2 = [st|field names cannot be the operand of any unary operator: %s, %s|]
         
 apply_op :: BinOperator -> Term -> Term -> Parser Term
 apply_op op x0 x1 = do
@@ -562,19 +565,19 @@ apply_op op x0 x1 = do
                     Cmd oper ->
                         if op == apply then
                             apply_fun_op oper ue1
-                        else fail $ err_msg (pretty oper) (pretty op)
-                    Field n -> fail $ err_msg_2 (pretty n) (pretty op)
+                        else fail $ unpack $ err_msg (prettyText oper) (prettyText op)
+                    Field n -> fail $ unpack $ err_msg_2 (prettyText n) (prettyText op)
             Cmd e1  -> 
-                fail $ err_msg (pretty e1) (pretty op)
+                fail $ unpack $ err_msg (prettyText e1) (prettyText op)
             Field n 
                 | op == apply -> case x0 of
                     UE ue0 -> UE <$> return ((`Record` ()) $ FieldLookup ue0 n)
-                    Field n -> fail $ err_msg_2 (pretty n) (pretty op)
-                    Cmd cmd -> fail $ err_msg (pretty cmd) (pretty op)
-                | otherwise   -> fail $ err_msg_2 (pretty n) (pretty op)
+                    Field n -> fail $ unpack $ err_msg_2 (prettyText n) (prettyText op)
+                    Cmd cmd -> fail $ unpack $ err_msg (prettyText cmd) (prettyText op)
+                | otherwise   -> fail $ unpack $ err_msg_2 (prettyText n) (prettyText op)
     where
-        err_msg = [s|functional operator cannot be the operand of any binary operator: %s, %s|]
-        err_msg_2 = [s|field name is not a valid operand: %s, %s|]
+        err_msg = [st|functional operator cannot be the operand of any binary operator: %s, %s|]
+        err_msg_2 = [st|field name is not a valid operand: %s, %s|]
 
 parse_expression :: ParserSetting
                  -> StringLi
@@ -616,8 +619,8 @@ parse_expr set xs = do
         x <- parse_expression set xs
         typed_x <- checkTypes (set^.expected_type) (contextOf set) x xs
         unless (L.null $ ambiguities typed_x) $ Left 
-            $ map (\x' -> Error (msg (pretty x') (pretty $ type_of x')) (line_info xs))
+            $ map (\x' -> Error (msg (prettyText x') (prettyText $ type_of x')) (line_info xs))
                 $ ambiguities typed_x
         return $ DispExpr (flatten xs) (flattenConnectors typed_x)
     where
-        msg   = [s|type of %s is ill-defined: %s|]
+        msg   = [st|type of %s is ill-defined: %s|]

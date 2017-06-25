@@ -36,6 +36,7 @@ import           Data.List  as L
 import           Data.Map as M hiding ( map )
 import qualified Data.Map as M
 import           Data.Semigroup
+import           Data.Text (Text)
 
 import GHC.Generics.Instances
 
@@ -173,7 +174,7 @@ prefix_label lbl = POCtx $ do
         tag <- gets tag
         modify $ \p -> p { tag = tag <> D.singleton lbl }
 
-prefix :: String -> POCtx ()
+prefix :: Text -> POCtx ()
 prefix lbl = prefix_label $ label lbl
 
 named_hyps :: HasExpr expr => M.Map Label expr -> POCtx' lbl ()

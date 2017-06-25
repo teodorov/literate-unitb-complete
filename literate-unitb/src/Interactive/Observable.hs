@@ -70,10 +70,10 @@ test :: IO ()
 test = do
         ch <- newChan :: IO (Chan String)
         o1 <- new_obs (3 :: Int)
-        o2 <- new_obs "allo"
+        o2 <- new_obs ("allo" :: String)
         observe_with o1 ch "salut"
         observe_with o2 ch "bonjour"
-        _ <- forkIO $ forM_ [1..3] $ const $ do
+        _ <- forkIO $ forM_ [1 :: Int ..3] $ const $ do
             x <- readChan ch 
             putStrLn x
             threadDelay 1000000

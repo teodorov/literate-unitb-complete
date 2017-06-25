@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Latex.Monad where
 
     -- Modules
@@ -8,10 +9,12 @@ import Control.Lens
 import Control.Monad.RWS
 
 import Data.Char
+import Data.MonoTraversable as M
 import Data.Function
-import Data.List
+import Data.List as L
 import Data.List.NonEmpty (nonEmpty,fromList)
-import Data.Semigroup
+import Data.Semigroup hiding ((<>))
+import Data.Text as T
 
 import Utilities.Syntactic
 
@@ -30,41 +33,41 @@ makeLatex fn cmd = doc
 --        then line += 1 >> column .= 1
 --        else column += ln
 
-updateLI :: String -> LatexGen ()
+updateLI :: Text -> LatexGen ()
 updateLI xs = do
-    LatexGen $ case reverse $ lines xs of
+    LatexGen $ case L.reverse $ T.lines xs of
         y0:_:ys -> do
-            line += length ys + 1
-            column .= length y0 + 1
-        _ -> column += length xs
+            line += L.length ys + 1
+            column .= T.length y0 + 1
+        _ -> column += T.length xs
 
 --horizontal :: LatexGen a -> LatexGen a
 --horizontal (LatexGen cmd) = LatexGen $ local (const False) cmd
 
-begin :: String -> [LatexGen ()] -> LatexGen a -> LatexGen a
+begin :: Text -> [LatexGen ()] -> LatexGen a -> LatexGen a
 begin name args body = do
     liBegin <- LatexGen get
     updateLI "\\begin{"
     li <- LatexGen get
-    updateLI $ name ++ "}"
+    updateLI $ name <> "}"
     args <- forM args $ getDoc . brackets
     (x,body) <- getDoc' body
     updateLI $ "\\end{" 
     li'  <- LatexGen get
-    updateLI $ name ++ "}"
+    updateLI $ name <> "}"
     node $ EnvNode $ Env liBegin name li (sconcat $ fromList $ args ++ [body]) li'
     return x
 
 open :: BracketType -> LatexGen ()
 open b = do
     li <- LatexGen get
-    updateLI [fst $ bracketPair b]
+    updateLI $ T.singleton $ fst $ bracketPair b
     token $ Open b li
 
 close :: BracketType -> LatexGen ()
 close b = do
     li <- LatexGen get
-    updateLI [snd $ bracketPair b]
+    updateLI $ T.singleton $ snd $ bracketPair b
     token $ Close b li
 
 brackets :: LatexGen a -> LatexGen a
@@ -103,29 +106,30 @@ getDoc' (LatexGen cmd) = LatexGen $ do
 getDoc :: LatexGen a -> LatexGen LatexDoc
 getDoc = fmap snd . getDoc'
 
-command :: String -> [LatexGen ()] -> LatexGen ()
+command :: Text -> [LatexGen ()] -> LatexGen ()
 command name args = do
     let name' 
-            | take 1 name == "\\" = name
-            | otherwise           = "\\" ++ name
+            | T.take 1 name == "\\" = name
+            | otherwise             = "\\" <> name
     li <- LatexGen get
     updateLI name'
     token $ Command name' li
     forM_ args brackets
 
-text :: String -> LatexGen ()
+text :: Text -> LatexGen ()
 text xs = do
-    let addNL xs = map (++ "\n") (take (length xs - 1) xs) ++ drop (length xs - 1) xs
-    forM_ (addNL $ lines xs) $ \ln -> do
-        let ys = groupBy eq ln
+    let addNL :: [Text] -> [Text]
+        addNL xs = L.map (<> "\n") (L.take (L.length xs - 1) xs) ++ L.drop (L.length xs - 1) xs
+    forM_ (addNL $ T.lines xs) $ \ln -> do
+        let ys = T.groupBy eq ln
             eq = (==) `on` isSpace
         ys <- forM ys $ \w -> do
             li <- LatexGen get
-            LatexGen $ column += length w 
-            return $ if any isSpace w 
+            LatexGen $ column += T.length w 
+            return $ if T.any isSpace w 
                 then Blank w li
                 else TextBlock w li
-        when ('\n' `elem` ln) $ do
+        when ('\n' `M.oelem` ln) $ do
             LatexGen $ line += 1 
             LatexGen $ column .= 1 
         mapM_ (node . Text) ys

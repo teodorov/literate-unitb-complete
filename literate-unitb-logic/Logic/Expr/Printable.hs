@@ -8,6 +8,7 @@ import Logic.Expr.Scope
     -- Libraries
 import Control.DeepSeq
 
+import Data.Text (Text)
 import Data.Typeable
 
 import GHC.Generics
@@ -25,9 +26,9 @@ instance HasGenExpr DispExpr where
     asExpr (DispExpr _ e) = e
     ztrue   = DispExpr "\\true" ztrue
     zfalse  = DispExpr "\\false" zfalse
-    zword v = DispExpr (pretty v) (Word v)
+    zword v = DispExpr (prettyText v) (Word v)
 
-data DispExpr = DispExpr !String !Expr
+data DispExpr = DispExpr !Text !Expr
     deriving (Show,Generic,Typeable)
 
 instance Eq DispExpr where
@@ -44,13 +45,14 @@ instance ZoomEq DispExpr where
 instance Arbitrary DispExpr where
     arbitrary = do
         x <- arbitrary
-        return $ DispExpr (pretty x) x
+        return $ DispExpr (prettyText x) x
     shrink = genericShrink
 
 instance PrettyPrintable DispExpr where
+    prettyText = prettyText . getExpr
     pretty = pretty . getExpr
 
-prettyPrint :: DispExpr -> String
+prettyPrint :: DispExpr -> Text
 prettyPrint (DispExpr x _) = x
 
 instance NFData DispExpr

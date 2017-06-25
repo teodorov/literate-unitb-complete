@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-import Logic.UnitTest
 import System.Exit
 import Test.UnitTest
 

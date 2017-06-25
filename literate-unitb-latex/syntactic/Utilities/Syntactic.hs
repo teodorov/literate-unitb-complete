@@ -219,10 +219,10 @@ unlinesLi :: NonEmpty StringLi -> StringLi
 unlinesLi (x :| []) = x
 unlinesLi (StringLi xs0 li0 :| (StringLi xs1 li1:xss)) = unlinesLi $ StringLi (xs0 ++ [('\n',li0)] ++ xs1) li1 :| xss
 
-asStringLi :: LineInfo -> String -> StringLi
+asStrigLi :: LineInfo -> Text -> StringLi
 asStringLi li xs = unlinesLi ys'
     where
-        ys = NE.zip (NE.iterate nxLn li) (neLines xs)
+        ys = NE.zip (NE.iterate nxLn li) (neLines $ unpack xs)
         ys' = NE.map f ys
         nxLn (LI fn i _j) = LI fn (i+1) 1
         nxCol (LI fn i j) = LI fn i (j+1)
