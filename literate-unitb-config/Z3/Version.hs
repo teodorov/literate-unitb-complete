@@ -74,7 +74,8 @@ z3_installed = do
     else do
             let ps = L.split ":" path
             forM ps (doesFileExist . (`combine` "z3"))
-    return $ or xs
+    z3_bin <- doesFileExist z3_path
+    return $ or (z3_bin : xs)
 
 config :: Lens' ConfigParser Z3Config
 config = lensOf $ Z3Config 
