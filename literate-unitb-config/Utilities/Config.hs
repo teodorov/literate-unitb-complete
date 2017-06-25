@@ -25,14 +25,14 @@ editFile fn = EditorOpt Nothing fn False
 
 notepadpp :: EditorOption -> IO ()
 notepadpp (EditorOpt ln fn w) = do
-        system $ "notepad++ \"" ++ first ++ "\" " ++ fn
+        _ <- system $ "notepad++ \"" ++ first ++ "\" " ++ fn
         when w $ getLine >> return ()
     where
         first = maybe "" (("-n " ++) . show) ln
 
 textmate :: EditorOption -> IO ()
 textmate (EditorOpt ln fn w) = do
-        system $ "mate " ++ first ++ " \"" ++ fn ++ "\" " ++ second
+        _ <- system $ "mate " ++ first ++ " \"" ++ fn ++ "\" " ++ second
         return ()
     where
         first = maybe "" (("-l " ++) . show) ln
@@ -40,7 +40,7 @@ textmate (EditorOpt ln fn w) = do
 
 textwrangler :: EditorOption -> IO ()
 textwrangler (EditorOpt ln fn w) = do
-        system $ "edit " ++ first ++ " \"" ++ fn ++ " \"" ++ second
+        _ <- system $ "edit " ++ first ++ " \"" ++ fn ++ " \"" ++ second
         return ()
     where
         first = maybe "" (("+" ++) . show) ln
@@ -48,7 +48,7 @@ textwrangler (EditorOpt ln fn w) = do
 
 sublimetext :: EditorOption -> IO ()
 sublimetext (EditorOpt ln fn w) = do
-        system $ "subl \"" ++ fn ++ first ++ "\" " ++ second
+        _ <- system $ "subl \"" ++ fn ++ first ++ "\" " ++ second
         return ()
     where
         first = maybe "" ((":" ++) . show) ln
@@ -72,11 +72,11 @@ open_at n fn = editor cmd
 diff :: String -> String -> IO ()
 diff file1 file2
     | is_os_windows = do
-            system ("fc " ++ quote file1 ++ " " ++ quote file2)
-            getLine
+            _ <- system ("fc " ++ quote file1 ++ " " ++ quote file2)
+            _ <- getLine
             return ()
     | otherwise     = do
-            system ("twdiff " ++ quote file1 ++ " " ++ quote file2 ++ " --wait")
+            _ <- system ("twdiff " ++ quote file1 ++ " " ++ quote file2 ++ " --wait")
             return ()
 
 quote :: String -> String

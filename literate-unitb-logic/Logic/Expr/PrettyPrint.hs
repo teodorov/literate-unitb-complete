@@ -24,32 +24,48 @@ import Control.Monad.Reader
 import Data.DList as D (DList)
 import qualified Data.DList as D
 import Data.DList.Utils as D
+import Data.Foldable 
 import Data.Monoid
 import Data.List as L hiding (uncons,unlines)
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Prelude hiding (unlines)
 
 import Text.Pretty
 
-pretty_print' :: Tree t => t -> String
-pretty_print' t = D.toList $ D.intercalate "\n" 
+pretty_print' :: Tree t => t -> Text
+pretty_print' t = fold $ D.intersperse "\n" 
     $ map toString $ as_list $ fst 
-    $ runReader (pretty_print_aux $ as_tree t) ""
+    $ runReader (pretty_print_aux $ as_tree t) mempty
 
 data Line = Line String' String'
 -- newtype Line = Line String'
 
-toString :: Line -> String'
-toString (Line xs ys) = xs <> ys
+toString :: Line -> DList Text
+toString (Line (String' xs _) (String' ys _)) = xs <> ys
 
 line :: Line -> String'
 line (Line _ ys) = ys
 
-type String' = DList Char
+data String' = String' (DList Text) !Int
 type M = Reader String'
 type X = (List Line,Int)
 
 data List a = Ls (DList a) a
+
+instance Monoid String' where
+    mappend (String' xs n) (String' ys m) = String' (xs <> ys) (n + m)
+    mempty = String' mempty 0
+
+lengthS :: String' -> Int
+lengthS (String' _ n) = n
+
+singletonS :: Text -> String'
+singletonS xs = String' (D.singleton xs) (T.length xs)
+
+asText :: Iso' String' Text
+asText = iso (\(String' x _) -> fold x) singletonS
 
 appendL :: List a -> List a -> List a
 appendL (Ls xs x) (Ls ys y) = Ls (xs <> D.cons x ys) y
@@ -57,10 +73,10 @@ appendL (Ls xs x) (Ls ys y) = Ls (xs <> D.cons x ys) y
 tell' :: String' -> M X
 tell' xs = do
     ys <- ask
-    return $ (Ls D.empty $ Line ys xs,length xs+1)
+    return $ (Ls D.empty $ Line ys xs, lengthS xs+1)
 
-appendall :: [(List a, Int)] -> (List a, Int)
-appendall ((x0,n):(x1,m):xs) = appendall $ (appendL x0 x1, m+n) : xs
+appendall :: [X] -> X
+appendall ((x0,n):(x1,m):xs) = appendall $ (appendL x0 x1, n+m) : xs
 appendall [x] = x
 appendall _ = error "appendall: empty list"
 
@@ -78,19 +94,20 @@ as_list :: List a -> [a]
 as_list (Ls xs x) = D.apply xs [x]
 
 pretty_print_aux :: StrList -> M X
-pretty_print_aux (Str xs) = tell' $ D.fromList xs
-pretty_print_aux (List []) = tell' "()"
+pretty_print_aux (Str xs) = tell' $ singletonS xs
+pretty_print_aux (List []) = tell' $ singletonS "()"
 pretty_print_aux (List ys@(x:xs)) = 
         case x of
             Str y'    -> do
                 zz <- mapM pretty_print_aux xs
-                let one_line' = D.concatMap (" " <>) $ L.concatMap (L.map line . as_list . fst) zz
+                let one_line' :: String'
+                    one_line' = foldMap (singletonS " " <>) $ L.concatMap (L.map line . as_list . fst) zz
                     k = sum $ map snd zz
-                    y = D.fromList y'
+                    y = singletonS y'
                 if k <= 50
-                then tell' $ "(" <> y <> one_line' <> ")"
+                then tell' $ singletonS "(" <> y <> one_line' <> singletonS ")"
                 else do
-                    zs <- prefix_first ("(" <> y <> " ") $
+                    zs <- prefix_first ("(" <> y' <> " ") $
                         mapM pretty_print_aux xs
                     return $ add_to_last ")" $ appendall zs
             List _ -> do
@@ -98,20 +115,23 @@ pretty_print_aux (List ys@(x:xs)) =
                     mapM pretty_print_aux ys
                 return $ add_to_last " )" $ appendall zs
     where
-        prefix_first :: String' -> M [X] -> M [X]
+        prefix_first :: Text -> M [X] -> M [X]
         prefix_first xs cmd = do
-            let k = length xs
+            let k = T.length xs
             ys <- indent k cmd 
             case ys of
-                [] -> (:[]) `liftM` tell' xs
+                [] -> (:[]) `liftM` tell' (singletonS xs)
                 (ls, n):ys -> 
                     uncons ls $ \(Line m y) zs -> do
-                        let newLine = Line (m & asList %~ take (length m - k)) (xs <> y)
+                        let newLine = Line (m & asText %~ T.take (lengthS m - k)) (singletonS xs <> y)
                         return $ (cons newLine zs, n+k):ys
+        indent :: Int -> M a -> M a
         indent n cmd = do
             local (margin n <>) cmd
-        margin n = D.fromList $ L.replicate n ' '
-        add_to_last suff (Ls xs (Line x y),k) = (Ls xs (Line x $ y<>suff),k)
+        margin n = singletonS $ T.replicate n " "
+
+add_to_last :: Text -> (List Line, t) -> (List Line, t)
+add_to_last suff (Ls xs (Line x y),k) = (Ls xs (Line x $ y <> singletonS suff),k)
   
 -- pretty_print :: StrList -> [String]
 -- pretty_print (Str xs) = [xs]

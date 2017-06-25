@@ -63,19 +63,15 @@ packages:
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: 
 - assert-0.0.1.2
-- monoid-transformer-0.0.3
 - portable-lines-0.1
 - pseudomacros-0.0.2
-- quickcheck-report-0.1.0.0
 - portable-template-haskell-lens-0.1.0.0
-- serialize-instances-0.1.0.0
-- control-invariants-0.1.0.0
-- axiomatic-classes-0.1.0.0
 - distributive-0.5.1
 - map-syntax-0.2.0.2
 - th-printf-0.3.1
 - directory-1.2.7.1
 - unfoldable-0.1.0.0
+- process-listlike-0.6.2
 
 # Override default flag values for local packages and extra-deps
 flags: {}

@@ -20,6 +20,7 @@ import Data.Foldable
 #if MIN_VERSION_transformers(0,5,0)
 import qualified Data.Functor.Classes as F
 #else
+-- import           Prelude.Extras hiding (Lift1)
 #endif
 import Data.Hashable
 import Data.List as L
@@ -29,6 +30,7 @@ import Data.Map  as M hiding (fold)
 import Data.Semigroup
 import Data.Serialize hiding (label)
 import Data.String
+import Data.Text (pack)
 import Data.Typeable
 
 import GHC.Generics
@@ -79,7 +81,7 @@ newtype EventId = EventId Label
 instance ZoomEq EventId where
     (.==) = (I.===)
 instance Arbitrary EventId where
-    arbitrary = EventId . label <$> elements ((:[]) <$> take 13 ['a' ..])
+    arbitrary = EventId . label . pack <$> elements ((:[]) <$> take 13 ['a' ..])
     shrink = genericShrink
 
 instance IsString EventId where

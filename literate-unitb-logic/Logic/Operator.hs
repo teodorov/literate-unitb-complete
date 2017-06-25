@@ -51,6 +51,7 @@ import Data.Function
 import Data.List as L
 import Data.Semigroup
 import Data.Serialize
+import Data.Text (Text)
 import Data.Typeable
 
 import GHC.Exts
@@ -75,7 +76,7 @@ type Matrix a b = G.Matrix a b
     -- o add a token for it in data type Operator
     -- o create a function that generates an expression
     --      from the token
-mk_expr :: BinOperator -> Expr -> Expr -> Either [String] Expr
+mk_expr :: BinOperator -> Expr -> Expr -> Either [Text] Expr
 mk_expr (BinOperator _ _ Flipped f) x y = flip (typ_fun2 f) (Right x) (Right y)
 mk_expr (BinOperator _ _ Direct f) x y  = typ_fun2 f (Right x) (Right y)
 
@@ -83,7 +84,7 @@ mk_expr' :: BinOperator -> UntypedExpr -> UntypedExpr -> UntypedExpr
 mk_expr' (BinOperator _ _ Flipped f) x y = flip (fun2' f) x y
 mk_expr' (BinOperator _ _ Direct f) x y  = fun2' f x y
 
-mk_unary :: UnaryOperator -> Expr -> Either [String] Expr
+mk_unary :: UnaryOperator -> Expr -> Either [Text] Expr
 mk_unary (UnaryOperator _ _ f) x = typ_fun1 f $ Right x
 
 mk_unary' :: UnaryOperator -> UntypedExpr -> UntypedExpr
@@ -330,8 +331,8 @@ functional_notation = with_assoc empty_notation
     , _left_assoc  = [[apply],[pair_op]]
     , _right_assoc = []
     , _relations   = []
-    , _quantifiers = [ (fromString'' "\\qforall", Forall)
-                     , (fromString'' "\\qexists", Exists) ]
+    , _quantifiers = [ (fromText "\\qforall", Forall)
+                     , (fromText "\\qexists", Exists) ]
     , _chaining    = [] }
 
     -- logic

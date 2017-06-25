@@ -16,11 +16,15 @@ import Data.Data.Lens
 import Data.DList as D
 import Data.DList.Utils as D
 import Data.Foldable as F
+import Data.Function
 import Data.List as L hiding (intercalate)
 import Data.Map  as M
 import Data.Monoid
+import Data.Text (Text,unpack)
 import Data.Tuple
 import Data.Typeable.Lens
+
+import Test.QuickCheck.ZoomEq
 
 import Text.Pretty
 
@@ -77,8 +81,8 @@ onInternalName f m = do
         ProverOutput -> f x
         UserOutput -> x
 
-render_decorated :: Named n0 => n0 -> Reader (OutputMode n) String
-render_decorated = onOutputName render . decorated_name'
+render_decorated :: Named n0 => n0 -> Reader (OutputMode n) Text
+render_decorated = onOutputName renderText . decorated_name'
 
 class Tree a where
     as_tree   :: a -> StrList
@@ -102,14 +106,14 @@ instance Tree () where
     as_tree' () = return $ List []
     rewriteM f = f
 
-data StrList = List [StrList] | Str String
+data StrList = List [StrList] | Str Text
 
-show' :: StrList -> DList Char
-show' (List xs) = D.fromList "(" <> intercalate " " (L.map show' xs) <> D.fromList ")"
-show' (Str s)   = D.fromList s
+show' :: StrList -> DList Text
+show' (List xs) = D.singleton "(" <> D.intersperse " " (L.map show' xs) <> D.singleton ")"
+show' (Str s)   = D.singleton s
 
 instance Show StrList where
-    show = D.toList . show'
+    show = unpack . F.fold . show'
 
 instance PrettyPrintable StrList where
     pretty = show
@@ -158,6 +162,9 @@ instance FromList a a where
 instance FromList a b => FromList (b -> a) b where
     from_list f (x:xs) = from_list (f x) xs
     from_list _ [] = error "from_list: not enough arguments"
+
+instance ZoomEq Text where
+    (.==) = (.==) `on` unpack
 
 z3_escape :: String -> InternalName
 z3_escape = fromString''

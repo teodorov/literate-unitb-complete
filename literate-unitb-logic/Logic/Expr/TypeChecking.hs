@@ -20,9 +20,10 @@ import Control.Precondition
 
 import           Data.Either
 import           Data.Either.Combinators (mapLeft)
-import           Data.List
 import qualified Data.Map as M
 import qualified Data.Set as S
+import           Data.Text (Text,unpack)
+import qualified Data.Text as T
 
 import Text.Pretty
 import Text.Printf.TH
@@ -40,11 +41,11 @@ stripTypes (Cast ct e t) = Cast ct (stripTypes e) t
 stripTypes (Lift e t) = Lift (stripTypes e) t
 stripTypes (Record r _) = Record (stripTypes <$> r) ()
 
-bind :: Maybe a -> String -> Either [String] a
+bind :: Maybe a -> Text -> Either [Text] a
 bind (Just x) _  = Right x
 bind Nothing msg = Left [msg]
 
-bindAll :: [b] -> (b -> Maybe a) -> (b -> String) -> Either [String] [a]
+bindAll :: [b] -> (b -> Maybe a) -> (b -> Text) -> Either [Text] [a]
 bindAll xs f msg 
         | all isRight ys = Right $ rights ys
         | otherwise      = Left $ concat $ lefts ys
@@ -52,7 +53,7 @@ bindAll xs f msg
         ys = map g xs
         g x = maybe (Left [msg x]) Right (f x)
 
-parCheck :: Either [String] a -> Either [String] b -> Either [String] (a,b)
+parCheck :: Either [Text] a -> Either [Text] b -> Either [Text] (a,b)
 parCheck (Right x) (Right y) = Right (x,y)
 parCheck mx my = Left $ errors mx ++ errors my
     where
@@ -92,7 +93,7 @@ checkTypes expected_t c ue xs = do
         li = line_info xs
         strToErr = \msg -> Error msg li
 
-checkTypes' :: Context -> UntypedExpr -> Either [String] Expr
+checkTypes' :: Context -> UntypedExpr -> Either [Text] Expr
 checkTypes' c e = do
         e' <- checkTypes'' c e
         case type_of e'^?_Params guarded_sort of
@@ -100,10 +101,10 @@ checkTypes' c e = do
             Just _  -> undefined'
             Nothing -> return e'
 
-checkTypes'' :: Context -> UntypedExpr -> Either [String] Expr
+checkTypes'' :: Context -> UntypedExpr -> Either [Text] Expr
 checkTypes'' c (Word (Var n ())) = do
     v <- bind (n `M.lookup` (c^.constants))
-        ([s|%s is undeclared|] $ pretty n)
+        ([st|%s is undeclared|] $ prettyText n)
     return $ Word v
 checkTypes'' _ (Lit n ()) = do
     let t = case n of 
@@ -117,15 +118,15 @@ checkTypes'' c (Record (FieldLookup e field) _) = do
     e' <- checkTypes' c e
     let t = type_of e'
     trecs <- bind (t^?fieldTypes)
-        ([s|While looking up field %s: %s is not a record|] (pretty field) (pretty e))
+        ([st|While looking up field %s: %s is not a record|] (prettyText field) (prettyText e))
     t' <- bind (field `M.lookup` trecs)
-        ([s|Record %s of type %s has no field %s|] (pretty e) (pretty t) (pretty field))
+        ([st|Record %s of type %s has no field %s|] (prettyText e) (prettyText t) (prettyText field))
     return (Record (FieldLookup e' field) t')
 checkTypes'' c (Record (RecUpdate e table) _) = do
     e' <- checkTypes' c e
     let t = type_of e'
     t' <- bind (t^?fieldTypes)
-        ([s|Expression %s is not a record|] (pretty e))
+        ([st|Expression %s is not a record|] (prettyText e))
     m <- traverseValidation (checkTypes' c) table
     return $ Record (RecUpdate e' m) (record_type $ M.union (type_of <$> m) t')
 checkTypes'' c (Record (RecLit table) _) = do
@@ -133,7 +134,7 @@ checkTypes'' c (Record (RecLit table) _) = do
     return $ Record (RecLit m) $ record_type $ type_of <$> m
 checkTypes'' c (Record (RecSet table) _) = do
     -- let isSet e = maybe (Left undefined') (Right . (,e)) . preview _ElementType . type_of $ e
-        -- msg = [s|Expression %s has type %s but should have a set type|]
+        -- msg = [st|Expression %s has type %s but should have a set type|]
     -- m <- traverseValidation (isSet <=< zcast (set_type gA) . Right <=< checkTypes' c) table
     m <- traverseValidation (checkTypes' c) table
     -- let m' = snd <$> m
@@ -165,9 +166,10 @@ checkTypes'' c' (Binder q vs' r t _) = do
     ts <- forM v_type $ \((Var x t),xs) -> do
         let ys = map var_type $ S.toList xs
         t' <- maybe 
-            (fail $ [s|Inconsistent type for %s: %s|] 
-                    (pretty x)
-                    $ intercalate "," $ map pretty ys)
+            (fail $ unpack $
+                    [st|Inconsistent type for %s: %s|] 
+                    (prettyText x)
+                    $ T.intercalate "," $ map prettyText ys)
             return
             $ foldM common gA ys
         t' <- if t' == gA 

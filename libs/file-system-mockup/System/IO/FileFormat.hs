@@ -142,7 +142,7 @@ failOnException' err (FileFormat w r) = FileFormat w readF
                     return $ Left err
             handle handler $ runEitherT $ do
                 x <- EitherT $ r fn
-                lift $ evaluate x
+                _ <- lift $ evaluate x
                 return x
 
 

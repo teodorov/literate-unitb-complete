@@ -12,6 +12,7 @@ module Test.UnitTest
     , makeTestSuite, makeTestSuiteOnly
     , testName, TestName
     , stringCase, aCase
+    , textCase
     , callStackLineInfo
     , M, UnitTest(..) 
     , IsTestCase(..)
@@ -40,12 +41,13 @@ import Control.Precondition
 
 import           Data.Either
 import           Data.IORef
-import           Data.List
-import           Data.List.NonEmpty as NE (sort)
+import           Data.List as L
 import           Data.String.Indentation
 import           Data.String.Lines hiding (lines,unlines)
-import           Data.Text as Text (unpack)
-import           Data.Text.Lazy as Lazy (unpack)
+import           Data.Text as Text (unpack,Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as Lazy
 import           Data.Tuple
 import           Data.Typeable
 
@@ -71,25 +73,33 @@ import Test.QuickCheck.Report
 import Text.Printf.TH
 
 data TestCase = 
-      forall a . (Show a, Eq a, Typeable a, NFData a) => Case String (IO a) a
+      forall a . (Show a, Eq a, Typeable a, NFData a) => Case Text (IO a) a
     | forall a . (Show a, Eq a, Typeable a, NFData a) 
-        => CalcCase String (IO a) (IO a) 
-    | StringCase String (IO String) String
-    | LineSetCase String (IO String) String
-    | Suite CallStack String [TestCase]
+        => CalcCase Text (IO a) (IO a) 
+    | TextCase Text (IO Text) Text
+    | LineSetCase Text (IO Text) Text
+    | Suite CallStack Text [TestCase]
     | WithLineInfo CallStack TestCase
-    | QuickCheckProps String (forall a. (PropName -> Property -> IO (a,Result)) -> IO ([a],Bool))
+    | QuickCheckProps Text (forall a. (PropName -> Property -> IO (a,Result)) -> IO ([a],Bool))
     | forall test. IsTestCase test => Other test
 
 stringCase :: Pre
-           => String 
+           => String
            -> IO String 
            -> String
            -> TestCase
-stringCase n test res = WithLineInfo (?loc) $ StringCase n test res
+stringCase n test res = WithLineInfo (?loc) $ 
+        TextCase (T.pack n) (T.pack <$> test) (T.pack res)
+
+textCase :: Pre
+         => Text 
+         -> IO Text 
+         -> Text
+         -> TestCase
+textCase n test res = WithLineInfo (?loc) $ TextCase n test res
 
 aCase :: (Pre,Eq a,Show a,Typeable a,NFData a)
-      => String
+      => Text
       -> IO a 
       -> a
       -> TestCase
@@ -97,7 +107,7 @@ aCase n test res = WithLineInfo (?loc) $ Case n test res
 
 class Typeable c => IsTestCase c where
     makeCase :: Maybe CallStack -> c -> ReaderT Args IO UnitTest
-    nameOf :: Lens' c String
+    nameOf :: Lens' c Text
 
 instance IsTestCase TestCase where
     makeCase _ (WithLineInfo cs t) = makeCase (Just cs) t
@@ -122,7 +132,7 @@ instance IsTestCase TestCase where
                 , _displayE = disp
                 , _criterion = id
                 }
-    makeCase cs (StringCase x y z) = return UT 
+    makeCase cs (TextCase x y z) = return UT 
                             { name = x
                             , routine = (,logNothing) <$> y
                             , outcome = z
@@ -131,17 +141,18 @@ instance IsTestCase TestCase where
                             , _displayE = id
                             , _criterion = id
                             }
-    makeCase cs (LineSetCase x y z) = makeCase cs $ stringCase x 
-                                ((asLines %~ NE.sort) <$> y) 
-                                (z & asLines %~ NE.sort)
+    makeCase cs (LineSetCase x y z) = makeCase cs $ textCase x 
+                                ((asLinesText %~ L.sort) <$> y) 
+                                (z & asLinesText %~ L.sort)
     makeCase cs (QuickCheckProps n prop) = do
             args <- ask
+            let formatResult x = (x & _1.traverse %~ T.pack ,logNothing)
             return UT
                 { name = n
-                , routine = (,logNothing) <$> prop (quickCheckWithResult' args)
+                , routine = formatResult <$> prop (quickCheckWithResult' args) 
                 , outcome = True
                 , _mcallStack = cs
-                , _displayA = intercalate "\n" . fst
+                , _displayA = T.intercalate "\n" . fst
                 , _displayE = const ""
                 , _criterion = snd
                 }
@@ -152,20 +163,20 @@ instance IsTestCase TestCase where
     nameOf f (QuickCheckProps n prop) = (\n' -> QuickCheckProps n' prop) <$> f n
     nameOf f (Other c) = Other <$> nameOf f c
     nameOf f (CalcCase n x0 x1) = (\n' -> CalcCase n' x0 x1) <$> f n
-    nameOf f (StringCase n x0 x1) = (\n' -> stringCase n' x0 x1) <$> f n
+    nameOf f (TextCase n x0 x1) = (\n' -> TextCase n' x0 x1) <$> f n
     nameOf f (LineSetCase n x0 x1) = (\n' -> LineSetCase n' x0 x1) <$> f n
 
-newtype M a = M { runM :: RWST Int [Either (STM [String]) String] Int (ReaderT (IORef [ThreadId]) IO) a }
+newtype M a = M { runM :: RWST Int [Either (STM [Text]) Text] Int (ReaderT (IORef [ThreadId]) IO) a }
     deriving ( Monad,Functor,Applicative,MonadIO
              , MonadReader Int
              , MonadState Int
-             , MonadWriter [Either (STM [String]) String])
+             , MonadWriter [Either (STM [Text]) Text])
 
 instance Indentation Int M where
     -- func = 
     margin_string = do
         n <- margin
-        return $ concat $ replicate n "|  "
+        return $ T.replicate n "|  "
     _margin _ = id
             
 onlyQuickCheck :: TestCase -> Maybe TestCase
@@ -189,50 +200,50 @@ take_failure_number = do
     liftIO $ putMVar failure_number $ n+1
     put n
 
-callStackLineInfo :: CallStack -> [String]
+callStackLineInfo :: CallStack -> [Text]
 callStackLineInfo cs = reverse $ map f $ filter ((__FILE__ /=) . srcLocFile) $ map snd $ getCallStack cs
     where
-        f c = [s|%s:%d:%d|] (srcLocFile c) (srcLocStartLine c) (srcLocStartCol c)
+        f c = [st|%s:%d:%d|] (srcLocFile c) (srcLocStartLine c) (srcLocStartCol c)
 
 
-new_failure :: CallStack -> String -> String -> String -> M ()
+new_failure :: CallStack -> Text -> Text -> Text -> M ()
 new_failure cs name actual expected = do
     b <- liftIO $ readMVar log_failures
     if b then do
         n <- get
         liftIO $ withFile ([s|actual-%d.txt|] n) WriteMode $ \h -> do
-            hPutStrLn h $ "; " ++ name
-            forM_ (callStackLineInfo cs) $ hPutStrLn h . ("; " ++)
-            hPutStrLn h "; END HEADER"
-            hPutStrLn h actual
+            T.hPutStrLn h $ "; " <> name
+            forM_ (callStackLineInfo cs) $ T.hPutStrLn h . ("; " <>)
+            T.hPutStrLn h "; END HEADER"
+            T.hPutStrLn h actual
         liftIO $ withFile ([s|expected-%d.txt|] n) WriteMode $ \h -> do
-            hPutStrLn h $ "; " ++ name
-            forM_ (callStackLineInfo cs) $ hPutStrLn h . ("; " ++)
-            hPutStrLn h "; END HEADER"
-            hPutStrLn h expected
+            T.hPutStrLn h $ "; " <> name
+            forM_ (callStackLineInfo cs) $ T.hPutStrLn h . ("; " <>)
+            T.hPutStrLn h "; END HEADER"
+            T.hPutStrLn h expected
     else return ()
 
-test_cases :: Pre => String -> [TestCase] -> TestCase
+test_cases :: Pre => Text -> [TestCase] -> TestCase
 test_cases = Suite ?loc
 
 logNothing :: PrintLog
 logNothing = const $ const $ const $ const $ return ()
 
-type PrintLog = CallStack -> String -> String -> String -> M ()
+type PrintLog = CallStack -> Text -> Text -> Text -> M ()
 
 data UnitTest = forall a b. (Eq a,NFData b) => UT 
-    { name :: String
+    { name :: Text
     , routine :: IO (b, PrintLog)
     , outcome :: a
     , _mcallStack :: Maybe CallStack
-    , _displayA :: b -> String
-    , _displayE :: a -> String
+    , _displayA :: b -> Text
+    , _displayE :: a -> Text
     , _criterion :: b -> a
     -- , _source :: FilePath
     }
-    | Node { _callStack :: CallStack, name :: String, _children :: [UnitTest] }
+    | Node { _callStack :: CallStack, name :: Text, _children :: [UnitTest] }
 
--- strip_line_info :: String -> String
+-- strip_line_info :: Text -> Text
 -- strip_line_info xs = unlines $ map f $ lines xs
 --     where
 --         f xs = takeWhile (/= '(') xs
@@ -258,7 +269,7 @@ run_test_cases_with :: (Pre,IsTestCase testCase)
                     -> IO Bool
 run_test_cases_with xs opts = do
         let args = execState opts stdArgs
-        swapMVar failure_number 0
+        _ <- swapMVar failure_number 0
         c        <- runReaderT (makeCase Nothing xs) args
         ref      <- newIORef []
         (b,_,w)  <- runReaderT (runRWST 
@@ -266,15 +277,15 @@ run_test_cases_with xs opts = do
                         (assertFalse' "??")) ref
         forM_ w $ \ln -> do
             case ln of
-                Right xs -> putStrLn xs
-                Left xs -> atomically xs >>= mapM_ putStrLn
+                Right xs -> T.putStrLn xs
+                Left xs -> atomically xs >>= mapM_ T.putStrLn
         x <- fmap (uncurry (==)) <$> atomically b
         either throw return x
 
-disp :: (Typeable a, Show a) => a -> String
-disp x = fromMaybe (reindent $ show x) (cast x <|> fmap Text.unpack (cast x) <|> fmap Lazy.unpack (cast x))
+disp :: (Typeable a, Show a) => a -> Text
+disp x = fromMaybe (reindentText $ T.pack $ show x) (cast x <|> fmap T.pack (cast x) <|> fmap Lazy.toStrict (cast x))
 
-putLn :: String -> M ()
+putLn :: Text -> M ()
 putLn xs = do
         ys <- mk_lines xs
         tell $ map Right ys
@@ -286,10 +297,10 @@ test_suite_string cs' ut = do
         case ut of
           (UT title test expected mli dispA dispE cri) -> forkTest $ do
             let cs = fromMaybe cs' mli
-            putLn ("+- " ++ title)
+            putLn ("+- " <> title)
             r <- liftIO $ catch 
                 (Right <$> (liftIO . evaluate . force =<< test)) 
-                (\e -> return $ Left $ show (e :: SomeException))
+                (\e -> return $ Left $ T.pack $ show (e :: SomeException))
             case r of
                 Right (r,printLog) -> 
                     if (cri r == expected)
@@ -302,25 +313,25 @@ test_suite_string cs' ut = do
                         forM_ (callStackLineInfo cs) $ tell . (:[]) . Right
                         return (0,1) 
                 Left m -> do
-                    tell [Right $ "   Exception:  \n" ++ m]
+                    tell [Right $ "   Exception:  \n" <> m]
                     take_failure_number
                     new_failure cs title m (dispE expected)
                     putLn "*** FAILED ***"
                     forM_ (callStackLineInfo cs) $ tell . (:[]) . Right
                     return (0,1)
           Node cs n xs -> do
-            putLn ("+- " ++ n)
+            putLn ("+- " <> n)
             xs <- indent 1 $ mapM (test_suite_string cs) xs
             forkTest $ do
                 xs' <- mergeAll xs
                 let xs = map (either (const (0,1)) id) xs' :: [(Int,Int)]
                     x = sum $ map snd xs
                     y = sum $ map fst xs
-                putLn ([s|+- [ Success: %d / %d ]|] y x)
+                putLn ([st|+- [ Success: %d / %d ]|] y x)
                 return (y,x)
 
 
-leaves :: TestCase -> [String]
+leaves :: TestCase -> [Text]
 leaves (Suite _ _ xs) = concatMap leaves xs
 leaves t = [t^.nameOf]
 
@@ -328,8 +339,8 @@ leaves t = [t^.nameOf]
 allLeaves :: TestCase -> [TestCase]
 allLeaves = allLeaves' ""
     where
-        allLeaves' n (Suite _ n' xs) = concatMap (allLeaves' (n ++ n' ++ "/")) xs
-        allLeaves' n t = [t & nameOf %~ (n ++)]
+        allLeaves' n (Suite _ n' xs) = concatMap (allLeaves' (n <> n' <> "/")) xs
+        allLeaves' n t = [t & nameOf %~ (n <>)]
 
 selectLeaf :: Int -> TestCase -> TestCase 
 selectLeaf n = takeLeaves (n+1) . dropLeaves n
@@ -377,7 +388,7 @@ forkTest cmd = do
                 print e
                 atomically $ do 
                     putTMVar result $ Left e
-                    putTMVar output $ [show e]
+                    putTMVar output $ [T.pack $ show e]
         forkIO $ do
             finally (handling id handler $ do
                 (x,_,w) <- runReaderT (runRWST (runM cmd) r (-1)) ref
@@ -414,7 +425,7 @@ tempFile path = do
     -- mkWeakPtr path' (Just finalize)
     return path'
 
-data TestName = TestName String CallStack
+data TestName = TestName Text CallStack
 
 data TestCaseGen = PropCaseGen Name Name | CaseGen Name Name Name
 
@@ -438,23 +449,23 @@ genTestCase :: TestCaseGen -> ExpQ
 genTestCase (CaseGen n c r) = [e| Case (fooNameOf $(varE n)) $(varE c) $(varE r) |]
 genTestCase (PropCaseGen n prop) = [e| QuickCheckProps (fooNameOf $(varE n)) $(varE prop) |]        
 
-testName :: Pre => String -> TestName
+testName :: Pre => Text -> TestName
 testName str = TestName str ?loc
 
-fooNameOf :: TestName -> String
+fooNameOf :: TestName -> Text
 fooNameOf (TestName str _)   = str
 
 fooCallStack :: TestName -> CallStack
 fooCallStack (TestName _ cs) = cs
 
-makeTestSuiteOnly :: String -> [TestCaseGen] -> ExpQ
+makeTestSuiteOnly :: Text -> [TestCaseGen] -> ExpQ
 makeTestSuiteOnly title ts = do
         let loci i = [e| fooCallStack $(varE $ caseGenName i) |]
             cases = [ [e| WithLineInfo $(loci i) $(genTestCase i) |] | i <- ts ]
-            titleE = litE $ stringL title
+            titleE = stringE (unpack title)
         [e| test_cases $titleE $(listE cases) |]
 
-makeTestSuite :: String -> ExpQ
+makeTestSuite :: Text -> ExpQ
 makeTestSuite title = do
     let names n' = [ "name" ++ n' 
                    , "case" ++ n' 

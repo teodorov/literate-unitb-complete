@@ -22,6 +22,7 @@ import           Data.List as L
 import           Utilities.MapSyntax
 import qualified Data.Map as M
 import qualified Data.Set as S
+import           Data.Text as T (unlines,unpack)
 
 import Text.Printf.TH
 
@@ -59,7 +60,7 @@ no_errors2 :: ( TypeSystem t
               , IsQuantifier q )
            => (TwoExprP n t q)
            -> (TwoExpr n t q)
-no_errors2 f x y = either (error . unlines) id $ f (Right x) (Right y)
+no_errors2 f x y = either (error . unpack . T.unlines) id $ f (Right x) (Right y)
 
 toErrors :: LineInfo -> ExprP -> Either [Error] Expr
 toErrors li m = case m of
@@ -314,8 +315,8 @@ zpow         = fun2 $ mk_fun [] [smt|^|] [int,int] int
 zselect :: IsName n => TwoExprP n Type q
 zselect      = typ_fun2 (mk_fun [] [smt|select|] [array gA gB, gA] gB)
 
-zint :: (TypeSystem t, Integral int) => int -> GenExpr n t a q
-zint n       = Lit (IntVal $ fromIntegral n) int
+zint :: (TypeSystem t) => Int -> GenExpr n t a q
+zint n       = Lit (IntVal n) int
 
 zreal :: TypeSystem t => Double -> AbsExpr n t q
 zreal n      = Lit (RealVal n) real
@@ -362,7 +363,7 @@ minus_fun        = mk_fun [] [smt|-|] [int,int] int
 less_fun         = mk_fun [] [smt|<|] [int,int] bool
 prefix_minus_fun = mk_fun [] [smt|-|] [int] int
 
-mzint :: (TypeSystem2 t, Integral int) => int -> ExprPG n t q 
+mzint :: (TypeSystem2 t) => Int -> ExprPG n t q 
 mzint n       = Right $ zint n
 
 mzreal :: TypeSystem2 t => Int -> ExprPG n t q
@@ -537,9 +538,9 @@ zrec_update' :: (TypeSystem t,IsName n,IsQuantifier q)
 zrec_update' e m = do
     let f e = case type_of e^?fieldTypes of
                 Just t -> Right (e,t)
-                _ -> Left [[s|expecting a record type, met %s in %s|] 
-                            (pretty $ type_of e)
-                            (pretty e)
+                _ -> Left [[st|expecting a record type, met %s in %s|] 
+                            (prettyText $ type_of e)
+                            (prettyText e)
                             ]
     (e',t') <- f =<< e
     m' <- traverseValidation id m
@@ -550,15 +551,15 @@ zfield :: (IsName n,TypeSystem t,IsQuantifier q)
 zfield e field = do
     -- let field = Field field'
     e' <- e
-    let msg1 = [s|Field lookup requires a record type:\n  in expression %s\n  of type: %s|] 
-                    (pretty e')
-                    (pretty $ type_of e')
+    let msg1 = [st|Field lookup requires a record type:\n  in expression %s\n  of type: %s|] 
+                    (prettyText e')
+                    (prettyText $ type_of e')
     fs <- maybe (Left [msg1]) Right 
         $ type_of e'^?fieldTypes
-    let msg2 = [s|Type of expression does not have field '%s':\n  in expression %s\n  with fields: %s|]
-                    (pretty field)
-                    (pretty e')
-                    (pretty $ M.keys fs)
+    let msg2 = [st|Type of expression does not have field '%s':\n  in expression %s\n  with fields: %s|]
+                    (prettyText field)
+                    (prettyText e')
+                    (prettyText $ M.keys fs)
     t <- maybe (Left [msg2]) Right
         $ M.lookup field fs 
     return $ Record (FieldLookup e' field) t
@@ -569,6 +570,6 @@ instance Num ExprP where
     (*) = mztimes
     abs = typ_fun1 $ mk_fun [] [smt|abs|] [int] int
     signum x = zite (x .< 0) (-1) $ zite (0 .< x) 1 0
-    fromInteger = mzint
+    fromInteger = mzint . fromInteger
     negate = mzopp
 

@@ -17,17 +17,13 @@ import Utilities.Graph as G
 import Utilities.EditDistance
 
     -- Libraries
--- import Control.Lens
-
 import           Data.Array 
--- import           Data.Function
--- import qualified Data.Graph.Array as Graph
 import           Data.List
 import           Data.List.Ordered as OL
-import           Data.String.Lines as Lines
 import qualified Data.Map as M
--- import qualified Data.Relation as Rel
+import           Data.Monoid
 import           Data.String.Brackets
+import           Data.String.Lines as Lines
 import qualified Data.Tuple.Generics as Tup
 import           Data.Typeable
 
@@ -178,22 +174,23 @@ data Tree a = Node a (Tree a) (Tree a) | Leaf
 test' :: TestCase
 test' = test_cases
         "Formatting utilities"
-        [ stringCase "test 0" 
-                    (return $ [s|hello %s name is %s and I'm %d years old|] "my" "Simon" 28) 
+        [ textCase "test 0" 
+                    (return $ [st|hello %s name is %s and I'm %d years old|] 
+                            ("my" :: String) ("Simon" :: String) (28 :: Int)) 
                     ("hello my name is Simon and I'm 28 years old")
-        , stringCase "test 1"
-                    (return $ [s|this is a tree %s, its second leaf is %s|] (show t4) (show t2))
+        , textCase "test 1"
+                    (return $ [st|this is a tree %s, its second leaf is %s|] (show t4) (show t2))
                     (   "this is a tree Node \"Candide+Paul-Henri\" (Node \"Yves+Sylvie\" Leaf Leaf) "
-                     ++ "(Node \"Danielle+Louis\" (Node \"Francois+Elsa\" Leaf Leaf) "
-                     ++       "(Node \"Emilie+Vincent\" Leaf Leaf)), its second leaf is "
-                     ++       "Node \"Francois+Elsa\" Leaf Leaf")
+                     <> "(Node \"Danielle+Louis\" (Node \"Francois+Elsa\" Leaf Leaf) "
+                     <>       "(Node \"Emilie+Vincent\" Leaf Leaf)), its second leaf is "
+                     <>       "Node \"Francois+Elsa\" Leaf Leaf")
         ]
     where
         t0 = Node "Yves+Sylvie" Leaf Leaf
         t1 = Node "Danielle+Louis" t2 t3
         t2 = Node "Francois+Elsa" Leaf Leaf
         t3 = Node "Emilie+Vincent" Leaf Leaf
-        t4 = Node "Candide+Paul-Henri" t0 t1
+        t4 = Node "Candide+Paul-Henri" t0 t1 :: Tree String
 
 -- case5   :: IO (Either [Error] ((), [Error]))
 -- result5 :: Either [Error] ((), [Error])

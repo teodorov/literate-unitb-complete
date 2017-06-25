@@ -1,7 +1,10 @@
 module Logic.Test.Stable where
 
-result10 :: String
-result10 = unlines
+import           Data.Text (Text)
+import qualified Data.Text as T
+
+result10 :: Text
+result10 = T.unlines
     [ "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
     , "(declare-datatypes (a) ( (Maybe (Just (fromJust a)) Nothing) ))"
@@ -28,8 +31,8 @@ result10 = unlines
     ]
 
 
-result11 :: String
-result11 = unlines
+result11 :: Text
+result11 = T.unlines
     [ "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
     , "(declare-datatypes (a) ( (Maybe (Just (fromJust a)) Nothing) ))"

@@ -20,8 +20,12 @@ import           Data.Data
 import           Data.Hashable
 import           Data.List
 import qualified Data.Map as M
+import           Data.Monoid
 import qualified Data.Set as S
 import           Data.Serialize
+import           Data.Text (Text)
+-- import           Data.Text.Internal (Text,pack)
+import qualified Data.Text as T
 
 import           GHC.Generics.Instances
 
@@ -113,7 +117,7 @@ instance TypeSystem FOType where
 
 instance PrettyPrintable Sort where
     pretty (RecordSort m) = [s|{ %s }|] $ intercalate ", " 
-                $ zipWith (\f -> [s|'%s :: a%d|] (fieldName f)) (M.keys m) [0..]
+                $ zipWith (\f -> [s|'%s :: a%d|] (fieldName f)) (M.keys m) [0 :: Int ..]
     pretty ss = render $ ss^.name
 
 instance Hashable FOType where
@@ -131,8 +135,8 @@ instance TypeSystem () where
 
 instance Tree GenericType where
     as_tree' (Gen ss ts) = cons_to_tree ss ts
-    as_tree' (GENERIC x)   = return $ Str $ render x
-    as_tree' (VARIABLE n)  = return $ Str $ "_" ++ render n
+    as_tree' (GENERIC x)   = return $ Str $ renderText x
+    as_tree' (VARIABLE n)  = return $ Str $ "_" <> renderText n
     {-# INLINABLE rewriteM #-}
     rewriteM f (Gen ss ts) = do
             Gen ss <$> traverse f ts
@@ -157,14 +161,14 @@ cons_to_tree :: Tree a => Sort -> [a] -> Reader (OutputMode n) StrList
 cons_to_tree ss [] = do
     opt <- ask
     let n = case opt of
-                ProverOutput -> render $ z3_name ss
-                UserOutput -> render $ ss^.name
+                ProverOutput -> renderText $ z3_name ss
+                UserOutput -> renderText $ ss^.name
     return $ Str n
 cons_to_tree ss ts = do
     opt <- ask
     let n = case opt of
-                ProverOutput -> render $ z3_name ss
-                UserOutput -> render $ ss^.name
+                ProverOutput -> renderText $ z3_name ss
+                UserOutput -> renderText $ ss^.name
     return $ Expr.List (Str n : map as_tree ts)
 
 typeParams :: Sort -> Int
@@ -192,16 +196,16 @@ instance PrettyPrintable GenericType where
     pretty (Gen t ts) = [s|%s %s|] (render $ t^.name) (show $ map Pretty ts)
 
 recordName :: M.Map Field a -> Name
-recordName m = makeZ3Name $ "Record-" ++ intercalate "-" (map fieldName $ M.keys m)
+recordName m = makeZ3Name $ "Record-" <> T.intercalate "-" (map fieldName $ M.keys m)
 
-accessor :: Field -> String
-accessor = render . accessorName
+accessor :: Field -> Text
+accessor = renderText . accessorName
 
 accessorName :: Field -> InternalName
 accessorName (Field n) = addPrefix "field" $ asInternal n
 
-fieldName :: Field -> String
-fieldName (Field n) = [s|%s|] (render n)
+fieldName :: Field -> Text
+fieldName (Field n) = renderText n
 
 _Params :: TypeSystem t => Sort -> Prism' t [t]
 _Params s = _FromSort.swapped.aside (only s).iso fst (,())
@@ -339,30 +343,30 @@ gC :: GenericType
 gC = GENERIC [smt|c|]
 
 z3Sort :: Pre 
-       => String -> String -> Int -> Sort
-z3Sort n0 n1 = Sort (fromString'' n0) (z3Name n1)
+       => Text -> Text -> Int -> Sort
+z3Sort n0 n1 = Sort (fromText n0) (z3NameText n1)
 
 z3DefSort :: Pre 
-          => String -> String -> [String] -> GenericType -> Sort
-z3DefSort n0 n1 ps = DefSort (fromString'' n0) (fromString'' n1) (fromString'' <$> ps)
+          => Text -> Text -> [Text] -> GenericType -> Sort
+z3DefSort n0 n1 ps = DefSort (fromText n0) (fromText n1) (fromText <$> ps)
 
 z3GENERIC :: Pre
-          => String -> GenericType
-z3GENERIC = GENERIC . fromString''
+          => Text -> GenericType
+z3GENERIC = GENERIC . fromText
 
-z3_decoration :: TypeSystem t => t -> String
+z3_decoration :: TypeSystem t => t -> Text
 z3_decoration t = runReader (z3_decoration' t) ProverOutput
 
-z3_decoration' :: TypeSystem t => t -> Reader (OutputMode n) String
+z3_decoration' :: TypeSystem t => t -> Reader (OutputMode n) Text
 z3_decoration' t = do
         opt <- ask 
         case opt of
             ProverOutput -> f <$> as_tree' t
             UserOutput -> return ""
     where
-        f (Expr.List ys) = [s|@Open%s@Close|] xs
-            where xs = concatMap f ys :: String
-        f (Str y)   = [s|@@%s|] y
+        f (Expr.List ys) = [st|@Open%s@Close|] xs
+            where xs = foldMap f ys :: Text
+        f (Str y)   = [st|@@%s|] y
 
 instance Serialize Sort where
 instance Serialize Type where

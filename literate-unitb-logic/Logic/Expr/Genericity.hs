@@ -46,15 +46,18 @@ import           Data.Map as M
                     hiding ( map, union, unions, (\\) )
 import qualified Data.Map as M
 import qualified Data.Maybe as MM
+import           Data.Monoid
 import qualified Data.Set as S 
+import           Data.Text as T (Text,unlines,intercalate)
 
 import Prelude as L
 
+import TextShow (showt)
 import Text.Printf.TH
 
 suffix_generics :: String -> GenericType -> GenericType
 suffix_generics _  v@(VARIABLE _)      = v
-suffix_generics xs (GENERIC x)         = GENERIC (('@':xs) `addSuffix` x)
+suffix_generics xs (GENERIC x)         = GENERIC ((pack $ '@':xs) `addSuffix` x)
 suffix_generics xs (Gen s ts) = Gen s $ map (suffix_generics xs) ts
 --suffix_generics = fmap
 
@@ -110,11 +113,11 @@ instance TypeSystem2 FOType where
             return $ f fun xp ts
     zcast t me = do
             e <- me
-            let { err_msg = intercalate "\n"
-                            [ [s|expression has type incompatible with its expected type:|]
-                            , [s|  expression: %s|]        (pretty e)
-                            , [s|  actual type: %s|]       (pretty $ type_of e)
-                            , [s|  expected type: %s |]    (pretty t)
+            let { err_msg = T.intercalate "\n"
+                            [ [st|expression has type incompatible with its expected type:|]
+                            , [st|  expression: %s|]        (prettyText e)
+                            , [st|  actual type: %s|]       (prettyText $ type_of e)
+                            , [st|  expected type: %s |]    (prettyText t)
                             ] }
             unless (type_of e == t)
                 $  Left [err_msg]
@@ -141,17 +144,17 @@ instance TypeSystem2 GenericType where
             return expr
     zcast t me = do
             e <- me
-            let { err_msg = intercalate "\n"
-                            [ [s|expression has type incompatible with its expected type:|]
-                            , [s|  expression: %s|]        (pretty e)
-                            , [s|  actual type: %s|]       (pretty $ type_of e)
-                            , [s|  expected type: %s |]    (pretty t)
+            let { err_msg = T.intercalate "\n"
+                            [ [st|expression has type incompatible with its expected type:|]
+                            , [st|  expression: %s|]        (prettyText e)
+                            , [st|  actual type: %s|]       (prettyText $ type_of e)
+                            , [st|  expected type: %s |]    (prettyText t)
                             ] }
             u <- maybe (Left [err_msg]) Right $ 
                 unify t $ type_of e
             return $ specialize_right u e
 
-check_all :: [Either [String] a] -> Either [String] [a]
+check_all :: [Either [Text] a] -> Either [Text] [a]
 check_all xs 
     | all isRight xs = Right $ rights xs
     | otherwise      = Left $ concat $ lefts xs
@@ -175,14 +178,14 @@ check_type' f fun@(Fun _ n _ ts t _) mxs = do
             [x,y]   -> typ_fun2 fun (Right x) (Right y)
             [x,y,z] -> typ_fun3 fun (Right x) (Right y) (Right z)
             _ -> do
-                let args = unlines $ map (\(i,x) -> unlines
-                                            [ [s|   argument %d:  %s|] i (pretty x)
-                                            , [s|   type:          %s|] (pretty $ type_of x) ])
-                                (zip [0..] xs)
-                    err_msg = unlines
-                                [ [s|arguments of '%s' do not match its signature:|] (render n)
-                                , [s|   signature: %s -> %s|] (pretty ts) (pretty t)
-                                , [s|%s|] args ]
+                let args = T.unlines $ map (\(i,x) -> T.unlines
+                                            [ [st|   argument %d:  %s|] i (prettyText x)
+                                            , [st|   type:          %s|] (prettyText $ type_of x) ])
+                                (zip [0 :: Int ..] xs)
+                    err_msg = T.unlines
+                                [ [st|arguments of '%s' do not match its signature:|] (renderText n)
+                                , [st|   signature: %s -> %s|] (prettyText ts) (prettyText t)
+                                , [st|%s|] args ]
                 maybe (Left [err_msg]) Right $ check_args' f fun xs
 
 type OneExprP n t q   = IsQuantifier q => ExprPG n t q -> ExprPG n t q
@@ -196,11 +199,11 @@ typ_fun1 :: ( TypeSystem2 t,IsName n )
          -> OneExprP n t q
 typ_fun1 f@(Fun _ n _ ts t _) mx        = do
         x <- mx
-        let err_msg = unlines
-                    [ [s|argument of '%s' do not match its signature:|] (render n)
-                    , [s|   signature: %s -> %s|] (pretty ts) (pretty t)
-                    , [s|   argument: %s|] (pretty x)
-                    , [s|     type %s|] (pretty $ type_of x)
+        let err_msg = T.unlines
+                    [ [st|argument of '%s' do not match its signature:|] (renderText n)
+                    , [st|   signature: %s -> %s|] (prettyText ts) (prettyText t)
+                    , [st|   argument: %s|] (prettyText x)
+                    , [st|     type %s|] (prettyText $ type_of x)
                     ]
         maybe (Left [err_msg]) Right $ check_args [x] f
 
@@ -210,13 +213,13 @@ typ_fun2 :: ( TypeSystem2 t,IsName n )
 typ_fun2 f@(Fun _ n _ ts t _) mx my     = do
         x <- mx
         y <- my
-        let err_msg = unlines
-                    [ [s|arguments of '%s' do not match its signature:|] (render n)
-                    , [s|   signature: %s -> %s|]                        (pretty ts) (pretty t)
-                    , [s|   left argument: %s|]                          (pretty x)
-                    , [s|     type %s|]                                  (pretty $ type_of x) 
-                    , [s|   right argument: %s|]                         (pretty y)
-                    , [s|     type %s|]                                  (pretty $ type_of y)
+        let err_msg = T.unlines
+                    [ [st|arguments of '%s' do not match its signature:|] (renderText n)
+                    , [st|   signature: %s -> %s|]                        (prettyText ts) (prettyText t)
+                    , [st|   left argument: %s|]                          (prettyText x)
+                    , [st|     type %s|]                                  (prettyText $ type_of x) 
+                    , [st|   right argument: %s|]                         (prettyText y)
+                    , [st|     type %s|]                                  (prettyText $ type_of y)
                     ]
         maybe (Left [err_msg]) Right $ check_args [x,y] f
 
@@ -227,15 +230,15 @@ typ_fun3 f@(Fun _ n _ ts t _) mx my mz  = do
         x <- mx
         y <- my
         z <- mz
-        let err_msg = unlines
-                   [ [s|arguments of '%s' do not match its signature:|] (render n) 
-                   , [s|   signature: %s -> %s|]                        (pretty ts) (pretty t) 
-                   , [s|   first argument: %s|]                         (pretty x)
-                   , [s|     type %s|]                                  (pretty $ type_of x) 
-                   , [s|   second argument: %s|]                        (pretty y)
-                   , [s|     type %s|]                                  (pretty $ type_of y) 
-                   , [s|   third argument: %s|]                         (pretty z)
-                   , [s|     type %s|]                                  (pretty $ type_of z)
+        let err_msg = T.unlines
+                   [ [st|arguments of '%s' do not match its signature:|] (renderText n) 
+                   , [st|   signature: %s -> %s|]                        (prettyText ts) (prettyText t) 
+                   , [st|   first argument: %s|]                         (prettyText x)
+                   , [st|     type %s|]                                  (prettyText $ type_of x) 
+                   , [st|   second argument: %s|]                        (prettyText y)
+                   , [st|     type %s|]                                  (prettyText $ type_of y) 
+                   , [st|   third argument: %s|]                         (prettyText z)
+                   , [st|     type %s|]                                  (prettyText $ type_of z)
                    ]
         maybe (Left [err_msg]) Right $ check_args [x,y,z] f
 
@@ -528,11 +531,11 @@ gen_to_fol :: (IsQuantifier q,IsName n,Pre)
            -> [(Label,AbsExpr InternalName FOType q)]
 gen_to_fol types lbl e = map (f &&& inst) xs
     where
-        inst m = mk_error ("gen_to_fol", (types_of $ e' m,e))
+        inst m = mk_error ("gen_to_fol" :: String, (types_of $ e' m,e))
                     strip_generics $ e' m
         e' m   = substitute_type_vars (M.map as_generic m) e
         xs     = match_all pat (S.elems types)
-        f xs   = composite_label [lbl, label $ concatMap z3_decoration $ M.elems xs]
+        f xs   = composite_label [lbl, label $ foldMap z3_decoration $ M.elems xs]
         pat    = patterns e
 
 to_fol_ctx :: forall q n. (IsQuantifier q,IsName n)
@@ -673,8 +676,8 @@ vars_to_sorts_aux :: AbsExpr n Type q  -> State ([FOType],Map InternalName FOTyp
 vars_to_sorts_aux = rewriteExprM type_vars_to_sorts return vars_to_sorts_aux
 
 names :: Pre 
-      => String -> [Name]
-names n = map (makeName . (n ++) . show) [0 :: Int ..]
+      => Text -> [Name]
+names n = map (makeName . (n <>) . showt) [0 :: Int ..]
 
 vars_to_sorts :: M.Map Name Sort -> AbsExpr n Type q -> AbsExpr n FOType q
 vars_to_sorts sorts e = evalState (vars_to_sorts_aux e) (new_sorts, empty)

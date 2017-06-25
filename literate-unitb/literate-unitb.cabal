@@ -148,7 +148,7 @@ library
 
   default-language:    Haskell2010
 
-  build-depends:       ansi-terminal, array, async, axiomatic-classes, base >=4.8 && < 5, bipartite-graph, bytestring, cereal < 5, classy-lens-hierarchy, co-applicative, containers, data-compressed, data-default, data-ordlist, deepseq, directory >= 1.2.2.0, dlist, either, existential, existential, file-system-mockup, filepath, generic-instances, hashable, control-invariants, lens, lens-extra, literate-unitb-latex, literate-unitb-logic, literate-unitb-utils, map-syntax, MissingH, monoid-transformer, mtl, parallel, partial-order, th-printf, process, pseudomacros, QuickCheck, semigroupoids, semigroups, show-with, stm, string-lenses, tagged, template-haskell, time, transformer-lenses, transformers >=0.3, unfoldable, unitb-testing, unordered-containers, witherable, typelist-functor, constraints, pretty-printable, prelude-extras, hscolour, unordered-containers, serialize-instances, literate-unitb-config, syntax-error, quickcheck-report
+  build-depends:       ansi-terminal, array, async, axiomatic-classes, base >=4.8 && < 5, bipartite-graph, bytestring, cereal < 5, classy-lens-hierarchy, co-applicative, containers, data-compressed, data-default, data-ordlist, deepseq, directory >= 1.2.2.0, dlist, either, existential, existential, file-system-mockup, filepath, generic-instances, hashable, control-invariants, lens, lens-extra, literate-unitb-latex, literate-unitb-logic, literate-unitb-utils, map-syntax, MissingH, monoid-transformer, mtl, parallel, partial-order, th-printf, process, pseudomacros, QuickCheck, semigroupoids, semigroups, show-with, stm, string-lenses, tagged, template-haskell, time, transformer-lenses, transformers >=0.3, unfoldable, unitb-testing, unordered-containers, witherable, typelist-functor, constraints, pretty-printable, prelude-extras, hscolour, unordered-containers, serialize-instances, literate-unitb-config, syntax-error, quickcheck-report, text, text-show
 
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
@@ -158,7 +158,7 @@ library
          -j8
   
   -- LANGUAGE extensions used by modules in this package.
-  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
+  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes, OverloadedStrings
 
 executable unitb
   -- .hs or .lhs file containing the Main module.

@@ -113,7 +113,7 @@ library
   -- other-modules:       
   
   -- LANGUAGE extensions used by modules in this package.
-  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
+  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes, OverloadedStrings
 
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
@@ -123,7 +123,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >= 4.8 && < 5, lens >= 4.12, array, containers, deepseq, data-default, cereal < 5, QuickCheck, mtl, template-haskell, hashable, dlist, semigroups, either, transformers, contravariant, directory, filepath, process, SafeSemaphore, data-ordlist, MissingH, pseudomacros, ConfigFile, literate-unitb-utils, literate-unitb-config, literate-unitb-latex, control-invariants, generic-instances, th-printf, axiomatic-classes, partial-order, existential, string-lenses, data-packaged, monad-loops, classy-lens-hierarchy, unitb-testing, lens-extra, axiomatic-classes, pretty-printable, bipartite-graph, prelude-extras, syntax-error, quickcheck-report, async
+  build-depends:       base >= 4.8 && < 5, lens >= 4.12, array, containers, deepseq, data-default, cereal < 5, QuickCheck, mtl, template-haskell, hashable, dlist, semigroups, either, transformers, contravariant, directory, filepath, process, SafeSemaphore, data-ordlist, MissingH, pseudomacros, ConfigFile, literate-unitb-utils, literate-unitb-config, literate-unitb-latex, control-invariants, generic-instances, th-printf, axiomatic-classes, partial-order, existential, string-lenses, data-packaged, monad-loops, classy-lens-hierarchy, unitb-testing, lens-extra, axiomatic-classes, pretty-printable, bipartite-graph, prelude-extras, syntax-error, quickcheck-report, async, text, text-show, process-listlike
   
   -- Directories containing source files.
   hs-source-dirs:      .
@@ -151,4 +151,4 @@ test-suite test
                         process,
                         lens, axiomatic-classes
    default-language:    Haskell2010
-   default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams
+   default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, OverloadedStrings

@@ -28,10 +28,13 @@ import           Data.Either.Combinators hiding (fromRight')
 import           Data.List as L
 import           Data.Map as M
 import qualified Data.Set as S
+import           Data.Text as T (Text)
+import qualified Data.Text as T 
 import           Data.Typeable
 
 import GHC.Stack
 
+import TextShow hiding (fromText)
 import Text.Printf.TH
 
 import Utilities.Tuple
@@ -57,13 +60,13 @@ instance SignatureImpl () where
         args <- sequence argsM
         let ts' = repeat $ VARIABLE $ fromString'' "unexpected"
             (Fun _ n _ ts t _) = fun
-            f e t = unlines
-                    [ [s|    argument: %s|] (pretty e)
-                    , [s|      type: %s|] (pretty $ type_of e)
-                    , [s|      expected type: %s|] (pretty t) ] 
-            err_msg = unlines $
-                    [ [s|arguments of '%s' do not match its signature:|] (render n)
-                    , [s|   signature: %s -> %s|] (pretty ts) (pretty t)
+            f e t = T.unlines
+                    [ [st|    argument: %s|] (prettyText e)
+                    , [st|      type: %s|] (prettyText $ type_of e)
+                    , [st|      expected type: %s|] (prettyText t) ] 
+            err_msg = T.unlines $
+                    [ [st|arguments of '%s' do not match its signature:|] (renderText n)
+                    , [st|   signature: %s -> %s|] (prettyText ts) (prettyText t)
                     ] ++ zipWith f args (ts ++ ts')
         maybe (Left [err_msg]) Right 
             $ check_args args fun
@@ -182,7 +185,7 @@ function :: (Signature s) => InternalName -> s -> M (FunType s,Fun)
 function n s = do
     let n' = asName n
         fun = funDecl n' s
-    tellTheory $ funs <>= singleton n' fun
+    tellTheory $ funs <>= M.singleton n' fun
     return (utility n' s,fun)
 
 operator :: (Signature s, FunType s ~ (ExprP -> ExprP -> ExprP))
@@ -239,13 +242,13 @@ type_param = do
 sort :: TypeSignature s => Name -> M s
 sort n = do
     let (r,s) = mkSort n
-    tellTheory $ types .= singleton n s
+    tellTheory $ types .= M.singleton n s
     return r
 
 sort_def :: TypeDefSignature s => Name -> s -> M s
 sort_def n f = do
     let (r,s) = mkSortDef n f
-    tellTheory $ types <>= singleton n s
+    tellTheory $ types <>= M.singleton n s
     return r    
 
 param_to_var :: Expr -> Expr
@@ -308,19 +311,19 @@ extendTheory :: Theory -> M ()
 extendTheory t = M $ _2.extends %= insert_symbol t
 
 make_theory' :: Pre 
-             => String -> State Theory () -> Theory
+             => Text -> State Theory () -> Theory
 make_theory' name cmd = make_theory name $ M $ zoom _2 (state $ runState cmd)
 
 make_theory :: Pre 
-            => String -> M () -> Theory
+            => Text -> M () -> Theory
 make_theory name (M cmd) = t'
     where
-        name' = fromString'' name
+        name' = fromText name
         ((_,t),es) = execRWS cmd () (0,empty_theory name')
-        es' = zipWith (\i -> (pad i,)) [0..] es
+        es' = zipWith (\i -> (pad i,)) [0 :: Int ..] es
         t'  = t & fact %~ M.union (fromList es')
         n   = length $ show $ length es
-        pad m = label $ name ++ replicate (n - length (show m)) ' ' ++ show m
+        pad m = label $ name <> T.replicate (n - length (show m)) " " <> showt m
 
 tellTheory :: State Theory () -> M ()
 tellTheory cmd = M $ zoom _2 (state $ runState cmd)
@@ -349,7 +352,7 @@ showCallStack = prettyCallStack
 #endif
 
 axiom :: Pre => ExprP -> Writer [ExprP] ()
-axiom stmt = tell [mapLeft (L.map (showCallStack ?loc ++)) $ zcast bool $ withForall stmt]
+axiom stmt = tell [mapLeft (L.map (pack (showCallStack ?loc) <>)) $ zcast bool $ withForall stmt]
 
 withForall :: ExprP -> ExprP 
 withForall mx = do
@@ -357,14 +360,15 @@ withForall mx = do
     let vs = S.toList $ used_var x
     param_to_var <$> mzforall vs mztrue (Right x)
 
-axioms :: String -> Writer [ExprP] () -> M.Map Label Expr
+axioms :: Text -> Writer [ExprP] () -> M.Map Label Expr
 axioms name cmd
-        | L.null ls = fromList $ L.map (first $ label . [s|@%s@@_%s|] name) $ zip ns rs
-        | otherwise = assertFalse' $ unlines $ concat ls
+        | L.null ls = fromList $ L.map (first $ label . [st|@%s@@_%s|] name) $ zip ns rs
+        | otherwise = assertFalse' $ T.unpack $ T.unlines $ mconcat ls
     where
         n  = length rs
-        ns = L.map (pad . show) [1..n]
-        pad ys = replicate (n - length ys) ' ' ++ ys
+        ns :: [Text]
+        ns = L.map (pad . showt) [1..n]
+        pad ys = T.replicate (n - T.length ys) " " <> ys
         rs = rights xs
         ls = lefts xs
         xs = execWriter cmd

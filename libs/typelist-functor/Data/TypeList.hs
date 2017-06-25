@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds, TypeOperators, KindSignatures
     , GADTs, TypeFamilies, ScopedTypeVariables
     , PatternSynonyms, ConstraintKinds #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 module Data.TypeList where
 
 import Control.Lens hiding (curried,uncurried)
@@ -135,7 +136,7 @@ do
         typeListE (x:xs) = appE [e|Cons' $x|] (typeListE xs)
         typeListP [] = [p|Null|]
         typeListP (x:xs) = [p| Cons' $x $(typeListP xs) |]
-        args = [ mkName $ 'a' : show i | i <- [0..] ]
+        args = [ mkName $ 'a' : show i | i <- [0 :: Int ..] ]
         list [] = promotedNilT
         list (t:ts) = appsT [promotedConsT,t,list ts]
     fmap concat $ forM [0..n] $ \i -> do
