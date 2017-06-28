@@ -198,7 +198,7 @@ eval_generator cmd = runIdentity $ eval_generatorT cmd
 tracePOG :: (Monad m,Show lbl) => POGenT' lbl m () -> POGenT' lbl m ()
 tracePOG (POGen cmd) = POGen $ do
     xs <- snd <$> listen cmd
-    traceM $ unlines $ L.map (show . second (view goal)) (D.toList xs)
+    traceM $ L.unlines $ L.map (show . second (view goal)) (D.toList xs)
 
 eval_generatorT :: (Monad m,Ord lbl,Show lbl) 
                 => POGenT' lbl m () 
