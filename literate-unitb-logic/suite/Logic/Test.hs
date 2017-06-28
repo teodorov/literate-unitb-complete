@@ -8,6 +8,7 @@ import Logic.Expr.Const
 import Logic.Expr.Parser
 import Logic.Expr.Prism
 import Logic.Expr.Scope
+import Logic.Names as Names
 import Logic.Proof
 import Logic.Proof.Monad hiding (vars)
 import Logic.QuasiQuote hiding (var)
@@ -251,6 +252,7 @@ test = test_cases "genericity"
         , stringCase "QuasiQuotes for function application" case30 result30
         , stringCase "Pattern matching on function application" case31 result31
         , aCase "parsing expressions encoded in arrays" case32 result32
+        , QuickCheckProps "7: QuickCheck names" Names.run_props
         ]
     where
         reserved :: Text -> Int -> InternalName

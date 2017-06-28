@@ -19,8 +19,6 @@ import Document.Tests.TrainStation     as TS
 import Document.Tests.TrainStationRefinement  as TSRef
 import Document.Tests.TrainStationSets as TSS
 import Logic.Expr
-import Logic.Test as Logic
-import Z3.Test as Z3
 import Document.Phase.Test as Ph
 import Document.Test as Doc
 import Utilities.Test as Ut
@@ -83,7 +81,6 @@ main = timeIt $ void $ do
     _ <- return $ run_test_cases Term.test_case
     _ <- return $ run_test_cases Ph.test_case
     _ <- return $ run_test_cases Ut.test_case
-    _ <- return $ run_test_cases Z3.test_case
     ----print =<< Ph.case7
     _ <- return $ run_test_cases Code.test_case
     _ <- return $ run_test_cases Sum.test_case
@@ -100,7 +97,6 @@ main = timeIt $ void $ do
     _ <- return $ printQuickCheckResult MSpec.run_spec
     _ <- return $ print =<< run_test_cases check_axioms
     _ <- return $ run_test_cases Def.test_case
-    _ <- return $ run_test_cases Logic.test_case
     -- timeout (60 * 1000000) $ do
     _ <- return $ run_test_cases UB.test_case
     -- _ <- return $ print =<< Lines.run_tests
@@ -110,7 +106,6 @@ main = timeIt $ void $ do
     _ <- return $ run_test_cases UT.test_case
     _ <- return $ run_test_cases GC.test_case
     _ <- return $ run_test_cases Parser.test_case
-    _ <- return $ run_test_cases Z3.test_case
     _ <- return $ run_test_cases Doc.test_case
     _ <- return $ printQuickCheckResult EScope.run_tests
     return ()
