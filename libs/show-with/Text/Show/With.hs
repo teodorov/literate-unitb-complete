@@ -7,16 +7,20 @@ import Prelude.Extras
 import Data.Functor.Classes
 import GHC.Generics.Instances
 #endif
+import           Data.Text (Text,unpack)
 
-newtype ShowString' a = ShowString a
-type ShowString = ShowString' String
-type ShowSString = ShowString' (String -> String)
+newtype Verbatim a = Verbatim a
+type VerbatimString = Verbatim String
+type VerbatimSString = Verbatim (String -> String)
+type VerbatimText = Verbatim Text
 
-instance Show ShowString where
-    showsPrec _ (ShowString x) = (x ++)
+instance Show VerbatimText where
+    showsPrec _ (Verbatim x) = (unpack x ++)
+instance Show VerbatimString where
+    showsPrec _ (Verbatim x) = (x ++)
 
-instance Show ShowSString where
-    showsPrec _ (ShowString f) = f
+instance Show VerbatimSString where
+    showsPrec _ (Verbatim f) = f
 
 showWith' :: (Functor f, Show1 f)
           => (a -> ShowS)
@@ -31,4 +35,4 @@ showWith f = showWith' ((++) . f)
 showsWith :: (Functor f, Show1 f)
           => (a -> ShowS)
           -> f a -> ShowS
-showsWith f = shows1 . fmap (ShowString . f)
+showsWith f = shows1 . fmap (Verbatim . f)

@@ -70,7 +70,6 @@ import GHC.Word
 
 import System.Exit
 import System.IO.Unsafe
--- import System.Process
 import System.Process.Text
 
 import TextShow (showt)

@@ -47,6 +47,7 @@ import Data.Functor.Classes
 #endif
 import Data.Foldable as F
 import Data.List.Ordered
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe
 import Data.Proxy.TH
 import Data.Serialize hiding (label)
@@ -59,7 +60,7 @@ import Prelude hiding (id,(.))
 
 import Test.QuickCheck.ZoomEq
 
-import Text.Printf
+import Text.Printf.TH
 
 import Utilities.Syntactic
 
@@ -76,11 +77,11 @@ buildTransient :: Builder rule (TransientHyp rule)
 buildTransient = build "transient"
 
 build :: forall t r. String -> Builder r t
-build kind _foo m = proc (st,_r,li) -> do
-        let e = Left [Error (printf "expecting %s %s assumptions" expSize kind) li]
+build kind _foo m = proc (state,_r,li) -> do
+        let e = Left [Error ([st|expecting %s %s assumptions|] expSize kind) li]
             unfInst = _foo^.entailsToDictFun $ dict _r
             expSize = (\Dict -> expectedSize [pr|t|]) unfInst
-        xs <- fixExA' m -< (unfInst,st)
+        xs <- fixExA' m -< (unfInst,state)
         returnA -< maybe e Right xs
     where
 
@@ -101,7 +102,7 @@ data Inference rule = Inference
     } deriving (Generic)
 
 instance LivenessRule rule => Show (Inference rule) where
-    show (Inference x y z v w) = printf "%s (%s) (%s) (%s) (%s)" 
+    show (Inference x y z v w) = [s|%s (%s) (%s) (%s) (%s)|]
             (show x)
             (show y)
             (show1 z)
@@ -190,7 +191,7 @@ instance Eq ProofTree where
     (==) = cell1Equal' (==)
 
 instance LivenessRule rule => PrettyPrintable (Inference rule) where
-    pretty (Inference x y z v w) = printf "%s (%s) (%s) (%s) (%s)" 
+    pretty (Inference x y z v w) = [s|%s (%s) (%s) (%s) (%s)|]
             (pretty x)
             (show y)
             (show1 $ Pretty <$> z)
@@ -200,15 +201,15 @@ instance LivenessRule rule => PrettyPrintable (Inference rule) where
 instance LivenessRule rule => Tree (Inference rule) where
     rewriteM _ = pure
     as_tree' (Inference g r ps ts ss) = E.List <$> sequenceA 
-        [ pure $ Str (pretty g)
-        , pure $ Str (pretty $ rule_name r)
+        [ pure $ Str (prettyText g)
+        , pure $ Str (prettyText $ rule_name r)
         , E.List . concat <$> sequenceA
             [ traverse as_tree' $ F.toList ps 
-            , traverse (pure . Str . pretty) $ F.toList ts 
-            , traverse (pure . Str . pretty . fst) $ F.toList ss ] ]
+            , traverse (pure . Str . prettyText) $ F.toList ts 
+            , traverse (pure . Str . prettyText . fst) $ F.toList ss ] ]
 
 instance PrettyPrintable ProofTree where
-    pretty = pretty_print'
+    prettyText = pretty_print'
 
 instance Tree ProofTree where
     rewriteM = traverseSubproofs

@@ -16,6 +16,8 @@ import Control.Precondition
 
 import Data.Map as M
 import Data.Map.Syntax
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import System.IO.FileSystem
 
@@ -31,13 +33,13 @@ test_case = test_cases
         , aCase "safety properties of m2" case2 result2
         , aCase "progress properties of m2" case3 result3
         , aCase "File structure" case4 result4
-        , stringCase "Root machine" case5 result5
+        , textCase "Root machine" case5 result5
         , aCase "definitions of m2" case6 result6
         , aCase "assumptions of m2" case7 result7
         ]
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "\\noindent \\ref{m1:moveout} $[t]$ \\textbf{event}"
     , "\\begin{block}"
     , "  \\item   \\textbf{refines}"
@@ -72,7 +74,7 @@ result0 = unlines
     , "\\end{block}"
     ]
 
-case0 :: IO String
+case0 :: IO Text
 case0 = makeReport $ do
     m <- parse_machine' path0 2
     let lbl = "m1:moveout"
@@ -83,8 +85,8 @@ case0 = makeReport $ do
 path0 :: FilePath
 path0 = [path|Tests/train-station-set.tex|]
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "\\noindent \\ref{m1:moveout} $[t]$ \\textbf{event}"
     , "\\begin{block}"
     , "  \\item   \\textbf{refines}"
@@ -130,7 +132,7 @@ result1 = unlines
     , "\\end{block}"
     ]
 
-case1 :: IO String
+case1 :: IO Text
 case1 = makeReport $ do
     m <- parse_machine' path0 3
     let lbl = "m1:moveout"
@@ -138,8 +140,8 @@ case1 = makeReport $ do
     return $ getListing $
             event_summary' m lbl evt
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "\\textbf{safety}"
     , "\\begin{block}"
     , "  \\item[ \\eqref{m2:saf1} ]{$t \\in in \\land loc.t = ext \\textbf{\\quad unless \\quad} \\neg ext \\in \\ran. loc$} %"
@@ -147,14 +149,14 @@ result2 = unlines
     , "\\end{block}"
     ]
 
-case2 :: IO String
+case2 :: IO Text
 case2 = makeReport $ do
     p <- view' props <$> parse_machine' path0 2
     return $ getListing $
         safety_sum p
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "\\textbf{progress}"
     , "\\begin{block}"
     , "  \\item[ \\eqref{m2:prog0} ]{$\\true \\quad \\mapsto\\quad \\neg plf \\subseteq \\ran.loc$} %"
@@ -168,13 +170,13 @@ result3 = unlines
     , "\\end{block}"
     ]
 
-case3 :: IO String
+case3 :: IO Text
 case3 = makeReport $ do
     m <- parse_machine' path0 2
     return $ getListing $
         liveness_sum m
 
-result4 :: Either String (Map FilePath Bool)
+result4 :: Either Text (Map FilePath Bool)
 result4 = Right $ fromRight' $ runMap $ do
         "." ## False
         "/" ## False
@@ -236,20 +238,20 @@ result4 = Right $ fromRight' $ runMap $ do
         "dir/file/machine_m3_thm.tex"   ## True
         "dir/file/machine_m3_trans.tex" ## True
 
-case4 :: IO (Either String (Map FilePath Bool))
+case4 :: IO (Either Text (Map FilePath Bool))
 case4 = runEitherT $ do
     s <- get_system path0
     return $ M.map isJust $ view' files $ execMockFileSystem 
         $ produce_summaries "dir/file.ext" s
 
-case5 :: IO String
+case5 :: IO Text
 case5 = makeReport $ do
     s <- get_system' path0
     let fs = execMockFileSystem $ produce_summaries "dir/file.ext" s
     return $ fromMaybe "documentation file not found" $ (fs^.content')^?files.ix "dir/file/machine_m3.tex".traverse
 
-result5 :: String
-result5 = unlines 
+result5 :: Text
+result5 = T.unlines 
     [ "%!TEX root=../file.ext"
     , "\\begin{block}"
     , "  \\item   \\textbf{machine} m3"
@@ -303,22 +305,22 @@ result5 = unlines
 path6 :: FilePath
 path6 = [path|Tests/lock-free deque/main12.tex|]
 
-result6 :: String
-result6 = unlines
+result6 :: Text
+result6 = T.unlines
     [ "\\textbf{definitions}"
     , "\\begin{block}"
     , "  \\item[] {$Req \\3\\triangleq [ 'req : \\REQ ]$} %"
     , "\\end{block}"
     ]
 
-case6 :: IO String
+case6 :: IO Text
 case6 = makeReport $ do
     m <- parse_machine' path6 2
     return $ getListing $
         defs_sum m
 
-result7 :: String
-result7 = unlines
+result7 :: Text
+result7 = T.unlines
     [ "\\textbf{assumptions}"
     , "\\begin{block}"
     , "  \\item[ \\eqref{asm0} ]{$\\neg ext \\in plf \\1\\land \\neg ext = ent$} %"
@@ -329,7 +331,7 @@ result7 = unlines
     , "\\end{block}"
     ]
 
-case7 :: IO String
+case7 :: IO Text
 case7 = makeReport $ do
     m <- parse_machine' path0 2
     return $ getListing $

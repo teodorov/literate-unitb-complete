@@ -23,6 +23,8 @@ import Control.Monad.State
 
 import qualified Data.List.NonEmpty as NE
 import Data.Map   as M hiding ( map )
+import           Data.Text (Text,pack)
+import qualified Data.Text as T
 
 import Test.UnitTest
 
@@ -43,24 +45,24 @@ part0 :: TestCase
 part0 = test_cases
             "part 0"
             [ (aCase "test 0, syntax" case0 $ Right [machine0])
-            , (stringCase "test 21, multiple imports of sets" case21 result21)
+            , (textCase "test 21, multiple imports of sets" case21 result21)
             ]
 part1 :: TestCase
 part1 = test_cases
             "part 1"
             [ (poCase "test 1, verification" case1 result1)
-            , (stringCase "test 2, proof obligation, enter/fis, in" case2 result2)
-            , (stringCase "test 20, proof obligation, enter/fis, loc" case20 result20)
-            , (stringCase "test 3, proof obligation, leave/fis, in'" case3 result3)
-            , (stringCase "test 19, proof obligation, leave/fis, loc'" case19 result19)
-            , (stringCase "test 4, proof obligation, leave/sch" case4 result4)
+            , (textCase "test 2, proof obligation, enter/fis, in" case2 result2)
+            , (textCase "test 20, proof obligation, enter/fis, loc" case20 result20)
+            , (textCase "test 3, proof obligation, leave/fis, in'" case3 result3)
+            , (textCase "test 19, proof obligation, leave/fis, loc'" case19 result19)
+            , (textCase "test 4, proof obligation, leave/sch" case4 result4)
             ]
 part2 :: TestCase
 part2 = test_cases
             "part 2"
-            [ (stringCase "test 5, proof obligation, leave/en/tr0/WFIS" case5 result5)
-            , (stringCase "test 23, proof obligation, leave/en/tr0/EN" case23 result23)
-            , (stringCase "test 24, proof obligation, leave/en/tr0/NEG" case24 result24)
+            [ (textCase "test 5, proof obligation, leave/en/tr0/WFIS" case5 result5)
+            , (textCase "test 23, proof obligation, leave/en/tr0/EN" case23 result23)
+            , (textCase "test 24, proof obligation, leave/en/tr0/NEG" case24 result24)
             , (aCase "test 7, undeclared symbol" case7 result7)
             , (aCase "test 8, undeclared event (wrt transient)" case8 result8)
             , (aCase "test 9, undeclared event (wrt c sched)" case9 result9)
@@ -70,12 +72,12 @@ part3 = test_cases
             "part 3"
             [ (aCase "test 10, undeclared event (wrt indices)" case10 result10)
             , (aCase "test 11, undeclared event (wrt assignment)" case11 result11)
-            , (stringCase "test 12, proof obligation leave/INV/inv2" case12 result12)
+            , (textCase "test 12, proof obligation leave/INV/inv2" case12 result12)
             ]
 part4 :: TestCase
 part4 = test_cases
             "part 4"
-            [ (stringCase "test 13, verification, name clash between dummy and index" case13 result13)
+            [ (textCase "test 13, verification, name clash between dummy and index" case13 result13)
             , (poCase "test 14, verification, non-exhaustive case analysis" case14 result14)
             , (poCase "test 15, verification, incorrect new assumption" case15 result15)
             ]
@@ -84,9 +86,9 @@ part5 :: TestCase
 part5 = test_cases
             "part 5"
             [ (poCase "test 16, verification, proof by parts" case16 result16)
-            , (stringCase "test 17, ill-defined types" case17 result17)
-            , (stringCase "test 18, assertions have type bool" case18 result18)
-            , (stringCase "test 22, missing witness" case22 result22)
+            , (textCase "test 17, ill-defined types" case17 result17)
+            , (textCase "test 18, assertions have type bool" case18 result18)
+            , (textCase "test 22, missing witness" case22 result22)
             ]
 
 train_sort :: Sort
@@ -171,7 +173,7 @@ machine0 = newMachine trainName $ do
       event_table .= newEvents [("enter", enter_evt), ("leave", leave_evt)]
       props .= props0
     where
-        inLbls = map (label . ("in" ++) . show . (1 -)) [(0 :: Int) ..]
+        inLbls = map (label . pack . ("in" ++)  . show . (1 -)) [(0 :: Int) ..]
         axm0 = c [expr| \BLK = \{ent,ext\} \bunion PLF |]
         axm2 = c [expr| \neg ent = ext \land \neg ent \in PLF \land \neg ext \in PLF |] 
         axm3 = c [expr| \qforall{p}{}{ \neg p = ext \equiv p \in \{ent\} \bunion PLF } |]
@@ -270,8 +272,8 @@ path0 = [path|Tests/train-station.tex|]
 case0 :: IO (Either [Error] [MachineAST])
 case0 = (traverse.traverse %~ view' syntax) <$> parse path0
 
-result1 :: String
-result1 = unlines 
+result1 :: Text
+result1 = T.unlines 
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2/goal"
     , "  o  train0/INIT/INV/inv2/hypotheses"
@@ -372,11 +374,11 @@ result1 = unlines
     , "passed 96 / 97"
     ]
 
-case1 :: IO (String, Map Label Sequent)
+case1 :: IO (Text, Map Label Sequent)
 case1 = verify path0 0 
         
-result2 :: String
-result2 = unlines 
+result2 :: Text
+result2 = T.unlines 
     [ "; train0/enter/FIS/in@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -909,11 +911,11 @@ result2 = unlines
     , "; train0/enter/FIS/in@prime"
     ]
 
-case2 :: IO String
+case2 :: IO Text
 case2 = proof_obligation path0 "train0/enter/FIS/in@prime" 0
 
-result20 :: String
-result20 = unlines 
+result20 :: Text
+result20 = T.unlines 
     [ "; train0/enter/FIS/loc@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1448,11 +1450,11 @@ result20 = unlines
     , "; train0/enter/FIS/loc@prime"
     ]
 
-case20 :: IO String
+case20 :: IO Text
 case20 = proof_obligation path0 "train0/enter/FIS/loc@prime" 0
             
-result3 :: String
-result3 = unlines 
+result3 :: Text
+result3 = T.unlines 
     [ "; train0/leave/FIS/in@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1990,11 +1992,11 @@ result3 = unlines
     , "; train0/leave/FIS/in@prime"
     ]
 
-case3 :: IO String
+case3 :: IO Text
 case3 = proof_obligation path0 "train0/leave/FIS/in@prime" 0
 
-result19 :: String
-result19 = unlines 
+result19 :: Text
+result19 = T.unlines 
     [ "; train0/leave/FIS/loc@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2532,11 +2534,11 @@ result19 = unlines
     , "; train0/leave/FIS/loc@prime"
     ]
 
-case19 :: IO String
+case19 :: IO Text
 case19 = proof_obligation path0 "train0/leave/FIS/loc@prime" 0
 
-result4 :: String
-result4 = unlines 
+result4 :: Text
+result4 = T.unlines 
     [ "; train0/leave/SCH/grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3066,11 +3068,11 @@ result4 = unlines
     , "; train0/leave/SCH/grd0"
     ]
 
-case4 :: IO String
+case4 :: IO Text
 case4 = proof_obligation path0 "train0/leave/SCH/grd0" 0
 
-result5 :: String
-result5 = unlines 
+result5 :: Text
+result5 = T.unlines 
     [ "; train0/tr0/TR/WFIS/t/t@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3602,11 +3604,11 @@ result5 = unlines
     , "; train0/tr0/TR/WFIS/t/t@prime"
     ]
 
-case5 :: IO String
+case5 :: IO Text
 case5 = proof_obligation path0 "train0/tr0/TR/WFIS/t/t@prime" 0
 
-result23 :: String
-result23 = unlines 
+result23 :: Text
+result23 = T.unlines 
     [ "; train0/tr0/TR/leave/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4137,11 +4139,11 @@ result23 = unlines
     , "; train0/tr0/TR/leave/EN"
     ]
 
-case23 :: IO String
+case23 :: IO Text
 case23 = proof_obligation path0 "train0/tr0/TR/leave/EN" 0
 
-result24 :: String
-result24 = unlines 
+result24 :: Text
+result24 = T.unlines 
     [ "; train0/tr0/TR/leave/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4684,12 +4686,12 @@ result24 = unlines
     , "; train0/tr0/TR/leave/NEG"
     ]
 
-case24 :: IO String
+case24 :: IO Text
 case24 = proof_obligation path0 "train0/tr0/TR/leave/NEG" 0
 
 
-result12 :: String
-result12 = unlines 
+result12 :: Text
+result12 = T.unlines 
     [ "; train0/leave/INV/inv2"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -5229,14 +5231,14 @@ result12 = unlines
     , "; train0/leave/INV/inv2"
     ]
 
-case12 :: IO String
+case12 :: IO Text
 case12 = raw_proof_obligation path0 "train0/leave/INV/inv2" 0
 
     --------------------
     -- Error handling --
     --------------------
-result7 :: String
-result7 = unlines 
+result7 :: Text
+result7 = T.unlines 
     [ "error 54:4:"
     , "    unrecognized term: t" 
     ]
@@ -5244,11 +5246,11 @@ result7 = unlines
 path7 :: FilePath
 path7 = [path|Tests/train-station-err0.tex|]
 
-case7 :: IO String
+case7 :: IO Text
 case7 = find_errors path7
 
-result8 :: String
-result8 = unlines 
+result8 :: Text
+result8 = T.unlines 
     [ "error 43:1:"
     , "    event 'leave' is undeclared"
     ]
@@ -5256,11 +5258,11 @@ result8 = unlines
 path8 :: FilePath
 path8 = [path|Tests/train-station-err1.tex|]
 
-case8 :: IO String
+case8 :: IO Text
 case8 = find_errors path8
 
-result9 :: String
-result9 = unlines
+result9 :: Text
+result9 = T.unlines
     [ "error 52:1:"
     , "    event 'leave' is undeclared" 
     ]
@@ -5268,11 +5270,11 @@ result9 = unlines
 path9 :: FilePath
 path9 = [path|Tests/train-station-err2.tex|]
 
-case9 :: IO String
+case9 :: IO Text
 case9 = find_errors path9
 
-result10 :: String
-result10 = unlines 
+result10 :: Text
+result10 = T.unlines 
     [ "error 56:1:"
     , "    event 'leave' is undeclared" 
     ]
@@ -5280,11 +5282,11 @@ result10 = unlines
 path10 :: FilePath
 path10 = [path|Tests/train-station-err3.tex|]
 
-case10 :: IO String
+case10 :: IO Text
 case10 = find_errors path10
 
-result11 :: String
-result11 = unlines 
+result11 :: Text
+result11 = T.unlines 
     [ "error 60:1:"
     , "    event 'leave' is undeclared" 
     ]
@@ -5292,14 +5294,14 @@ result11 = unlines
 path11 :: FilePath
 path11 = [path|Tests/train-station-err4.tex|]
 
-case11 :: IO String
+case11 :: IO Text
 case11 = find_errors path11
 
 path13 :: FilePath
 path13 = [path|Tests/train-station-err5.tex|]
 
-result13 :: String
-result13 = unlines
+result13 :: Text
+result13 = T.unlines
     [ "error 176:5:"
     , "    unrecognized term: t0"
     , "Perhaps you meant:"
@@ -5371,15 +5373,15 @@ result13 = unlines
     , "t (variable)"
     ]
 
-case13 :: IO String
+case13 :: IO Text
 case13 = find_errors path13
 
 
 path14 :: FilePath
 path14 = [path|Tests/train-station-err6.tex|]
 
-result14 :: String
-result14 = unlines
+result14 :: Text
+result14 = T.unlines
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2"
     , "  o  train0/INV/WD"
@@ -5449,14 +5451,14 @@ result14 = unlines
     , "passed 64 / 66"
     ]
 
-case14 :: IO (String, Map Label Sequent)
+case14 :: IO (Text, Map Label Sequent)
 case14 = verify path14 0
     
 path15 :: FilePath
 path15 = [path|Tests/train-station-err7.tex|]
 
-result15 :: String
-result15 = unlines
+result15 :: Text
+result15 = T.unlines
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2"
     , "  o  train0/INV/WD"
@@ -5532,14 +5534,14 @@ result15 = unlines
     , "passed 69 / 72"
     ]
 
-case15 :: IO (String, Map Label Sequent)
+case15 :: IO (Text, Map Label Sequent)
 case15 = verify path15 0
 
 path16 :: FilePath
 path16 = [path|Tests/train-station-t2.tex|]
 
-result16 :: String
-result16 = unlines 
+result16 :: Text
+result16 = T.unlines 
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2"
     , "  o  train0/INV/WD"
@@ -5634,14 +5636,14 @@ result16 = unlines
     , "passed 90 / 91"
     ]
 
-case16 :: IO (String, Map Label Sequent)
+case16 :: IO (Text, Map Label Sequent)
 case16 = verify path16 0
 
 path17 :: FilePath
 path17 = [path|Tests/train-station-err8.tex|]
 
-result17 :: String
-result17 = unlines 
+result17 :: Text
+result17 = T.unlines 
         [  "error 75:4:\n    type of empty-fun is ill-defined: \\pfun [\\TRAIN,_a]"
         ,  ""
         ,  "error 75:4:\n    type of empty-fun is ill-defined: \\pfun [\\TRAIN,_b]"
@@ -5649,25 +5651,25 @@ result17 = unlines
         ,  "error 77:3:\n    type of empty-fun is ill-defined: \\pfun [\\TRAIN,_a]"
         ]
 
-case17 :: IO String
+case17 :: IO Text
 case17 = find_errors path17
 
 path22 :: FilePath
 path22 = [path|Tests/train-station-err11.tex|]
 
-result22 :: String
-result22 = unlines 
+result22 :: Text
+result22 = T.unlines 
         [  "error 48:1:\n    event(s) leave have indices and require witnesses"
         ]
 
-case22 :: IO String
+case22 :: IO Text
 case22 = find_errors path22
         
 path18 :: FilePath
 path18 = [path|Tests/train-station-err9.tex|]
 
-result18 :: String
-result18 = unlines 
+result18 :: Text
+result18 = T.unlines 
         [  "error 68:3:\n    expression has type incompatible with its expected type:"
         ,  "  expression: (dom loc)"
         ,  "  actual type: \\set [\\TRAIN]"
@@ -5689,17 +5691,17 @@ result18 = unlines
         ,  "  expected type: \\Bool "
         ]
 
-case18 :: IO String
+case18 :: IO Text
 case18 = find_errors path18
 
 path21 :: FilePath
 path21 = [path|Tests/train-station-err10.tex|]
 
-case21 :: IO String
+case21 :: IO Text
 case21 = find_errors path21
 
-result21 :: String
-result21 = unlines
+result21 :: Text
+result21 = T.unlines
     [ "Theory imported multiple times"
     , "error 130:1:"
     , "\tsets"

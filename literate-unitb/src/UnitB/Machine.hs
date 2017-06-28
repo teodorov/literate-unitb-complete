@@ -51,6 +51,7 @@ import           Data.Maybe as M
 import qualified Data.Set as S
 import           Data.Serialize hiding (label,put)
 import           Data.String
+import           Data.Text (Text)
 import qualified Data.Traversable as T
 import           Data.Typeable
 
@@ -59,6 +60,7 @@ import GHC.Generics.Instances
 
 import Test.QuickCheck.ZoomEq
 
+import Text.Pretty
 import Text.Printf.TH
 
 all_types :: Theory -> Map Name Sort
@@ -92,7 +94,7 @@ data MachineBase expr =
         , _inh_props  :: PropertySet' expr
         , _props      :: PropertySet' expr
         , _derivation :: Map ProgId ProofTree         
-        , _comments   :: Map DocItem String 
+        , _comments   :: Map DocItem Text 
         , _machineBaseTimeout :: Float }
     deriving (Eq,Show,Typeable,Functor,Foldable,Traversable,Generic,Generic1)
 
@@ -139,12 +141,12 @@ instance Show MachineId where
     show = render . getMId
 
 instance IsString MachineId where
-    fromString = MId . makeName
+    fromString = MId . makeName . fromString
 
 instance NFData MachineId where
 
 instance IsLabel MachineId where
-    as_label (MId x) = label $ render x
+    as_label (MId x) = label $ renderText x
 
 data DocItem = 
         DocVar Name 
@@ -482,11 +484,11 @@ ba_predicate :: (HasConcrEvent' event RawExpr,Show expr)
              -> event -> Map Label RawExpr
 ba_predicate m evt =          ba_predicate' (m!.variables) (evt^.new.actions :: Map Label RawAction)
                     --`M.union` ba_predicate' (m^.del_vars) (evt^.abs_actions)
-                    `M.union` M.mapKeys (label.render) (witnessDef <$> evt^.witness)
-                    `M.union` M.mapKeys (skipLbl.render) (M.map eqPrime noWitness)
+                    `M.union` M.mapKeys (label.renderText) (witnessDef <$> evt^.witness)
+                    `M.union` M.mapKeys (skipLbl.renderText) (M.map eqPrime noWitness)
     where
-        skipLbl :: String -> Label
-        skipLbl = label . ("SKIP:"++)
+        skipLbl :: Text -> Label
+        skipLbl = label . ("SKIP:" <>)
         eqPrime v = Word (prime v) `zeq` Word v
         noWitness = ((m!.del_vars) `M.intersection` (m!.abs_vars)) `M.difference` (evt^.witness)
 
@@ -510,6 +512,7 @@ newMachine name f = empty_machine name & content.machineBase %~ execState f
 
 instance NFData DocItem where
 instance PrettyPrintable expr => PrettyPrintable (MachineBase expr) where
+    pretty = defaultPretty
 instance PrettyPrintable DocItem where
     pretty = show
 instance NFData expr => NFData (MachineBase expr) where

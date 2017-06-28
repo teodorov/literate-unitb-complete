@@ -42,7 +42,8 @@ import Data.List.NonEmpty as NE hiding (unlines)
 #endif
 import Data.Packaged
 import Data.Serialize
-import Data.Text (Text,pack)
+import           Data.Text (Text,pack,unpack)
+import qualified Data.Text as T
 
 import GHC.Generics (Generic)
 
@@ -121,7 +122,7 @@ dropSuffix = internal %~ Intl.dropSuffix
 reserved :: Text -> Int -> InternalName
 reserved = fmap (view $ from internal) . Intl.reserved
 
-isName :: Text -> Either [String] Name
+isName :: Text -> Either [Text] Name
 isName = fmap (view $ from name) . Intl.isName
 
 isName' :: Text -> Maybe Name
@@ -167,10 +168,10 @@ tex = QuasiQuoter
     , quoteType = undefined }
 
 parseZ3Name :: String -> ExpQ
-parseZ3Name str = either (fail . unlines) lift $ Intl.isZ3Name $ pack str
+parseZ3Name str = either (fail . unpack . T.unlines) lift $ Intl.isZ3Name $ pack str
 
 parseTexName :: String -> ExpQ
-parseTexName str = either (fail . unlines) lift $ Intl.isName $ pack str
+parseTexName str = either (fail . unpack . T.unlines) lift $ Intl.isName $ pack str
 
-isZ3Name :: Text -> Either [String] Name
+isZ3Name :: Text -> Either [Text] Name
 isZ3Name = fmap (view $ from name) . Intl.isZ3Name

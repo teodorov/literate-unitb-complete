@@ -34,6 +34,7 @@ import qualified Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, insert, inits )
 import           Data.Map   as M hiding ( map, (\\) )
 import qualified Data.Map   as M
+import           Data.Text (Text)
 
 import Text.Printf.TH
 
@@ -101,11 +102,11 @@ run_phase1_types = proc p0 -> do
                          <.> s <.> evts'
     returnA -< SystemP r_ord p1
   where
-    evtClash = [s|Multiple events with the name %s|] . pretty
-    setClash = [s|Multiple sets with the name %s|] . render
-    thyClash _   = "Theory imported multiple times"
-    refClash _   = "Multiple refinement clauses"
-    verifClash _ = "Multiple verification timeouts"
+    evtClash = [st|Multiple events with the name %s|] . prettyText
+    setClash = [st|Multiple sets with the name %s|] . renderText
+    thyClash _   = "Theory imported multiple times" :: Text 
+    refClash _   = "Multiple refinement clauses" :: Text 
+    verifClash _ = "Multiple verification timeouts" :: Text
 
 make_phase1 :: MachineP0
             -> Map Name Theory
@@ -169,16 +170,16 @@ refines_mch :: MPipeline MachineP0 [((), MachineId, LineInfo)]
 refines_mch = machineCmd "\\refines" $ \(Identity amch) cmch (MachineP0 ms _) -> do
             li <- ask
             unless (amch `M.member` ms) 
-                $ throwError [Error ([s|Machine %s refines a non-existant machine: %s|] (pretty cmch) (pretty amch)) li]
+                $ throwError [Error ([st|Machine %s refines a non-existant machine: %s|] (prettyText cmch) (prettyText amch)) li]
                 -- check that mch is a machine
             return [((),amch,li)]
 
 import_theory :: MPipeline MachineP0 [(Name, Theory, LineInfo)]
 import_theory = machineCmd "\\with" $ \(Identity (TheoryName th_name)) _m _ -> do
         let th = supportedTheories
-            msg = [s|Undefined theory: %s |]
+            msg = [st|Undefined theory: %s |]
                 -- add suggestions
         li <- ask
         case th_name `M.lookup` th of
-            Nothing -> throwError [Error (msg $ render th_name) li]
+            Nothing -> throwError [Error (msg $ renderText th_name) li]
             Just th -> return [(th_name,th,li)]

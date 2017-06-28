@@ -2,6 +2,9 @@ module Document.Tests.TerminationDetection where
 
 import Document.Tests.Suite
 
+import           Data.Text (Text)
+import qualified Data.Text as T
+
 import Test.UnitTest
 
 test_case :: TestCase
@@ -19,8 +22,8 @@ path0 = [path|Tests/termination detection/main.tex|]
 case0 :: IO POResult
 case0 = verify path0 0
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/activate/INV/m0:inv0"
     , "  o  m0/stop/INV/m0:inv0"
@@ -30,8 +33,8 @@ result0 = unlines
 case1 :: IO POResult
 case1 = verify path0 1
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/INIT/INV/m1:inv0"
     , "  o  m1/INV/WD"
     , "  o  m1/LIVE/m1:prog0/ensure/SAF/WD/lhs"
@@ -60,8 +63,8 @@ result1 = unlines
 case2 :: IO POResult
 case2 = verify path0 2
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "  o  m2/INIT/INV/m2:inv0"
     , "  o  m2/INV/WD"
     , "  o  m2/LIVE/m2:prog1/ensure/SAF/WD/lhs"
@@ -104,8 +107,8 @@ result2 = unlines
 case3 :: IO POResult
 case3 = verify path0 3
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INV/WD"
@@ -140,8 +143,8 @@ path1 = [path|Tests/termination detection/main.tex|]
 case4 :: IO POResult
 case4 = verify path1 3
 
-result4 :: String
-result4 = unlines
+result4 :: Text
+result4 = T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INV/WD"

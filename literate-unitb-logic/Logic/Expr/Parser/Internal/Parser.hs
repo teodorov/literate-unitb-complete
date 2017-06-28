@@ -33,6 +33,7 @@ import           Data.Char
 import           Data.Either
 import           Data.Either.Validation
 import           Data.List as L
+import           Data.List.NonEmpty as NE 
 import           Data.Map as M hiding ( map )
 import qualified Data.Map as M
 import           Data.Semigroup hiding (option)
@@ -64,7 +65,7 @@ with_vars vs cmd = do
                 cmd
     where
         f s@(Param { .. }) =
-                s { variables = M.map Word (fromList vs) `M.union` variables }
+                s { variables = M.map Word (M.fromList vs) `M.union` variables }
 
 comma :: Parser ()
 comma = read_listP [Comma] >> return ()
@@ -123,10 +124,10 @@ type_t = choose_la
         ctx <- get_context
         t <- case get_type ctx t of
             Just s -> do
-                unless (length ts == typeParams s)
+                unless (L.length ts == typeParams s)
                     $ fail $ [Printf.s|Parameter mismatch. Expecting %d type parameters, received %d.|] 
                         (typeParams s) 
-                        (length ts)
+                        (L.length ts)
                 return $ Gen s ts
             Nothing -> fail $ unpack ("Invalid sort: '" <> renderText t <> "'")
         b2 <- look_aheadP $ read_listP [ Ident "\\pfun" ]               
@@ -144,7 +145,7 @@ type_t = choose_la
 get_type :: Context -> Name -> Maybe Sort
 get_type (Context ts _ _ _ _) x = M.lookup x m
     where
-        m = fromList 
+        m = M.fromList 
                    [ ([tex|\Int|], IntSort)
                    , ([tex|\Real|], RealSort)
                    , ([tex|\Bool|], BoolSort)]
@@ -156,7 +157,7 @@ vars = do
         vs <- sep1P word_or_command comma
         colon
         t  <- type_t
-        return (map (\x -> (x,t)) vs)     
+        return (L.map (\x -> (x,t)) vs)     
 
 get_variables' :: Map Name Sort
                -> LatexDoc
@@ -185,7 +186,7 @@ get_variables'' ctx m li = do
             (runParser ctx
                 undefined' M.empty vars) 
             toks li
-        return $ map (\(x,y) -> (x,Var x y)) xs
+        return $ L.map (\(x,y) -> (x,Var x y)) xs
 
 parse_type :: Context
            -> StringLi
@@ -203,7 +204,7 @@ unary :: Parser UnaryOperator
 unary = do
         n <- get_notation
         choiceP
-            (map f $ lefts $ n^.new_ops)
+            (L.map f $ lefts $ n^.new_ops)
             (fail "expecting an unary operator")            
             return
     where
@@ -215,11 +216,11 @@ oper :: Parser BinOperator
 oper = do
         n <- get_notation
         choiceP
-            (map f $ rights $ n^.new_ops)
+            (L.map f $ rights $ n^.new_ops)
             (do
                 xs <- liftP peek
                 fail $ "expecting a binary operator, read: " 
-                    ++ show (take 1 xs))            
+                    ++ show (L.take 1 xs))            
             return
     where
         f op@(BinOperator _ tok _ _) = do
@@ -234,7 +235,7 @@ apply_fun_op (Command _ _ _ fop) x = do
         return $ UE $ fun1 fop x
 
 suggestion :: Name -> Map Name Text -> [Text]
-suggestion xs m = map (\(x,y) -> renderText x <> " (" <> y <> ")") $ toAscList ws
+suggestion xs m = L.map (\(x,y) -> renderText x <> " (" <> y <> ")") $ toAscList ws
   where
     xs' = T.map toLower $ renderText xs
     p ys _ = 2 * distText xs' ys' <= (T.length xs' `max` T.length ys') + 1
@@ -275,7 +276,7 @@ instance PrettyPrintable Term where
 term :: Parser Term
 term = do
     n <- get_notation
-    let cmds = zip (map token (n^.commands)) (n^.commands)
+    let cmds = L.zip (L.map token (n^.commands)) (n^.commands)
         quants = n^.quantifiers
         oftype = [([tex|\oftype|],())]
     choose_la 
@@ -299,7 +300,7 @@ term = do
                 _ctx <- get_context
                 let vs :: [UntypedVar]
                     vs = Var <$> ns <*> pure ()
-                with_vars (zip ns vs) $ do
+                with_vars (L.zip ns vs) $ do
                     _ <- read_listP [Open Curly]
                     r <- tryP (read_listP [Close Curly]) 
                         (\_ -> return ztrue)
@@ -309,15 +310,15 @@ term = do
                     t <- brackets Curly expr
                     let _vars = used_var r `S.union` used_var t
                         ts :: [(Name, UntypedVar)]
-                        ts = zip ns vs
+                        ts = L.zip ns vs
                         _f = (`S.filter` _vars) . (. view name) . (==)
                     let ts' :: Map Name UntypedExpr
-                        ts' = M.map Word $ fromList ts
+                        ts' = M.map Word $ M.fromList ts
                         r' :: UntypedExpr
                         t' :: UntypedExpr
                         r' = substitute' ts' r
                         t' = substitute' ts' t
-                        vs' = map snd ts
+                        vs' = L.map snd ts
                     UE <$> return (Binder quant vs' r' t' ())
         , do    from oftype
                 e <- brackets Curly expr
@@ -331,9 +332,9 @@ term = do
                     Nothing -> fail ""
         , do    xs <- attempt word_or_command
                 vs <- get_vars
-                let oftype' = "keyword"  <$ fromList oftype
-                    quants' = "quantifier" <$ fromList quants
-                    cmd'    = "command"  <$ fromList cmds
+                let oftype' = "keyword"  <$ M.fromList oftype
+                    quants' = "quantifier" <$ M.fromList quants
+                    cmd'    = "command"  <$ M.fromList cmds
                     vars'   = "variable" <$ vs
                     sug     = suggestion xs $ M.unions 
                             [ cmd', quants'
@@ -415,7 +416,7 @@ recordFields field = do
 -- | \qforall{y}{}{f.y}
 -- | \qforall{f,x}{f.x \le 3}
 dummy_types :: [Name] -> Context -> [Var]
-dummy_types vs (Context _ _ _ _ dums) = map f vs
+dummy_types vs (Context _ _ _ _ dums) = L.map f vs
     where
         f x = fromMaybe (Var x gA) $ M.lookup x dums
 
@@ -619,7 +620,7 @@ parse_expr set xs = do
         x <- parse_expression set xs
         typed_x <- checkTypes (set^.expected_type) (contextOf set) x xs
         unless (L.null $ ambiguities typed_x) $ Left 
-            $ map (\x' -> Error (msg (prettyText x') (prettyText $ type_of x')) (line_info xs))
+            $ L.map (\x' -> Error (msg (prettyText x') (prettyText $ type_of x')) (line_info xs))
                 $ ambiguities typed_x
         return $ DispExpr (flatten xs) (flattenConnectors typed_x)
     where

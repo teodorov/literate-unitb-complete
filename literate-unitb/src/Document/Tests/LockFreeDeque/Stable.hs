@@ -1,8 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Document.Tests.LockFreeDeque.Stable where
 
-result0 :: String
-result0 = unlines
+import           Data.Text (Text)
+import qualified Data.Text as T
+
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/m0:pop:left/FIS/p@prime"
@@ -22,8 +25,8 @@ result0 = unlines
     , "passed 16 / 16"
     ]
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/m0:pop:left/FIS/p@prime"
     , "  o  m0/m0:pop:left/FIS/q@prime"
@@ -46,8 +49,8 @@ result1 = unlines
     , "passed 17 / 19"
     ]
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "Multiple expressions with the label m0:inv0"
     , "error 42:1:"
     , "\tinvariant"
@@ -65,8 +68,8 @@ result2 = unlines
     , ""
     ]
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/m0:pop:left/FIS/p@prime"
@@ -100,8 +103,8 @@ result3 = unlines
     , "passed 28 / 30"
     ]
 
-result4 :: String
-result4 = unlines
+result4 :: Text
+result4 = T.unlines
     [ "  o  m1/INIT/INV/m1:inv0"
     , "  o  m1/INIT/INV/m1:inv1"
     , "  o  m1/LIVE/m1:prog0/ensure/SAF/WD/lhs"
@@ -196,8 +199,8 @@ result4 = unlines
     ]
 
     -- enablement non-empty
-result5 :: String
-result5 = unlines 
+result5 :: Text
+result5 = T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -835,8 +838,8 @@ result5 = unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/EN"
     ]
 
-result6 :: String
-result6 = unlines 
+result6 :: Text
+result6 = T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1474,8 +1477,8 @@ result6 = unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/EN"
     ]
 
-result7 :: String
-result7 = unlines 
+result7 :: Text
+result7 = T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2484,8 +2487,8 @@ result7 = unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/NEG"
     ]
 
-result8 :: String
-result8 = unlines 
+result8 :: Text
+result8 = T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3498,8 +3501,8 @@ result8 = unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/NEG"
     ]
 
-result9 :: String
-result9 = unlines
+result9 :: Text
+result9 = T.unlines
     [ "; m1/LIVE/m1:prog3/ensure/TR/leadsto"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4162,8 +4165,8 @@ result9 = unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/leadsto"
     ]
 
-result10 :: String
-result10 = unlines
+result10 :: Text
+result10 = T.unlines
     [ "Multiple refinement of progress property m1:prog3"
     , "error 223:5:"
     , "\tm1:prog3"
@@ -4173,8 +4176,8 @@ result10 = unlines
     , ""
     ]
 
-result11 :: String
-result11 = unlines
+result11 :: Text
+result11 = T.unlines
     [ "error 223:5:"
     , "    A witness is needed for r in event 'm0:pop:left:empty'"
     , ""
@@ -4182,29 +4185,29 @@ result11 = unlines
     , "    A witness is needed for r in event 'm0:pop:left:non:empty'"
     ]
 
-result12 :: String
-result12 = unlines
+result12 :: Text
+result12 = T.unlines
     [ "passed 0 / 0"
     ]
 
-result13 :: String
-result13 = unlines
+result13 :: Text
+result13 = T.unlines
     [ "passed 0 / 0"
     ]
 
-result17 :: String
-result17 = unlines
+result17 :: Text
+result17 = T.unlines
     [ "error 60:12:"
     , "    expecting more arguments"
     ]
 
-result18 :: String
-result18 = concat
+result18 :: Text
+result18 = T.concat
     [ "no errors"
     ]
 
-result19 :: String
-result19 = unlines
+result19 :: Text
+result19 = T.unlines
     [ "; m1/resp:pop:left/F_SCH/replace/eqv"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4783,8 +4786,8 @@ result19 = unlines
     , "; m1/resp:pop:left/F_SCH/replace/eqv"
     ]
 
-result20 :: String
-result20 = unlines
+result20 :: Text
+result20 = T.unlines
     [ "  o  m0/LIVE/prog0/ensure/TR/handle/EN"
     , "  o  m0/LIVE/prog0/ensure/TR/handle/NEG"
     , "  o  m0/LIVE/prog1/ensure/TR/handle/EN"
@@ -4802,8 +4805,8 @@ result20 = unlines
     , "passed 14 / 14"
     ]
 
-result23 :: String
-result23 = unlines
+result23 :: Text
+result23 = T.unlines
     [ "; m1/handle/C_SCH/delay/0/prog/m1:prog1/lhs"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4901,8 +4904,8 @@ result23 = unlines
     , "; m1/handle/C_SCH/delay/0/prog/m1:prog1/lhs"
     ]
 
-result22 :: String
-result22 = unlines
+result22 :: Text
+result22 = T.unlines
     [ "; m1/handle/C_SCH/delay/0/prog/m1:prog1/rhs/m1:sch0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4997,8 +5000,8 @@ result22 = unlines
     , "; m1/handle/C_SCH/delay/0/prog/m1:prog1/rhs/m1:sch0"
     ]
 
-result24 :: String
-result24 = unlines
+result24 :: Text
+result24 = T.unlines
     [ "  o  m1/handle/C_SCH/weaken/m1:sch0"
     , " xxx m1/handle/C_SCH/weaken/m1:sch1"
     , "  o  m1/handle/GRD/str/m0:grd0"
@@ -5009,13 +5012,13 @@ result24 = unlines
     , "passed 4 / 7"
     ]
 
-result25 :: String
-result25 = unlines
+result25 :: Text
+result25 = T.unlines
     [ "passed 0 / 0"
     ]
 
-result26 :: String
-result26 = unlines
+result26 :: Text
+result26 = T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INIT/INV/m3:inv2"
@@ -5110,8 +5113,8 @@ result26 = unlines
     , "passed 91 / 91"
     ]
 
-result27 :: String
-result27 = unlines
+result27 :: Text
+result27 = T.unlines
     [ "  o  m5/INIT/FIS/LH"
     , "  o  m5/INIT/FIS/RH"
     , "  o  m5/INIT/FIS/insL"
@@ -5656,8 +5659,8 @@ result27 = unlines
     , "passed 527 / 541"
     ]
 
-result28 :: String
-result28 = unlines
+result28 :: Text
+result28 = T.unlines
     [ "; m5/INV/WD"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -8674,8 +8677,8 @@ result28 = unlines
     , "; m5/INV/WD"
     ]
 
-result29 :: String
-result29 = unlines
+result29 :: Text
+result29 = T.unlines
     [ "; m5/handle:pushR/C_SCH/weaken"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -11126,8 +11129,8 @@ result29 = unlines
     , "; m5/handle:pushR/C_SCH/weaken"
     ]
 
-result30 :: String
-result30 = unlines
+result30 :: Text
+result30 = T.unlines
     [ "; m5/handle:pushR/C_SCH/weaken/saf/add:popL/SAF/handle:pushR:empty"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -13631,8 +13634,8 @@ result30 = unlines
     , "; m5/handle:pushR/C_SCH/weaken/saf/add:popL/SAF/handle:pushR:empty"
     ]
 
-result31 :: String
-result31 = unlines
+result31 :: Text
+result31 = T.unlines
     [ "; m5/INIT/FIS/item"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -15330,8 +15333,8 @@ result31 = unlines
     , "; m5/INIT/FIS/item"
     ]
 
-result32 :: String
-result32 = unlines
+result32 :: Text
+result32 = T.unlines
     [ "; m0/add:popL/SCH/m0:grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -15508,14 +15511,14 @@ result32 = unlines
     , "; m0/add:popL/SCH/m0:grd0"
     ]
 
-result33 :: String
-result33 = unlines
+result33 :: Text
+result33 = T.unlines
     [ "  o  m0/add:popL/SCH/m0:grd0"
     , "passed 1 / 1"
     ]
 
-result34 :: String
-result34 = unlines
+result34 :: Text
+result34 = T.unlines
     [ "; m1/read:LH/SKIP/EQL/ver"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -15991,15 +15994,15 @@ result34 = unlines
     , "; m1/read:LH/SKIP/EQL/ver"
     ]
  
-result35 :: String 
-result35 = unlines
+result35 :: Text 
+result35 = T.unlines
     [ "  o  m1/hdl:popL:more/C_SCH/delay/0/prog/m1:prog0/rhs/m1:sch0"
     , "passed 1 / 1"
     ]
 
 
-result37 :: String
-result37 = unlines
+result37 :: Text
+result37 = T.unlines
     [ "; m1/hdl:popL:more/GRD/str/m0:sch0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -16817,8 +16820,8 @@ result37 = unlines
     , "; m1/hdl:popL:more/GRD/str/m0:sch0"
     ]
 
-result39 :: String
-result39 = unlines
+result39 :: Text
+result39 = T.unlines
     [ "; m1/hdl:popL:more/WFIS/v"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -17659,8 +17662,8 @@ result39 = unlines
     , "; m1/hdl:popL:more/WFIS/v"
     ]
 
-result43 :: String
-result43 = unlines
+result43 :: Text
+result43 = T.unlines
     [ "; m1/hdl:popL:more/C_SCH/weaken/m1:sch2"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -18480,8 +18483,8 @@ result43 = unlines
     , "; m1/hdl:popL:more/C_SCH/weaken/m1:sch2"
     ]
 
-result49 :: String
-result49 = unlines
+result49 :: Text
+result49 = T.unlines
     [ "; m2/read:LH/GRD/str"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -19292,8 +19295,8 @@ result49 = unlines
     , "; m2/read:LH/GRD/str"
     ]
 
-result52 :: String
-result52 = unlines
+result52 :: Text
+result52 = T.unlines
     [ "; m2/read:LH/SAF/LIVE/m2:prog0/ensure"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -20137,8 +20140,8 @@ result52 = unlines
     , "; m2/read:LH/SAF/LIVE/m2:prog0/ensure"
     ]
 
-result53 :: String
-result53 = unlines
+result53 :: Text
+result53 = T.unlines
     [ "; m1/INIT/FIS/sl$trash"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

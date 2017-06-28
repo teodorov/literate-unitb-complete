@@ -36,6 +36,8 @@ import Data.Functor.Compose
 import Data.List as L
 import Data.Map as M
 import Data.Proxy.TH
+import           Data.Text (Text)
+import qualified Data.Text as T
 import Data.Tuple.Generics
 import Data.Typeable
 --import Data.Validation
@@ -51,7 +53,7 @@ import Text.Printf.TH
 import Utilities.ArrowEx
 import Utilities.Syntactic
 
-data LatexMatch = CmdMatch String [Bracket] | EnvMatch Environment
+data LatexMatch = CmdMatch Text [Bracket] | EnvMatch Environment
 
 makePrisms ''LatexMatch
 
@@ -59,10 +61,10 @@ type LatexParser = LatexParserA ()
 type LatexParserA = LatexParserT M
 
 data LatexParserT m a b = LatexParser 
-        { _expectedEnv :: [String] 
-        , _expectedCmd :: [(String,Cell1 Proxy (IsTuple LatexArg))] 
-        , envLookAhead :: [String] 
-        , cmdLookAhead :: [String] 
+        { _expectedEnv :: [Text] 
+        , _expectedCmd :: [(Text,Cell1 Proxy (IsTuple LatexArg))] 
+        , envLookAhead :: [Text] 
+        , cmdLookAhead :: [Text] 
         , _hasNull :: Bool
         , _runLatexParser :: a -> ValState m b
         }
@@ -119,7 +121,7 @@ lift' f = fromMonad $ lift . lift . f
 --        f e | envType e == tok = Right e
 --            | otherwise        = Left e
 
-readEnv :: String -> LatexParser Environment
+readEnv :: Text -> LatexParser Environment
 readEnv tag = LatexParser [tag] [] [tag] [] False $ \() -> EitherT $ do
             xs <- get
             case unconsStream xs of
@@ -127,35 +129,35 @@ readEnv tag = LatexParser [tag] [] [tag] [] False $ \() -> EitherT $ do
                     | envType e == tag -> do
                         put xs
                         return $ Right e
-                _ -> return $ Left [Error ([s|expecting environment '%s'|] tag) $ line_info xs]
+                _ -> return $ Left [Error ([st|expecting environment '%s'|] tag) $ line_info xs]
 
 insideOneEnvOf :: Pre
-               => [String] 
+               => [Text] 
                -> LatexParserA a b
                -> LatexParserA a b
 insideOneEnvOf [] _ = undefined'
 insideOneEnvOf [tag] m = insideEnv tag m
 insideOneEnvOf (x0:x1:xs) m = insideEnv x0 m <!> insideOneEnvOf (x1:xs) m
 
-insideEnv :: String -> LatexParserA a b
+insideEnv :: Text -> LatexParserA a b
           -> LatexParserA a b
 insideEnv tag cmd = proc x -> do
     d <- arr contents <<< readEnv tag -< ()
     withLineInfo $ lift' (\(d,x) -> parseLatex cmd d x) -< (d,x)
 
 --readCommand :: forall a. IsTuple LatexArg a 
---            => String -> LatexParser a
+--            => Text -> LatexParser a
 --readCommand = _
 
 withCommand :: (Typeable a,IsTuple LatexArg a)
-            => String 
+            => Text 
             -> (a -> M b)
             -> LatexParser b
 withCommand tag cmd = withLineInfo $ readCommand tag >>> lift' cmd
 
 readCommand :: forall a. (Typeable a,IsTuple LatexArg a)
-            => String -> LatexParser a
-readCommand tag = provided ("\\" `isPrefixOf` tag) 
+            => Text -> LatexParser a
+readCommand tag = provided ("\\" `T.isPrefixOf` tag) 
         $ LatexParser [] [(tag,tupleType)] [] [tag] False
         $ \() -> EitherT $ do
             xs <- get
@@ -164,7 +166,7 @@ readCommand tag = provided ("\\" `isPrefixOf` tag)
                     | t == tag -> do
                         put xs
                         return $ evalState (getCompose $ makeTuple' [pr|LatexArg|] next) x
-                _ -> return $ Left [Error ([s|expecting command '%s'|] tag) $ line_info xs]
+                _ -> return $ Left [Error ([st|expecting command '%s'|] tag) $ line_info xs]
     where
         tupleType = Cell [pr|a|]
         next :: forall b. LatexArg b 
@@ -215,8 +217,8 @@ parseLatexT (LatexParser env cmd _eLu _cLu _e f) xs x = runEitherT $ do
             $ rewriteDoc (fromList $ (,()) <$> env) (fromList cmd) xs
         EitherT $ evalStateT (runEitherT $ f x) pruned
 
-rewriteDoc :: Map String ()
-           -> Map String (Cell1 Proxy (IsTuple LatexArg))
+rewriteDoc :: Map Text ()
+           -> Map Text (Cell1 Proxy (IsTuple LatexArg))
            -> LatexDoc
            -> Validation [Error] (TokenStream LatexMatch)
 rewriteDoc es cs d = case unconsTex d of
@@ -229,10 +231,10 @@ rewriteDoc es cs d = case unconsTex d of
                 argSpec <- M.lookup tag' cs
                 let n = readCell1 (len [pr|LatexArg|]) argSpec
                     docs = readCell1 (foldMapTupleType [pr|LatexArg|] ((:[]) . argKind)) argSpec
-                    docs' = concatMap ([s|{%s}|]) docs :: String
+                    docs' = foldMap ([st|{%s}|]) docs :: Text
                     (args,doc') = takeArgs n doc
                     checkedArgs | length args == n = pure args
-                                | otherwise        = Failure [Error ([s|expecting %d arguments: %s|] n docs') li]
+                                | otherwise        = Failure [Error ([st|expecting %d arguments: %s|] n docs') li]
                 return $ consStream . (,li) . CmdMatch tag' 
                             <$> checkedArgs 
                             <*> rewriteDoc es cs doc'

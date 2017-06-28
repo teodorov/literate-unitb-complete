@@ -42,6 +42,8 @@ import qualified Data.List.NonEmpty as NE
 import           Data.Map   as M hiding ( map, (\\) )
 import qualified Data.Map   as M
 import           Data.Semigroup
+import           Data.Text (Text)
+import qualified Data.Text.IO as T
 
 import Prelude hiding ((.),id)
 
@@ -80,7 +82,7 @@ all_machines xs = read_document xs
 list_machines :: FilePath
               -> EitherT [Error] IO [Machine]
 list_machines fn = do
-        doc <- liftIO $ readFile fn
+        doc <- liftIO $ T.readFile fn
         xs  <- hoistEither $ latex_structure fn doc
         ms <- hoistEither $ all_machines xs
         return $ map snd $ toAscList $ ms!.machines
@@ -101,7 +103,7 @@ parse_system fn = parse_system' $ pure fn
 
 parse_system' :: NonEmpty FilePath -> IO (Either [Error] System)
 parse_system' fs = runEitherT $ do
-        docs <- liftIO $ mapM readFile fs
+        docs <- liftIO $ mapM T.readFile fs
         xs <- hoistEither $ flip traverseValidation (NE.zip fs docs) $ 
             \(fn,doc) -> do
                 latex_structure fn doc
@@ -109,13 +111,13 @@ parse_system' fs = runEitherT $ do
         
 parse_machine :: FilePath -> IO (Either [Error] [Machine])
 parse_machine fn = runEitherT $ do
-        doc <- liftIO $ readFile fn
+        doc <- liftIO $ T.readFile fn
         xs  <- hoistEither $ latex_structure fn doc
         ms  <- hoistEither $ all_machines xs
         return $ map snd $ toAscList $ ms!.machines
 
 get_components :: LatexDoc -> LineInfo 
-               -> Either [Error] (Map Name [LatexDoc],Map String [LatexDoc])
+               -> Either [Error] (Map Name [LatexDoc],Map Text [LatexDoc])
 get_components xs li = 
         liftM g
             $ R.runReader (runEitherT $ W.execWriterT 
@@ -136,5 +138,5 @@ get_components xs li =
         f x = map_docM_ f x
         g (x,y) = (M.fromListWith (++) x, M.fromListWith (++) y)
 
-syntaxSummary :: [String]
+syntaxSummary :: [Text]
 syntaxSummary = machineSyntax system

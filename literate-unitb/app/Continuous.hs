@@ -30,6 +30,10 @@ import Control.Precondition
 
 import qualified Data.Map as M
 -- import Data.List
+import Data.Monoid
+import           Data.Text (Text,pack)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Time
 import Data.Typeable
 import Data.Version
@@ -90,19 +94,19 @@ dump_pos = do
         liftIO $ print dt'
 
 check_one :: (MonadIO m, MonadState Params m) 
-          => Machine -> m (Int,String)
+          => Machine -> m (Int,Text)
 check_one m = do
         param <- get
         let po = M.findWithDefault M.empty (as_label $ _name m) $ _pos param
         (po,s,n)    <- liftIO $ verify_changes m po
         put (param { _pos = M.insert (as_label $ _name m) po $ _pos param })
-        return (n,"> machine " ++ pretty (_name m) ++ ":\n" ++ s)
+        return (n,"> machine " <> prettyText (_name m) <> ":\n" <> s)
 
 check_theory :: (MonadIO m, MonadState Params m) 
-             => (String,Theory) -> m (Int,String)
+             => (String,Theory) -> m (Int,Text)
 check_theory (name,th) = do
         param <- get
-        let old_po = M.findWithDefault M.empty (label name) $ _pos param
+        let old_po = M.findWithDefault M.empty (label $ pack name) $ _pos param
             po = either (assertFalse' "check_theory") id $ theory_po th
             new_po = po `M.difference` old_po
             ch_po  = po `M.intersection` old_po
@@ -120,9 +124,9 @@ check_theory (name,th) = do
                     handle
         let p_r = M.mapWithKey f po
             f k x = maybe (old_po ! k) (\b -> (b,x)) $ M.lookup k res
-        put param { _pos = M.insert (label name) p_r $ _pos param }
-        let s = unlines $ map (\(k,r) -> success r ++ pretty k) $ M.toAscList res
-        return (M.size res,"> theory " ++ pretty (label name) ++ ":\n" ++ s)
+        put param { _pos = M.insert (label $ pack name) p_r $ _pos param }
+        let s = T.unlines $ map (\(k,r) -> success r <> prettyText k) $ M.toAscList res
+        return (M.size res,"> theory " <> prettyText (label $ pack name) <> ":\n" <> s)
     where
         success True  = "  o  "
         success False = " xxx "
@@ -142,7 +146,7 @@ handle' h cmd = StateT $ \st -> do
 check_file :: StateT Params IO ()
 check_file = do
         param <- get
-        let p ln = verbose param || take 4 ln /= "  o " 
+        let p ln = verbose param || not ("  o " `T.isPrefixOf` ln)
             h :: SomeException -> StateT a IO ()
             h e = liftIO $ putStrLn $ "failed: " ++ path param ++ ", " ++ show e
         r <- liftIO $ runEitherT $ do
@@ -156,18 +160,18 @@ check_file = do
                     xs <- forM ms check_one
                     clear
                     forM_ xs $ \(n,xs) -> liftIO $ do
-                        forM_ (filter p $ lines xs) 
-                            putStrLn
+                        forM_ (filter p $ T.lines xs) 
+                            T.putStrLn
                         putStrLn $ "Redid " ++ show n ++ " proofs"
                     ys <- forM ts check_theory
                     forM_ ys $ \(n,xs) -> liftIO $ do
-                        forM_ (filter p $ lines xs) 
-                            putStrLn
+                        forM_ (filter p $ T.lines xs) 
+                            T.putStrLn
                         putStrLn $ "Redid " ++ show n ++ " proofs"
             Left xs -> do
                 clear
                 forM_ xs $ \e -> liftIO $ 
-                    putStrLn $ report e
+                    T.putStrLn $ report e
         liftIO $ putStrLn ""
         tz <- liftIO (getCurrentTimeZone)
         t  <- liftIO (getCurrentTime :: IO UTCTime)
@@ -196,8 +200,8 @@ options =
             \matching the `pattern'"
     ]
 
-focus :: Option -> Maybe String
-focus (Focus x) = Just x
+focus :: Option -> Maybe Text
+focus (Focus x) = Just $ pack x
 focus _ = Nothing
 
 _myTimeout :: IO () -> IO ()
@@ -216,7 +220,7 @@ printZ3Version :: IO ()
 printZ3Version = do
         (v,h) <- z3_version
         printf "using z3 version %s, hashcode %s\n" v h
-        printf "built on %s at %s\n" $__DATE__ $__TIME__
+        printf "built on %s at %s\n" ($__DATE__ :: String) ($__TIME__ :: String)
 
 main :: IO ()
 -- main = print version

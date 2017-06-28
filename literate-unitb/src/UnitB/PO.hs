@@ -44,17 +44,21 @@ import           Data.Existential
 import           Data.Foldable as F
 import           Data.List as L hiding (inits, union,insert)
 import           Data.List.NonEmpty as NE hiding (inits,(!!))
-import           Data.List.Utils as LU (replace)
 import           Data.Map as M hiding 
                     ( map, (!)
                     , delete, filter, null
                     , (\\), mapMaybe )
 import qualified Data.Map as M
+import           Data.Monoid
 import           Data.Monoid.Monad
+import           Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Traversable as T
 
 import System.IO
 
+import TextShow (showt)
 import Text.Printf.TH
 
 import Utilities.Functor
@@ -238,7 +242,7 @@ proof_obligation' pos proofs m = do
             if lbl `M.member` pos
                 then return ()
                 else Left [Error 
-                    ([s|a proof is provided for non-existant proof obligation %s|] $ pretty lbl)
+                    ([st|a proof is provided for non-existant proof obligation %s|] $ prettyText lbl)
                         li])
         xs <- forM (M.toList pos) (\(lbl,po) -> do
             case M.lookup lbl proofs of
@@ -453,11 +457,11 @@ prop_tr m (pname, Tr fv xp' evt_lbl tr_hint) = provided (null inds) $ do
         local_ind :: EventId -> RawEventMerging -> Map Name Var
         local_ind lbl e = renameAll' (add_suffix suff) $ e^.indices
             where
-                suff = mk_suff $ pretty lbl
+                suff = mk_suff $ prettyText lbl
         new_ind :: EventId -> RawEventMerging -> RawExpr -> RawExpr
         new_ind lbl e = make_unique suff (e^.indices)
             where
-                suff = mk_suff $ pretty lbl
+                suff = mk_suff $ prettyText lbl
             -- (M.elems ind) 
         tagged_sched :: EventId -> RawEventMerging -> Map Label RawExpr
         tagged_sched lbl e = M.map (new_ind lbl e) $ e^.new.coarse_sched & traverse %~ asExpr
@@ -494,8 +498,8 @@ prop_tr m (pname, Tr fv xp' evt_lbl tr_hint) = provided (null inds) $ do
         dummy = POG.variables fv
         progs = (m!.props.progress) `M.union` (m!.inh_props.progress)
 
-mk_suff :: String -> String
-mk_suff = LU.replace ":" "-" 
+mk_suff :: Text -> Text
+mk_suff = T.replace ":" "-" 
 
 prop_co :: RawMachineAST -> (Label, Constraint' RawExpr) -> M ()
 prop_co m (pname, Co fv xp) = 
@@ -677,7 +681,7 @@ replace_csched_po m (lbl,evt') = do
     let old_c = evt'^.old.coarse_sched
         old_f = evt'^.old.fine_sched
     forM_ (L.zip [0..] $ evt'^.c_sched_ref) $ \(i,ref) -> do
-        let nb  = label $ show (i :: Int)
+        let nb  = label $ showt (i :: Int)
         with (do 
                 prefix_label $ as_label lbl
                 prefix_label "C_SCH/delay"
@@ -1121,7 +1125,7 @@ refinement_po m (view cell -> Cell (Inference prog n hp ht hs)) = do
             for_ hp $ refinement_po m
 
 add_suffix :: Pre 
-           => String -> Var -> Var
+           => Text -> Var -> Var
 add_suffix = fmap1 . setSuffix
 
 new_dummy :: Pre => Map Name Var -> RawExpr -> RawExpr
@@ -1138,10 +1142,10 @@ dump :: String -> Map Label Sequent -> IO ()
 dump name pos = do
         withFile (name ++ ".z") WriteMode (\h -> do
             forM_ (M.toList pos) (\(lbl, po) -> do
-                hPutStrLn h ([s|(echo \\"> %s\\")\n(push)|] $ pretty lbl)
-                hPutStrLn h (z3_code po)
-                hPutStrLn h "(pop)"
-                hPutStrLn h ("; end of " ++ pretty lbl)
+                T.hPutStrLn h ([st|(echo \\"> %s\\")\n(push)|] $ prettyText lbl)
+                T.hPutStrLn h (z3_code po)
+                T.hPutStrLn h "(pop)"
+                T.hPutStrLn h ("; end of " <> prettyText lbl)
                 ) )
 
 verify_all :: Map Label Sequent -> IO (Map Label Bool)

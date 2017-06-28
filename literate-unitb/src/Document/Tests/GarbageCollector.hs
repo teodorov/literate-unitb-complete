@@ -11,6 +11,8 @@ import Control.Lens
 
 import Data.List as L
 import Data.Map  as M
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Test.UnitTest
 
@@ -20,12 +22,12 @@ test_case = test_cases
     [ poCase "test0: verify m0" case0 result0 
     , poCase "test1: verify m1" case1 result1 
     , poCase "test2: verify m2" case2 result2 
-    , stringCase "test3: monotonic simplification" case3 result3
-    , stringCase "test4: monotonicity of POs" case4 result4 
-    , stringCase "test5: monotonicity in relation theory" case5 result5 
-    , stringCase "test6: monotonicity of POs" case6 result6
-    , stringCase "test7: POs, step 3 (monotonicity, associativity)" case7 result7
-    , stringCase "test8: POs, step 4 (monotonicity, associativity)" case8 result8 
+    , textCase "test3: monotonic simplification" case3 result3
+    , textCase "test4: monotonicity of POs" case4 result4 
+    , textCase "test5: monotonicity in relation theory" case5 result5 
+    , textCase "test6: monotonicity of POs" case6 result6
+    , textCase "test7: POs, step 3 (monotonicity, associativity)" case7 result7
+    , textCase "test8: POs, step 4 (monotonicity, associativity)" case8 result8 
     ]
 
 path0 :: FilePath
@@ -34,8 +36,8 @@ path0 = [path|Tests/garbage collector/main.tex|]
 case0 :: IO POResult
 case0 = verify path0 0
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/INIT/INV/m0:inv2"
@@ -52,8 +54,8 @@ result0 = unlines
 case1 :: IO POResult
 case1 = verify path0 1
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/LIVE/m1:prog0/ensure/TR/WFIS/p/p@prime"
     , "  o  m1/LIVE/m1:prog0/ensure/TR/free/EN"
     , "  o  m1/LIVE/m1:prog0/ensure/TR/free/NEG"
@@ -92,8 +94,8 @@ result1 = unlines
 case2 :: IO POResult
 case2 = verify path0 2
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "  o  m2/INIT/INV/m2:inv0"
     , "  o  m2/add/INV/m2:inv0"
     , "  o  m2/add/SAF/m2:saf0"
@@ -113,11 +115,11 @@ result2 = unlines
     , "passed 11 / 16"
     ]
 
-case3 :: IO String
+case3 :: IO Text
 case3 = proof_obligation_stripped path0 "m1/THM/thm0/main goal/assertion/lmm0/step 5" 1
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 5"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -526,13 +528,13 @@ result3 = unlines
     , "; m1/THM/thm0/main goal/assertion/lmm0/step 5"
     ]
 
-case4 :: IO String
+case4 :: IO Text
 case4 = do
-    either id (unlines . L.map (show . (each %~ render)) . keys . (^.syntacticThm.monotonicity)) 
+    either id (T.unlines . L.map (pack . show . (each %~ render)) . keys . (^.syntacticThm.monotonicity)) 
         <$> sequent path0 "m1/THM/thm0/main goal/assertion/lmm0/step 5" 1
 
-result4 :: String
-result4 = unlines
+result4 :: Text
+result4 = T.unlines
     [ "(\"<=\",\"+\")"
     , "(\"<=\",\"-\")"
     , "(\"=>\",\"<=\")"
@@ -551,24 +553,24 @@ result4 = unlines
     , "(\"subset\",\"union\")"
     ]
 
-case5 :: IO String
+case5 :: IO Text
 case5 = do
-    return $ unlines $ L.map (show . (render *** render)) $ keys 
+    return $ T.unlines $ L.map (pack . show . (render *** render)) $ keys 
         $ relation_theory^.syntacticThm.monotonicity
 
-result5 :: String
-result5 = unlines
+result5 :: Text
+result5 = T.unlines
     [ "(\"subset\",\"seq\")"
     , "(\"subset\",\"star\")"
     ]
 
-case6 :: IO String
+case6 :: IO Text
 case6 = do
     proof_obligation_stripped path0 
         "m1/THM/thm0/main goal/assertion/lmm0/step 6" 1
 
-result6 :: String
-result6 = unlines
+result6 :: Text
+result6 = T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 6"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -977,11 +979,11 @@ result6 = unlines
     , "; m1/THM/thm0/main goal/assertion/lmm0/step 6"
     ]
 
-case7 :: IO String
+case7 :: IO Text
 case7 = proof_obligation_stripped path0 "m1/THM/thm0/main goal/assertion/lmm0/step 3" 1
 
-result7 :: String
-result7 = unlines
+result7 :: Text
+result7 = T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 3"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1396,11 +1398,11 @@ result7 = unlines
     , "; m1/THM/thm0/main goal/assertion/lmm0/step 3"
     ]
 
-case8 :: IO String
+case8 :: IO Text
 case8 = proof_obligation_stripped path0 "m1/THM/thm0/main goal/assertion/lmm0/step 4" 1
 
-result8 :: String
-result8 = unlines
+result8 :: Text
+result8 = T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 4"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

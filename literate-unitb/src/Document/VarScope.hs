@@ -23,6 +23,7 @@ import Control.Precondition
 
 import           Data.Existential
 import           Data.Hashable
+import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
 import           Data.Map as M
 import           Data.Typeable
@@ -230,7 +231,7 @@ instance PrettyPrintable EvtDecls where
     pretty (Evt e) = "Evt " ++ pretty e
 instance ZoomEq EvtDecls where
 instance Scope EvtDecls where
-    kind (Evt m) = show $ M.map (view scope) m
+    kind (Evt m) = pack $ show $ M.map (view scope) m
     keep_from s (Evt m) 
             | M.null r  = Nothing
             | otherwise = Just $ Evt r
@@ -245,7 +246,7 @@ instance Scope EvtDecls where
                 | otherwise = Just m
     error_item (Evt m) = fromJust' $ NE.nonEmpty $ elems $ mapWithKey msg m
         where
-            msg (Right k) x = ([s|%s (event '%s')|] (kind x) (pretty k), x^.lineInfo)
+            msg (Right k) x = ([st|%s (event '%s')|] (kind x) (prettyText k), x^.lineInfo)
             msg (Left DummyDecl) x  = ("dummy", x^.lineInfo)
     merge_scopes' (Evt m0) (Evt m1) = Evt <$> scopeUnion merge_scopes' m0 m1
     rename_events' lookup (Evt vs) = Evt <$> concatMap f (toList vs)
@@ -290,7 +291,7 @@ prop_axiom_Scope_clashesOverMerge :: Property
 prop_axiom_Scope_clashesOverMerge = regression (uncurry3 axiom_Scope_clashesOverMerge) 
         [ (x,y,z) ]
     where
-        x = Evt (fromList [(Left DummyDecl,EventDecl {_scope = Param (Var (Name {_backslash = False, _base = 'a' :| "", _primes = 0, _suffix = ""}) (Gen (DefSort (Name {_backslash = False, _base = 'a' :| "", _primes = 0, _suffix = ""}) (InternalName "" (Name {_backslash = False, _base = 'a' :| "", _primes = 0, _suffix = ""}) "") [] (Gen (Sort (Name {_backslash = False, _base = 'a' :| "", _primes = 0, _suffix = ""}) (InternalName "" (Name {_backslash = False, _base = 'a' :| "", _primes = 0, _suffix = ""}) "") 0) [])) [])), _source = Right (EventId (Lbl "m")) :| [], _eventDeclDeclSource = Local, _eventDeclLineInfo = (LI "file" 0 0)})])
+        x = Evt (fromList [(Left DummyDecl,EventDecl {_scope = Param (Var (Name {_backslash = False, _base = NEText "a", _primes = 0, _suffix = ""}) (Gen (DefSort (Name {_backslash = False, _base = NEText "a", _primes = 0, _suffix = ""}) (InternalName "" (Name {_backslash = False, _base = NEText "a", _primes = 0, _suffix = ""}) "") [] (Gen (Sort (Name {_backslash = False, _base = NEText "a", _primes = 0, _suffix = ""}) (InternalName "" (Name {_backslash = False, _base = NEText "a", _primes = 0, _suffix = ""}) "") 0) [])) [])), _source = Right (EventId (Lbl "m")) :| [], _eventDeclDeclSource = Local, _eventDeclLineInfo = (LI "file" 0 0)})])
         y = Evt (fromList [(Left DummyDecl,EventDecl {_scope = Promoted Nothing, _source = Right (EventId (Lbl "c")) :| [], _eventDeclDeclSource = Inherited, _eventDeclLineInfo = (LI "file" 0 0)})])
         z = Evt (fromList [(Left DummyDecl,EventDecl {_scope = Index (InhDelete Nothing), _source = Right (EventId (Lbl "c")) :| [], _eventDeclDeclSource = Local, _eventDeclLineInfo = (LI "file" 0 10)})])
 

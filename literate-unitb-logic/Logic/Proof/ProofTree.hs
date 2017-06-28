@@ -268,8 +268,8 @@ instance PrettyPrintable Calculation where
                        (L.map ("      | " ++) $ L.map pretty h)
                     ++ [ "    " ++ pretty s ] )
 
-show_proof :: Calculation -> String
-show_proof = pretty
+show_proof :: Calculation -> Text
+show_proof = prettyText
 
 goal_po :: (HasGenExpr expr) 
         => CalculationBase expr 

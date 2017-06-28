@@ -42,6 +42,7 @@ import Control.Precondition
 import           Data.Either
 import           Data.IORef
 import           Data.List as L
+import qualified Data.List.NonEmpty as NE
 import           Data.String.Indentation
 import           Data.String.Lines hiding (lines,unlines)
 import           Data.Text as Text (unpack,Text)
@@ -142,8 +143,8 @@ instance IsTestCase TestCase where
                             , _criterion = id
                             }
     makeCase cs (LineSetCase x y z) = makeCase cs $ textCase x 
-                                ((asLinesText %~ L.sort) <$> y) 
-                                (z & asLinesText %~ L.sort)
+                                ((asLinesText %~ NE.sort) <$> y) 
+                                (z & asLinesText %~ NE.sort)
     makeCase cs (QuickCheckProps n prop) = do
             args <- ask
             let formatResult x = (x & _1.traverse %~ T.pack ,logNothing)

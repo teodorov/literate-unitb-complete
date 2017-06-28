@@ -32,7 +32,7 @@ import Document.Tests.Suite (find_errors)
 -- import Document.Phase.Declarations as PDecl
 import Document.Phase.Expressions as PExp 
 
-import Latex.Parser
+import Latex.Parser hiding (command)
 import Latex.Monad
 
 
@@ -41,6 +41,9 @@ import Test.UnitTest
 import UnitB.UnitB
 
     -- Libraries
+import           Data.Text (Text,pack)
+import qualified Data.Text as T
+
 import Test.QuickCheck.AxiomaticClass
 
 import Utilities.Syntactic
@@ -51,12 +54,12 @@ test_case = test
 test :: TestCase
 test = test_cases 
         "Unit-B Document" 
-        [ stringCase "basic syntax and scopes" case1 result1
+        [ textCase "basic syntax and scopes" case1 result1
         , LFD.test_case 
         -- , CC.test_case
         -- , Ind.test_case
         , SMch.test_case
-        , stringCase "Contextual predicate visibility rules" case2 result2 
+        , textCase "Contextual predicate visibility rules" case2 result2 
         , Puz.test_case
         , UE.test_case
         , PhTest.test_case
@@ -82,8 +85,8 @@ test = test_cases
             VSc.run_tests
         ]
 
-result1 :: String
-result1 = unlines 
+result1 :: Text
+result1 = T.unlines 
     [ "  o  m/enter/FIS/in@prime/goal"
     , "  o  m/enter/FIS/in@prime/hypotheses"
     , "  o  m/enter/FIS/in@prime/relation"
@@ -94,7 +97,7 @@ result1 = unlines
 path1 :: FilePath
 path1 = [path|Tests/new_syntax.tex|]
 
-case1 :: IO String
+case1 :: IO Text
 case1 = do
     r <- parse_machine path1
     case r of
@@ -102,10 +105,10 @@ case1 = do
             (s,_,_)   <- str_verify_machine m
             return s
         Left x -> return $ show_err x
-        x -> return $ show x
+        x -> return $ pack $ show x
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "error 23:12:"
     , "    predicate is undefined: 'a1'"
     ]
@@ -113,7 +116,7 @@ result2 = unlines
 path2 :: FilePath
 path2 = [path|Tests/new_syntax-err0.tex|]
 
-case2 :: IO String
+case2 :: IO Text
 case2 = find_errors path2
 
 check_axioms :: TestCase

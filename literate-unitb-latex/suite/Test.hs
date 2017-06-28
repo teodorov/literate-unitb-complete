@@ -1,4 +1,4 @@
-module Latex.Test where
+module Main where
 
     -- Modules
 import Latex.Parser 
@@ -22,6 +22,9 @@ import Data.Text.IO as T
 
 import GHC.Generics.Instances
 
+import System.Exit
+import System.Process
+
 import Test.UnitTest
 import Test.QuickCheck as QC hiding (sized)
 import Test.QuickCheck.RandomTree hiding (size,subtrees)
@@ -34,26 +37,26 @@ import Text.Show.With
 import Utilities.Syntactic
 
 path2 :: FilePath
-path2 = "Tests/sample.tex"
+path2 = [path|Tests/sample.tex|]
 
 result2 :: String
 result2 = 
      "Right (fromList [(\"align\",[]),(\"calculation\",[Env{calculation} (59),Env{calculation} (29)]),(\"equation\",[]),(\"invariant\",[]),(\"lemma\",[]),(\"machine\",[]),(\"theorem\",[])])"
     
 
-path3 = "Tests/sorted_sequences_err.tex"
 path3 :: FilePath
+path3 = [path|Tests/sorted_sequences_err.tex|]
 
 result3 :: String
 result3 = L.concat
     [ "Left [Error \"unexpected: }; expected: node; expected: end keyword (equation)\" (LI \"\" 29 13)]"
     ]
 
-path4 = "Tests/sorted_sequences.tex"
 path4 :: FilePath
+path4 = [path|Tests/sorted_sequences.tex|]
 
-path5 = "Tests/integers.tex"
 path5 :: FilePath
+path5 = [path|Tests/integers.tex|]
 
 sections :: [Text]
 sections = [
@@ -78,16 +81,19 @@ find_env kw xs = M.map L.reverse $ L.foldl' f (M.fromList $ L.zip kw $ repeat []
             | otherwise        = fold_doc f m t
         f m t                  = fold_doc f m t
 
-main :: FilePath -> IO String
-main path = do
-        let f (EnvNode (Env _ n _ doc _))   = ShowString $ [s|Env{%s} (%d)|] n (L.length $ contents' doc)
-            f (BracketNode (Bracket _ _ doc _)) = ShowString $ [s|Bracket (%d)|] (L.length $ contents' doc)
-            f (Text _)            = ShowString "Text {..}"
+test1 :: FilePath -> IO String
+test1 path = do
+        let f (EnvNode (Env _ n _ doc _))   = Verbatim $ [s|Env{%s} (%d)|] n (L.length $ contents' doc)
+            f (BracketNode (Bracket _ _ doc _)) = Verbatim $ [s|Bracket (%d)|] (L.length $ contents' doc)
+            f (Text _)            = Verbatim "Text {..}"
         ct <- T.readFile path
+        print path2
+        x <- mapM print $ fromRight' $ scan_latex "" ct
+        print $ L.length x
         return $ show $ M.map (L.map f) <$> extract_structure ct
 
-tests :: FilePath -> IO Text
-tests path = do
+test2 :: FilePath -> IO Text
+test2 path = do
         ct <- T.readFile path
         let x = (do
                 tree <- latex_structure path ct
@@ -163,7 +169,7 @@ instance Arbitrary Tokens where
             return x
         ts <- evalStateT (sequence xs) (true,li)
         return $ TokenStream ts
-    shrink = genericShrink
+    -- shrink = genericShrink
 
 instance Arbitrary MutatedTokens where
     arbitrary = do
@@ -289,18 +295,25 @@ properties = $forAllProperties'
 cases :: TestCase
 cases = test_cases "latex parser" [
     (QuickCheckProps "quickcheck" properties),
-    (aCase "sample.tex" (main path2) result2),
-    (aCase "sorted seq err.tex" (main path3) result3),
+    (aCase "sample.tex" (test1 path2) result2),
+    (aCase "sorted seq err.tex" (test1 path3) result3),
     (CalcCase "reconstitute sample.tex" 
-        (tests path2) 
+        (test2 path2) 
         (uncomment <$> T.readFile path2)),
     (CalcCase "reconstitute integers.tex" 
-        (tests path5) 
+        (test2 path5) 
         (uncomment <$> T.readFile path5)),
     (CalcCase "reconstitute sorted seq.tex" 
-        (tests path4) 
+        (test2 path4) 
         (uncomment <$> T.readFile path4)) ]
 
 test_case :: TestCase
 test_case = cases
 
+main :: IO ()
+main = do
+    _ <- system "rm actual* expected* po-* log*.z3"
+    r <- run_test_cases test_case
+    if r
+        then exitSuccess
+        else exitFailure

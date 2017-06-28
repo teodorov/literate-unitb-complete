@@ -32,7 +32,6 @@ import Logic.Names.Packaged ()
 -- import Logic.Proof
 -- import UnitB.Test as UB
 --import Latex.Parser
-import qualified Latex.Test as Tex
 -- import qualified Document.Test as DOC
 import qualified Utilities.Test as UT
 import qualified Code.Test as Code
@@ -59,6 +58,9 @@ import Utilities.TimeIt
 import Test.QuickCheck hiding (label)
 import Test.QuickCheck.Report
 
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+
 import Document.ExprScope as EScope
 
 main :: IO ()
@@ -68,9 +70,9 @@ main = timeIt $ void $ do
     _ <- system "rm expected-*.txt"
     _ <- system "rm po-*.z3"
     _ <- system "rm log*.z3"
-    writeFile "syntax.txt" $ unlines syntaxSummary
+    T.writeFile "syntax.txt" $ T.unlines syntaxSummary
     putStrLn $ nameType
-    _ <- return $ edit =<< raw_proof_obligation Deq.path1 "m0/INIT/FIS/q/p" 0
+    _ <- return $ raw_proof_obligation Deq.path1 "m0/INIT/FIS/q/p" 0
     _ <- return $ printQuickCheckResult MSpec.run_spec
     _ <- return $ quickCheck MSpec.prop_expr_parser
     _ <- return $ run_test_cases Deq.test_case
@@ -106,7 +108,6 @@ main = timeIt $ void $ do
     _ <- return $ run_test_cases TSS.test_case
     _ <- return $ run_test_cases TSRef.test_case
     _ <- return $ run_test_cases UT.test_case
-    _ <- return $ run_test_cases Tex.test_case
     _ <- return $ run_test_cases GC.test_case
     _ <- return $ run_test_cases Parser.test_case
     _ <- return $ run_test_cases Z3.test_case

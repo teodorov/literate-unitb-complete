@@ -2,7 +2,7 @@
 module Logic.Names 
     ( IsBaseName(..) 
     , HasNames(..) 
-    , NonEmpty((:|))
+    , NEText(..)
     , nameType
     , Name(..), InternalName(..)
     , isZ3Name, isZ3Name'

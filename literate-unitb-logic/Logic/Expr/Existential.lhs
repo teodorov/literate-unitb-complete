@@ -31,7 +31,7 @@ import           Data.IntMap
             , assocs, insert, elems
             , IntMap, fromList, Key 
             , mapMaybe )
-import           Data.List.NonEmpty (nonEmpty)
+import           Data.List.NonEmpty (NonEmpty,nonEmpty)
 import qualified Data.Map as M
 import qualified Data.Set as S
 

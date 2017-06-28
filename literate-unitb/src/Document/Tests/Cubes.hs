@@ -15,8 +15,10 @@ import UnitB.Expr
 import Control.Lens
 import Control.Precondition
 
-import Data.List hiding (inits)
 import Data.Map hiding ( map )
+import Data.Monoid
+import           Data.Text (Text,pack)
+import qualified Data.Text as T
 
 test_case :: TestCase
 test_case = test
@@ -28,11 +30,11 @@ test = test_cases
                 case6 $ Right [machine6])
         , (poCase "test 1 (verification)" 
                 case7 result7)
-        , (stringCase "test 2 (init/fis po)" 
+        , (textCase "test 2 (init/fis po)" 
              case8 result8)
-        , (stringCase "proof of inv0" 
+        , (textCase "proof of inv0" 
              case9 result9)
-        , (stringCase "empty proof"
+        , (textCase "empty proof"
              case10 result10) 
         ]
 
@@ -113,8 +115,8 @@ path6    = [path|Tests/integers.tex|]
 case6 :: IO (Either [Error] [RawMachineAST])
 case6    = (traverse.traverse %~ fmap getExpr.view' syntax) <$> parse path6
 
-result7 :: String
-result7 = unlines 
+result7 :: Text
+result7 = T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -149,15 +151,15 @@ result7 = unlines
     , "passed 31 / 31"
     ]
 
-case7 :: IO (String, Map Label Sequent)
+case7 :: IO (Text, Map Label Sequent)
 case7 = do
     verify path6 0
 
 path8 :: FilePath
 path8   = [path|Tests/integers_t8.tex|]
 
-result8 :: String
-result8 = unlines
+result8 :: Text
+result8 = T.unlines
     [ "; m0/INIT/FIS/x"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -179,12 +181,12 @@ result8 = unlines
     , "; m0/INIT/FIS/x"
     ]
 
-case8 :: IO String
+case8 :: IO Text
 case8 = do
         proof_obligation path8 "m0/INIT/FIS/x" 0
 
-result9 :: String
-result9 = unlines 
+result9 :: Text
+result9 = T.unlines  
     [ "m0/evt/INV/inv0:"
     , "(= (^ n' 3) a')"
     , "----"
@@ -200,21 +202,21 @@ result9 = unlines
     , "    a'"
     ]
 
-case9 :: IO String
+case9 :: IO Text
 case9 = do
         r <- parse path6
         case r of
             Right [m] -> do
                 case toList $ m!.proofs of
                     (lbl,ByCalc calc):_ -> 
-                          return (pretty lbl ++ ":\n" ++ show_proof calc)
+                          return (prettyText lbl <> ":\n" <> show_proof calc)
                     xs -> return (
                               "found "
-                           ++ intercalate "," (map (proof_kind . snd) xs) 
-                           ++ " proofs")
-            x -> return $ show x
+                           <> T.intercalate "," (map (proof_kind . snd) xs) 
+                           <> " proofs")
+            x -> return $ pack $ show x
 
-proof_kind :: Proof -> String
+proof_kind :: Proof -> Text
 proof_kind (ByCalc _) = "calc"
 proof_kind (Easy _ _) = "easy"
 proof_kind (ByCases _ _) = "cases"
@@ -229,12 +231,12 @@ proof_kind (Definition _ _ _) = "definition"
 path10 :: FilePath
 path10   = [path|Tests/integers_t10.tex|]
 
-result10 :: String
-result10 = unlines
+result10 :: Text
+result10 = T.unlines 
     [ "error 31:21:"
     , "    type error: a calculation must include at least one reasoning step"
     ]
 
-case10 :: IO String
+case10 :: IO Text
 case10 = do
     find_errors path10

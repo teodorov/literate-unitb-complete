@@ -9,11 +9,12 @@ import Control.Monad
 import Data.Functor.Compose
 -- import Data.List
 import Data.Monoid ((<>))
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import Document.Document hiding (system)
 import Document.Tests.SmallMachine as SM
 import qualified UnitB.Test as UB
-import qualified Latex.Test as LT
 import Logic.UnitTest 
 import qualified Z3.Test as ZT
 import qualified Document.Test as DOC
@@ -38,14 +39,13 @@ import Test.QuickCheck.ZoomEq
 selected_test_case :: TestCase
 selected_test_case = test_cases 
         "Selected Literate Unit-B Test Case" 
-        [ SM.test_case ]
+        [ ZT.test_case ]
 
 test_case :: TestCase
 test_case = test_cases 
         "Literate Unit-B Test Suite" 
         [  DOC.test_case
         ,  UB.test_case
-        ,  LT.test_case
         ,  ZT.test_case
 --        ,  FMT.test_case
         ,  UT.test_case
@@ -112,7 +112,7 @@ main = timeIt $ do
           ( fullDesc
          <> progDesc "Test Literate Unit-B"
          <> header "test - the Literate Unit-B test suite" )
-    writeFile "syntax.txt" $ unlines syntaxSummary
+    T.writeFile "syntax.txt" $ T.unlines syntaxSummary
     trashTestFiles
     -- b <- run_quickCheck_suite_with Main.test_case $ argMaxSuccess .= 1000
     -- b <- run_poTestSuite Main.test_case

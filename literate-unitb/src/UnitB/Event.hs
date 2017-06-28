@@ -319,7 +319,7 @@ keep' vars acts = vars `M.difference` frame acts
 skip' :: Map Name Var -> Map Label RawExpr
 skip' keep = M.mapKeys f $ M.map g keep
     where
-        f n = label ("SKIP:" ++ render n)
+        f n = label ("SKIP:" <> renderText n)
         g v = Word (prime v) `zeq` Word v
 
 ba_predicate' :: HasExpr expr => Map Name Var -> Map Label (Action' expr) -> Map Label RawExpr

@@ -36,6 +36,7 @@ import qualified Data.Map as M
 import           Data.Maybe
 import qualified Data.Set as S
 import qualified Data.Traversable as T 
+import qualified Data.Text as T 
 
 import Text.Printf.TH as Printf
 
@@ -109,7 +110,7 @@ add_assumption lbl asm = do
         s <- ST.get
         if lbl `member` assumptions s then do
             li    <- ask
-            hard_error [Error ([Printf.s|an assumption %s already exists|] $ pretty lbl) li]
+            hard_error [Error ([Printf.st|an assumption %s already exists|] $ prettyText lbl) li]
         else ST.put $ s { assumptions = insert lbl asm $ assumptions s }
 
 add_assert :: ( Monad m
@@ -122,7 +123,7 @@ add_assert lbl asrt = do
         s <- ST.get
         if lbl `member` assertions s then do
             li    <- ask
-            hard_error [Error ([Printf.s|an assertion %s already exists|] $ pretty lbl) li]
+            hard_error [Error ([Printf.st|an assertion %s already exists|] $ pretty lbl) li]
         else ST.put $ s { assertions = insert lbl asrt $ assertions s }
 
 add_proof :: ( Monad m
@@ -135,7 +136,7 @@ add_proof lbl prf = do
         s <- ST.get
         if lbl `member` subproofs s then do
             li    <- ask
-            hard_error [Error ([Printf.s|a proof for assertion %s already exists|] $ pretty lbl) li]
+            hard_error [Error ([Printf.st|a proof for assertion %s already exists|] $ prettyText lbl) li]
         else
             ST.put $ s { subproofs = insert lbl prf $ subproofs s }
 
@@ -201,7 +202,7 @@ find_proof_step = visitor
                         case infer_goal cc notat of
                             Right cc_goal -> do
                                     return (ByCalc $ cc & goal .~ cc_goal )
-                            Left msgs      -> hard_error $ map (\x -> Error ([s|type error: %s|] x) li) msgs
+                            Left msgs      -> hard_error $ map (\x -> Error ([st|type error: %s|] x) li) msgs
                     return ()
             )
                 -- TODO: make into a command
@@ -237,7 +238,7 @@ find_proof_step = visitor
                     li     <- ask
                     proofs <- lift $ ST.get
                     unless (lbl `M.member` assertions proofs)
-                            (hard_error [Error ([s|invalid subproof label: %s|] $ pretty lbl) li])
+                            (hard_error [Error ([st|invalid subproof label: %s|] $ prettyText lbl) li])
                     p <- lift_i collect_proof_step-- (change_goal pr new_goal) m
                     add_proof lbl p
             )
@@ -249,7 +250,7 @@ find_proof_step = visitor
                         $ parse_oper 
                             notat
                             (flatten_li' rel) 
-                    dir <- case map toLower dir of
+                    dir <- case T.map toLower dir of
                                 "left"  -> return $ Left ()
                                 "right" -> return $ Right ()
                                 _ -> hard_error [Error "invalid inequality side, expecting 'left' or 'right': " li]
@@ -267,7 +268,7 @@ find_proof_step = visitor
                         $ parse_oper 
                             notat
                             (flatten_li' rel) 
-                    dir <- case map toLower dir of
+                    dir <- case T.map toLower dir of
                                 "left"  -> return $ Left ()
                                 "right" -> return $ Right ()
                                 _ -> hard_error [Error "invalid inequality side, expecting 'left' or 'right': " li]

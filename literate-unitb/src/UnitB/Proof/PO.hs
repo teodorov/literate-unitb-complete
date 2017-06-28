@@ -20,6 +20,8 @@ import Data.Typeable
 
 import Prelude hiding (id,(.))
 
+import TextShow (showt)
+
 class LivenessRule rule => LivenessRulePO rule  where
     liveness_po :: RawProgressProp 
                 -> rule
@@ -96,8 +98,8 @@ instance LivenessRulePO Transitivity where
         forM_ (L.zip [0..] conseq) $ \(i,(p,q)) -> do
             let (LeadsTo fv1 _ q1) = p
                 (LeadsTo fv2 p2 _) = q
-                l1 = label $ show (i :: Int)
-                l2 = label $ show (i + 1 :: Int)
+                l1 = label $ showt (i :: Int)
+                l2 = label $ showt (i + 1 :: Int)
             emit_goal ["mhs" </> l1 </> l2] ( 
                 zforall (fv0 ++ fv1 ++ fv2) ztrue $
                         q1 `zimplies` p2 )

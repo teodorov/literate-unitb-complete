@@ -4,8 +4,10 @@ module Document.Tests.Phase where
 import Document.Tests.Suite
 
     -- Libraries
-import Test.UnitTest
+import           Data.Text (Text)
+import qualified Data.Text as T
 
+import Test.UnitTest
 
 test_case :: TestCase
 test_case = test
@@ -21,8 +23,8 @@ test = test_cases
 path0 :: FilePath
 path0 = [path|Tests/phases-t0.tex|]
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "A cycle exists in the refinement structure"
     , "error 174:1:"
     , "\tm0"
@@ -35,20 +37,20 @@ result0 = unlines
 path1 :: FilePath
 path1 = [path|Tests/phases-t1.tex|]
 
-case1 :: IO String
+case1 :: IO Text
 case1 = find_errors path1 
 
-result1 :: String
+result1 :: Text
 result1 = "no errors"
 
 path2 :: FilePath
 path2 = [path|Tests/phases-t2.tex|]
 
-case2 :: IO String
+case2 :: IO Text
 case2 = find_errors path2
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "error 96:8:"
     , "    proof obligation does not exist: m0/TR/tr0/step/NEG"
     , ""

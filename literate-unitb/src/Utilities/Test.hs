@@ -1,5 +1,5 @@
 {-# LANGUAGE StandaloneDeriving #-}
-module Utilities.Test (test) where
+module Utilities.Test (test_case) where
 
     -- Modules
 import Logic.Operator
@@ -127,8 +127,8 @@ result5 :: Either [Error] ((), [Error])
         e1 = Error "error b" li
         e2 = Error "error c" li
 
-test :: TestCase
-test = test_cases "Graphs and operator grammars" $
+test_case :: TestCase
+test_case = test_cases "Graphs and operator grammars" $
     [ aCase "case 2 - new ambiguities" case2 result2
     , aCase "case 5 - error monad" case5 result5
     , QuickCheckProps "case 11 - Relations, quickcheck" Rel.run_spec

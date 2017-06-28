@@ -14,15 +14,15 @@ import Control.Category
 import Control.Lens
 import Control.Monad.State
 
-import Data.Char
 import Data.Either.Combinators
 import Data.Either.Validation
 import Data.List as L
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
+import Data.Monoid
 import Data.Proxy.TH
-import Data.String 
-import Data.String.Utils hiding (join)
+import           Data.Text (Text,unpack)
+import qualified Data.Text as T
 import Prelude hiding ((.),id)
 
 import Text.Printf.TH
@@ -32,7 +32,7 @@ import Utilities.Syntactic
 
 newtype TheoryName = TheoryName { getTheoryName :: Name }
 
-newtype RuleName = RuleName String
+newtype RuleName = RuleName Text
 
 newtype VarName = VarName { getVarName :: Name }
 
@@ -44,7 +44,7 @@ newtype ExprText = Expr { getExprText :: StringLi }
 
 newtype PlainText = PlainText { getPlainText :: LatexDoc }
 
-newtype PO = PO { getPO :: String }
+newtype PO = PO { getPO :: Text }
 
 newtype CoarseSchLbl = CoarseSchLbl { getCoarseSchLbl :: Label }
 
@@ -64,8 +64,8 @@ newtype Factor = Factor { getFactor :: Float }
 
 --type M = Either [Error]
 
-readString :: LatexDoc -> Either [Error] String
-readString x = do
+readText :: LatexDoc -> Either [Error] Text
+readText x = do
         let x' = trim_blank_text' x
         case isWord x' of
             Just x
@@ -74,159 +74,148 @@ readString x = do
     where
         err_msg x = Left [Error "expecting a word" $ line_info x]
 
-readName :: LineInfo -> String -> Either [Error] Name
+readName :: LineInfo -> Text -> Either [Error] Name
 readName li str' = do
-    let str = strip str'
+    let str = T.strip str'
     with_li li $ isName str
 
 read_ :: Read a
       => LineInfo 
-      -> String 
+      -> Text 
       -> Either [Error] a
 read_ li str' = do
-    let str = strip str'
-    with_li li $ mapLeft (pure.[s|Invalid value: %s|]) $ readEither str
+    let str = T.strip str'
+    with_li li $ mapLeft (pure.[st|Invalid value: %s|]) $ readEither $ unpack str
 
-comma_sep :: String -> [String]
-comma_sep [] = []
-comma_sep xs = trim ys : comma_sep (drop 1 zs)
-    where
-        (ys,zs) = break (== ',') xs
+readFromText :: (Text -> a) -> LineInfo -> Text -> Either [Error] a
+readFromText f _ = return . f
 
-trim :: [Char] -> [Char]
-trim xs = reverse $ f $ reverse $ f xs
-    where
-        f = dropWhile isSpace
-
-readFromString :: (String -> a) -> LineInfo -> String -> Either [Error] a
-readFromString f _ = return . f
-
-class LatexArgFromString a where
-    kind' :: Proxy a -> String
-    read_one' :: LineInfo -> String -> Either [Error] a
+class LatexArgFromText a where
+    kind' :: Proxy a -> Text
+    read_one' :: LineInfo -> Text -> Either [Error] a
 
 class LatexArg a where
-    argKind :: Proxy a -> String
-    default argKind :: LatexArgFromString a => Proxy a -> String
+    argKind :: Proxy a -> Text
+    default argKind :: LatexArgFromText a => Proxy a -> Text
     argKind = kind'
     read_one :: LatexDoc -> Either [Error] a
-    default read_one :: LatexArgFromString a => LatexDoc -> Either [Error] a
-    read_one doc = read_one' (line_info doc) =<< readString doc
+    default read_one :: LatexArgFromText a => LatexDoc -> Either [Error] a
+    read_one doc = read_one' (line_info doc) =<< readText doc
 
 
 instance LatexArg Factor where
-instance LatexArgFromString Factor where
+instance LatexArgFromText Factor where
     kind' Proxy = "factor"
     read_one' li = fmap Factor . read_ li
 
 instance LatexArg TheoryName where
-instance LatexArgFromString TheoryName where
+instance LatexArgFromText TheoryName where
     kind' Proxy = "theory-name"
     read_one' li = fmap TheoryName . readName li
 
 instance LatexArg MachineId where
-instance LatexArgFromString MachineId where
+instance LatexArgFromText MachineId where
     kind' Proxy = "machine-name"
     read_one' li = fmap MId . readName li
 
 instance LatexArg RuleName where
-instance LatexArgFromString RuleName where
+instance LatexArgFromText RuleName where
     kind' Proxy = "rule"
-    read_one' = readFromString RuleName
+    read_one' = readFromText RuleName
 
 instance LatexArg ProgId where
-instance LatexArgFromString ProgId where
+instance LatexArgFromText ProgId where
     kind' Proxy = "progress-property-label"
-    read_one' = readFromString $ PId . label
+    read_one' = readFromText $ PId . label
 
 instance LatexArg VarName where
-instance LatexArgFromString VarName where
+instance LatexArgFromText VarName where
     kind' Proxy = "variable"
     read_one' li = fmap VarName . readName li
 
 instance LatexArg IndName where
-instance LatexArgFromString IndName where
+instance LatexArgFromText IndName where
     kind' Proxy = "index"
     read_one' li = fmap IndName . readName li
 
 instance LatexArg SetName where
-instance LatexArgFromString SetName where
+instance LatexArgFromText SetName where
     kind' Proxy = "set-name"
     read_one' li = fmap SetName . readName li
 
-instance LatexArgFromString EventId where
+instance LatexArgFromText EventId where
     kind' Proxy = "event-name"
-    read_one' = readFromString $ fromString
+    read_one' = readFromText $ EventId . label
 
 instance LatexArg ExprText where
     argKind Proxy = "expression"
     read_one = return . Expr . flatten_li' . trim_blank_text'
 
-instance LatexArgFromString CoarseSchLbl where
+instance LatexArgFromText CoarseSchLbl where
     kind' Proxy = "coarse-schedule-label"
-    read_one' = readFromString $ CoarseSchLbl . fromString
+    read_one' = readFromText $ CoarseSchLbl . label
 
-instance LatexArgFromString FineSchLbl where
+instance LatexArgFromText FineSchLbl where
     kind' Proxy = "fine-schedule-label"
-    read_one' = readFromString $ FineSchLbl . fromString
+    read_one' = readFromText $ FineSchLbl . label
 
-instance LatexArgFromString ActionLbl where
+instance LatexArgFromText ActionLbl where
     kind' Proxy = "action-label"
-    read_one' = readFromString $ ActionLbl . fromString
+    read_one' = readFromText $ ActionLbl . label
 
-instance LatexArgFromString GuardLbl where
+instance LatexArgFromText GuardLbl where
     kind' Proxy = "guard-label"
-    read_one' = readFromString $ GuardLbl . fromString
+    read_one' = readFromText $ GuardLbl . label
 
-instance LatexArgFromString InitLbl where
+instance LatexArgFromText InitLbl where
     kind' Proxy = "initialization-label"
-    read_one' = readFromString $ InitLbl . fromString
+    read_one' = readFromText $ InitLbl . label
 
 instance LatexArg PO where
     read_one = return . PO . flatten
-instance LatexArgFromString PO where
+instance LatexArgFromText PO where
     kind' Proxy = "proof-obligation-name"
-    read_one' = readFromString $ PO
+    read_one' = readFromText $ PO
 
 instance LatexArg NewLabel where
-instance LatexArgFromString NewLabel where
+instance LatexArgFromText NewLabel where
     kind' Proxy = "fresh-name"
-    read_one' = readFromString $ NewLabel . fromString
+    read_one' = readFromText $ NewLabel . label
 
 instance LatexArg EventOrRef where
-instance LatexArgFromString EventOrRef where
+instance LatexArgFromText EventOrRef where
     kind' Proxy = "event-or-progress-property"
-    read_one' = readFromString $ EventOrRef . fromString
+    read_one' = readFromText $ EventOrRef . label
 
 instance LatexArg PlainText where
     argKind Proxy = "text / comment"
     read_one = return . PlainText
 
-instance LatexArgFromString a => LatexArgFromString (Conc a) where
+instance LatexArgFromText a => LatexArgFromText (Conc a) where
     read_one' li = fmap Conc . read_one' li
-    kind' p = "concrete " ++ kind' (getConcrete <$> p)
-instance LatexArgFromString a => LatexArgFromString (Abs a) where
+    kind' p = "concrete " <> kind' (getConcrete <$> p)
+instance LatexArgFromText a => LatexArgFromText (Abs a) where
     read_one' li = fmap Abs . read_one' li
-    kind' p = "abstract " ++ kind' (getAbstract <$> p)
-instance LatexArgFromString a => LatexArgFromString (Common a) where
+    kind' p = "abstract " <> kind' (getAbstract <$> p)
+instance LatexArgFromText a => LatexArgFromText (Common a) where
     read_one' li = fmap Common . read_one' li
-    kind' p = "preserved " ++ kind' (getCommon <$> p)
-instance LatexArgFromString a => LatexArg (Conc a) where
-    argKind p = "concrete " ++ kind' (getConcrete <$> p)
-instance LatexArgFromString a => LatexArg (Abs a) where
-    argKind p = "abstract " ++ kind' (getAbstract <$> p)
-instance LatexArgFromString a => LatexArg (Common a) where
-    argKind p = "preserved " ++ kind' (getCommon <$> p)
-instance LatexArgFromString a => LatexArg [a] where
-    argKind p = "zero or more " ++ kind' (head <$> p)
+    kind' p = "preserved " <> kind' (getCommon <$> p)
+instance LatexArgFromText a => LatexArg (Conc a) where
+    argKind p = "concrete " <> kind' (getConcrete <$> p)
+instance LatexArgFromText a => LatexArg (Abs a) where
+    argKind p = "abstract " <> kind' (getAbstract <$> p)
+instance LatexArgFromText a => LatexArg (Common a) where
+    argKind p = "preserved " <> kind' (getCommon <$> p)
+instance LatexArgFromText a => LatexArg [a] where
+    argKind p = "zero or more " <> kind' (head <$> p)
     read_one doc = validationToEither $ parseAll $ comma_sep $ flatten doc
         where 
             parseAll = traverse (eitherToValidation . read_one' (line_info doc))
-instance LatexArgFromString a => LatexArg (NonEmpty a) where
-    argKind p = "one or more " ++ kind' (NE.head <$> p)
+instance LatexArgFromText a => LatexArg (NonEmpty a) where
+    argKind p = "one or more " <> kind' (NE.head <$> p)
     read_one doc = toEither $ fmap parseAll $ NE.nonEmpty $ comma_sep $ flatten doc
         where 
-            msg = "expecting at one or more " ++ kind' [pr|a|] ++ " argument"
+            msg = "expecting at one or more " <> kind' [pr|a|] <> " argument"
             toEither = validationToEither . fromMaybe (Failure [Error msg $ line_info doc])
             parseAll = traverse (eitherToValidation . read_one' (line_info doc))
 

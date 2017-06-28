@@ -10,8 +10,11 @@ import Document.Tests.Suite
 #if MIN_VERSION_semigroups(0,18,0)
 import Data.List.NonEmpty as NE
 #else
-import Data.List.NonEmpty as NE hiding (unlines)
+import Data.List.NonEmpty as NE hiding (T.unlines)
 #endif
+import           Data.Text (Text)
+import qualified Data.Text as T
+
 import Test.UnitTest
 
 test_case :: TestCase
@@ -22,17 +25,17 @@ test = test_cases
             "train station example, with refinement"
             [ poCase "verify machine m0 (ref)" (verify path0 0) result0
             , poCase "verify machine m1 (ref)" (verify path0 1) result1
-            , stringCase "Feasibility in m1" case6 result6
+            , textCase "Feasibility in m1" case6 result6
             , poCase "verify machine m2 (ref)" (verify path0 2) result2
             , poCase "verify machine m2 (ref), in many files" 
                 (verifyFiles (NE.fromList [path1,path1']) 2) result2
-            , stringCase "cyclic proof of liveness through 3 refinements" (find_errors path3) result3
-            , stringCase "refinement of undefined machine" (find_errors path4) result4
-            , stringCase "repeated imports" case5 result5
+            , textCase "cyclic proof of liveness through 3 refinements" (find_errors path3) result3
+            , textCase "refinement of undefined machine" (find_errors path4) result4
+            , textCase "repeated imports" case5 result5
             ]
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/m0:enter/FIS/in@prime"
     , "  o  m0/m0:leave/FIS/in@prime"
     , "  o  m0/m0:prog0/LIVE/discharge/tr/lhs"
@@ -43,8 +46,8 @@ result0 = unlines
     , "passed 7 / 7"
     ]
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/INIT/INV/inv0"
     , "  o  m1/m0:enter/FIS/in@prime"
     , "  o  m1/m0:enter/FIS/loc@prime"
@@ -129,8 +132,8 @@ result1 = unlines
     , "passed 81 / 81"
     ]
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "  o  m2/INIT/INV/m2:inv0"
     , "  o  m2/INV/WD"
     , "  o  m2/m0:enter/FIS/in@prime"
@@ -246,8 +249,8 @@ path1' = [path|Tests/train-station-ref/ref0.tex|]
 path3 :: FilePath
 path3 = [path|Tests/train-station-ref-err0.tex|]
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "A cycle exists in the liveness proof"
     , "error 42:1:"
     , "\tProgress property p0 (refined in m0)"
@@ -260,24 +263,24 @@ result3 = unlines
 path4 :: FilePath
 path4 = [path|Tests/train-station-ref-err1.tex|]
 
-result4 :: String
-result4 = unlines
+result4 :: Text
+result4 = T.unlines
     [ "error 31:1:"
     , "    Machine m0 refines a non-existant machine: mm"
     ]
 
--- parse :: FilePath -> IO String
+-- parse :: FilePath -> IO Text
 -- parse path = do
 --     r <- parse_machine path
 --     return $ case r of
 --         Right _ -> "ok"
---         Left xs -> unlines $ map report xs
+--         Left xs -> T.unlines $ map report xs
 
 path5 :: FilePath
 path5 = [path|Tests/train-station-ref-err2.tex|]
 
-result5 :: String
-result5 = unlines
+result5 :: Text
+result5 = T.unlines
     [ "Theory imported multiple times"
     , "error 38:1:"
     , "\tsets"
@@ -301,14 +304,14 @@ result5 = unlines
     , ""
     ]
 
-case5 :: IO String
+case5 :: IO Text
 case5 = find_errors path5
 
-case6 :: IO String
+case6 :: IO Text
 case6 = proof_obligation path0 "m1/m1:moveout/FIS/loc@prime" 1
 
-result6 :: String
-result6 = unlines
+result6 :: Text
+result6 = T.unlines
     [ "; m1/m1:moveout/FIS/loc@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

@@ -20,7 +20,7 @@ import qualified Data.List as L
 import Data.Monoid
 import Data.Semigroup hiding ( (<>) )
 import qualified Data.Semigroup as S 
--- import Data.String.Lines as LN
+import Data.String.Lines as LN (linesText')
 import Data.Text as T
 import Data.Text.Lens as T hiding (Text,_Text)
 import Data.Typeable
@@ -29,7 +29,7 @@ import GHC.Generics (Generic)
 
 import Safe
 
-import System.IO.Unsafe
+-- import System.IO.Unsafe
 
 import Text.Parsec ((<?>),(<|>))
 import qualified Text.Parsec as P
@@ -69,6 +69,7 @@ data LatexToken =
 
 makePrisms ''LatexToken
 makePrisms ''LatexNode
+makePrisms ''BracketType
 
 envType :: Environment -> Text
 envType (Env _ n _ _ _) = n
@@ -296,6 +297,7 @@ source (Text t) = lexeme t
 source x           = pack $ show x
 
 instance Token LatexToken where
+    -- lexemeString = show
     lexeme (Command xs _)   = xs
     lexeme (TextBlock xs _) = xs
     lexeme (Blank xs _)     = xs
@@ -339,33 +341,85 @@ is_space xs = do
         guard (1 <= n)
         Just n
 
-tex_tokens :: Scanner Char [(LatexToken,LineInfo)]
-tex_tokens = do 
-    b <- is_eof
-    if b
-        then return []
-        else do
-            li <- get_line_info
-            c <- match_first [
-                    (is_space, \xs -> return $ Just $ Blank (pack xs) li),
-                    (is_command, \xs -> return $ Just $ Command (pack xs) li),
-                    (match_string "{", (\_ -> return (Just $ Open Curly li))),
-                    (match_string "}", (\_ -> return (Just $ Close Curly li))),
-                    (match_string "[", (\_ -> return (Just $ Open Square li))),
-                    (match_string "]", (\_ -> return (Just $ Close Square li))) ]
-                    (return Nothing)
-            case c of
-                Just x  -> do
-                    xs <- tex_tokens
-                    return ((x,li):xs)
-                Nothing -> do
-                    li <- get_line_info
-                    d  <- read_char
-                    xs <- tex_tokens
-                    case xs of
-                        (TextBlock ys _,_):zs -> 
-                            return ((TextBlock (d `T.cons` ys) li,li):zs)
-                        _ ->return ((TextBlock (T.singleton d) li,li):xs)
+tex_tokens :: P.Parsec Text () [(LatexToken,LineInfo)]
+tex_tokens = P.many one_token <* P.eof
+
+takeWhileP :: (Char -> Bool) -> P.Parsec Text () Text
+takeWhileP p = do
+    xs <- P.getInput 
+    let r = T.takeWhile p xs
+    _ <- P.count (T.length r) P.anyChar
+    return r
+
+
+spaces :: P.Parsec Text () (LatexToken,LineInfo)
+spaces = do 
+        li <- posToLi <$> P.getPosition
+        r <- takeWhileP isSpace
+        guard (T.length r > 0)
+        return (Blank r li, li) 
+
+textBlock :: P.Parsec Text () (LatexToken,LineInfo)
+textBlock = do 
+        li <- posToLi <$> P.getPosition
+        r <- takeWhileP (\x -> not $   isSpace x 
+                                    || x == '\\' 
+                                    || x == '{' 
+                                    || x == '[' 
+                                    || x == '}' 
+                                    || x == ']')
+        guard (T.length r > 0)
+        return (TextBlock r li, li) 
+
+command :: P.Parsec Text () (LatexToken,LineInfo)
+command = do
+    li <- posToLi <$> P.getPosition
+    xs <- P.getInput 
+    _  <- P.char '\\'
+    n  <-   P.try (1 <$ P.satisfy isSymbol) 
+        <|> P.try (1 <$ P.satisfy isPunctuation) 
+        <|> (L.length <$> P.many1 (P.satisfy isAlphaNum))
+    return (Command (T.take (n+1) xs) li,li)
+
+one_token :: P.Parsec Text () (LatexToken,LineInfo)
+one_token = do
+    li <- posToLi <$> P.getPosition
+    P.choice 
+        [ P.try spaces <?> "space"
+        , P.try command <?> "command"
+        , (Open Curly li,li) <$ P.char '{'   
+        , (Open Square li,li) <$ P.char '[' 
+        , (Close Curly li,li) <$ P.char '}' 
+        , (Close Square li,li) <$ P.char ']'
+        , textBlock <?> "text block" ]
+
+-- tex_tokens :: Scanner Char [(LatexToken,LineInfo)]
+-- tex_tokens = do 
+--     b <- is_eof
+--     if b
+--         then return []
+--         else do
+--             li <- get_line_info
+--             c <- match_first [
+--                     (is_space, \xs -> return $ Just $ Blank (pack xs) li),
+--                     (is_command, \xs -> return $ Just $ Command (pack xs) li),
+--                     (match_string "{", (\_ -> return (Just $ Open Curly li))),
+--                     (match_string "}", (\_ -> return (Just $ Close Curly li))),
+--                     (match_string "[", (\_ -> return (Just $ Open Square li))),
+--                     (match_string "]", (\_ -> return (Just $ Close Square li))) ]
+--                     (return Nothing)
+--             case c of
+--                 Just x  -> do
+--                     xs <- tex_tokens
+--                     return ((x,li):xs)
+--                 Nothing -> do
+--                     li <- get_line_info
+--                     d  <- read_char
+--                     xs <- tex_tokens
+--                     case xs of
+--                         (TextBlock ys _,_):zs -> 
+--                             return ((TextBlock (d `T.cons` ys) li,li):zs)
+--                         _ ->return ((TextBlock (T.singleton d) li,li):xs)
 
 type Parser = P.Parsec [LatexToken] ()
 
@@ -385,7 +439,7 @@ latex_content' = do
         env   = do
             li0 <- lineInfo
             cmd "\\begin"          <?> "begin environment"
-            (n,li1) <- argument    <?> "argument"
+            (n,li1) <- argument    <?> "argument a"
             ct  <- latex_content'
             cmd "\\end"            <?> [s|end keyword (%s)|] n
             (_,li2) <- argument' n <?> [s|\\end{%s}|] n
@@ -409,25 +463,30 @@ latex_content' = do
             | otherwise                       = pure (x,li)
         open     = texToken (_Open._1)
         close b  = texToken (_Close._1.only b)
-        argument = argumentAux id
-        argument' n = argumentAux (only n)
-        argumentAux :: Show a => Prism' Text a -> Parser (a,LineInfo)
-        argumentAux p = do
+        argument = argumentAux Nothing
+        argument' n = argumentAux (Just n)
+        argumentAux :: Maybe Text -> Parser (Text,LineInfo)
+        argumentAux kw = do
             _ <- optional $ texToken _Blank
-            texToken (_Open._1.only Curly)    <?> "open curly"
+            let 
+                (Fold p,argTag) = case kw of
+                                Just x ->  (Fold $ filtered (==x),[s|argument: %s|] x)
+                                Nothing -> (Fold id,"argument")
+
+            texToken (_Open._1._Curly)    <?> "open curly"
             li  <- lineInfo
-            arg <- texToken (_TextBlock._1.p) <?> "argument"
-            texToken (_Close._1.only Curly)   <?> "close curly"
+            arg <- texToken (_TextBlock._1.p) <?> argTag
+            texToken (_Close._1._Curly)       <?> "close curly"
             return (arg,li)
         lineInfo = posToLi <$> P.getPosition
         cmd x  = texToken (_Command._1.only x)
 
-texToken :: (Traversal' LatexToken a) -> Parser a
+texToken :: (Fold LatexToken a) -> Parser a
 texToken = token 
 
 token :: ( Syntactic token,P.Stream xs Identity token
          , Token token)
-      => (Traversal' token a) -> P.Parsec xs () a
+      => (Fold token a) -> P.Parsec xs () a
 token p = tokenAux (^? p)
 
 texTokenAux :: (LatexToken -> Maybe a) -> Parser a
@@ -448,12 +507,7 @@ texToken' p = texTokenAux (\x -> x <$ (x^?p))
 
 latex_content :: FilePath -> [(LatexToken,LineInfo)] -> (Int,Int) -> Either [Error] LatexDoc
 latex_content fn toks (i,j) = mapLeft toErr $ P.parse parser fn $ L.map fst toks
-    where toErr e = [Error (errMsg e) (posToLi $ P.errorPos e)]
-          errMsg e = T.intercalate "; " $ L.nub $ L.concatMap f $ errorMessages e
-          f (SysUnExpect xs) = ["unexpected: " <> pack xs]
-          f (UnExpect xs) = ["unexpected: " <> pack xs]
-          f (Expect xs)   = ["expected: " <> pack xs]
-          f (Message xs)  = [pack xs]
+    where
           parser = do
             P.setPosition (P.newPos fn i j)
             x <- latex_content'
@@ -462,6 +516,15 @@ latex_content fn toks (i,j) = mapLeft toErr $ P.parse parser fn $ L.map fst toks
           eof = P.try (do{ c <- P.try (texToken' id); P.unexpected (lexemeString c) }
                                 <|> return ()
                                 )
+
+toErr :: ParseError -> [Error]
+toErr e = [Error (errMsg e) (posToLi $ P.errorPos e)]
+    where 
+          errMsg e = T.intercalate "; " $ L.nub $ L.concatMap f $ errorMessages e
+          f (SysUnExpect xs) = ["unexpected: " <> pack xs]
+          f (UnExpect xs) = ["unexpected: " <> pack xs]
+          f (Expect xs)   = ["expected: " <> pack xs]
+          f (Message xs)  = [pack xs]
 
 
 size :: LatexDoc -> Int
@@ -492,6 +555,18 @@ subtrees (Doc li xs li') = L.concatMap f xs ++ ys
 
 opt_args :: Scanner LatexToken [[LatexNode]]
 opt_args = return []
+
+comma_sep :: Text -> [Text]
+comma_sep xs 
+        | T.null xs = []
+        | otherwise = T.strip ys : comma_sep (T.drop 1 zs)
+    where
+        (ys,zs) = T.break (== ',') xs
+
+-- trim :: [Char] -> [Char]
+-- trim xs = reverse $ f $ reverse $ f xs
+--     where
+--         f = dropWhile isSpace
 
 trim_blank_text' :: LatexDoc -> LatexDoc
 trim_blank_text' xs = Doc li0 xs' (lis ! L.length xs')
@@ -527,53 +602,53 @@ skip_blank = do
             _  -> return ()
 
 
-type DocWithHoles = Either (Text,LineInfo) (LatexToken,LineInfo)
+-- type DocWithHoles = Either (Text,LineInfo) (LatexToken,LineInfo)
 
-find_input_cmd :: Scanner LatexToken [DocWithHoles]
-find_input_cmd = do
-        b <- is_eof
-        if b then return []
-        else do
-            r  <- read_char 
-            case r of
-                Command "\\input" li -> do
-                    ts <- peek
-                    fn <- case ts of
-                        Blank _ _ 
-                            : Open Curly _ 
-                            : TextBlock fn _
-                            : Close Curly _
-                            : _ -> do
-                                replicateM_ 4 read_char
-                                return fn
-                        Open Curly _ 
-                            : TextBlock fn _
-                            : Close Curly _
-                            : _ -> do
-                                replicateM_ 3 read_char
-                                return fn
-                        _ -> fail "invalid syntax for \\input command"
-                    rs <- find_input_cmd
-                    return $ Left (fn,li) : rs
-                _ -> do
-                    rs <- find_input_cmd
-                    return $ Right (r,line_info r) : rs
+-- find_input_cmd :: Scanner LatexToken [DocWithHoles]
+-- find_input_cmd = do
+--         b <- is_eof
+--         if b then return []
+--         else do
+--             r  <- read_char 
+--             case r of
+--                 Command "\\input" li -> do
+--                     ts <- peek
+--                     fn <- case ts of
+--                         Blank _ _ 
+--                             : Open Curly _ 
+--                             : TextBlock fn _
+--                             : Close Curly _
+--                             : _ -> do
+--                                 replicateM_ 4 read_char
+--                                 return fn
+--                         Open Curly _ 
+--                             : TextBlock fn _
+--                             : Close Curly _
+--                             : _ -> do
+--                                 replicateM_ 3 read_char
+--                                 return fn
+--                         _ -> fail "invalid syntax for \\input command"
+--                     rs <- find_input_cmd
+--                     return $ Left (fn,li) : rs
+--                 _ -> do
+--                     rs <- find_input_cmd
+--                     return $ Right (r,line_info r) : rs
 
-scan_file :: FilePath -> Text 
-          -> Either [Error] [DocWithHoles]
-scan_file fname xs = do
-        ys <- read_lines tex_tokens fname (uncomment xs)
-        read_tokens find_input_cmd ys (LI fname 1 1)
+-- scan_file :: FilePath -> Text 
+--           -> Either [Error] [DocWithHoles]
+-- scan_file fname xs = do
+--         ys <- read_lines tex_tokens fname (uncomment xs)
+--         read_tokens find_input_cmd ys (LI fname 1 1)
         
 --        read_tokens latex_content ys (1,1)
 
-do_while :: Monad m
-         => m Bool -> m ()
-do_while cmd = do
-        b <- cmd
-        if b then
-            do_while cmd
-        else return ()
+-- do_while :: Monad m
+--          => m Bool -> m ()
+-- do_while cmd = do
+--         b <- cmd
+--         if b then
+--             do_while cmd
+--         else return ()
 
 latex_structure :: FilePath -> Text -> Either [Error] LatexDoc
 latex_structure fn xs = do
@@ -582,19 +657,20 @@ latex_structure fn xs = do
 
 scan_latex :: FilePath -> Text -> Either [Error] [(LatexToken,LineInfo)]
 scan_latex fn xs = -- trace ([s|input: %s\nuncomment: %s\n|] xs cs) $ 
-        read_lines tex_tokens fn (uncomment xs)
+        mapLeft toErr $ P.parse tex_tokens fn $ uncomment xs
+        -- read_lines tex_tokens fn (uncomment xs)
     --where cs = uncomment xs
 
 is_prefix :: Eq a => [a] -> [a] -> Bool
 is_prefix xs ys = xs == L.take (L.length xs) ys
 
 uncomment :: Text -> Text
-uncomment xs = F.fold $ fmap removeComment $ T.lines xs
+uncomment xs = F.fold $ fmap removeComment $ linesText' xs
     where
         removeComment = uncurry (<>) . second (T.dropWhile (`notElem` ['\n','\r'])) . T.span ('%' /=)
 
-with_print :: Show a => a -> a
-with_print x = unsafePerformIO (do putStrLn $ show x ; return x)
+-- with_print :: Show a => a -> a
+-- with_print x = unsafePerformIO (do putStrLn $ show x ; return x)
 
 remove_ref :: Text -> Text
 remove_ref = unpacked %~ remove_ref'

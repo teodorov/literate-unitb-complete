@@ -30,6 +30,7 @@ import Prelude.Extras hiding (Lift1)
 #else
 import Data.Functor.Classes
 #endif
+import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe
 import Data.Serialize hiding (label)
 import Data.Typeable
