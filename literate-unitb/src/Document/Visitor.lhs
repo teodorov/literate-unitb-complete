@@ -65,14 +65,15 @@ import           Control.Monad.Trans.Either as E
 import qualified Control.Monad.Trans.State as ST
 import           Control.Monad.Trans.Writer ( WriterT ( .. ), runWriterT )
 
-import           Data.Char
 import           Data.Either.Validation
 import           Data.Foldable as F
 import           Data.List as L
 import qualified Data.Map as M
 import           Data.Maybe
+import           Data.Monoid
 import           Data.Set hiding (map)
-import           Data.String.Utils
+import           Data.Text (Text,pack,unpack)
+import qualified Data.Text as T
 import           Data.Traversable as T
 
 import qualified Text.ParserCombinators.ReadPrec as RP ( get, pfail, (<++) )
@@ -156,16 +157,6 @@ instance (AllReadable as, Readable a) => AllReadable (a :+: as) where
         xs <- read_all
         return (x :+: xs)
 
-trim :: [Char] -> [Char]
-trim xs = reverse $ f $ reverse $ f xs
-    where
-        f = dropWhile isSpace
-
-comma_sep :: String -> [String]
-comma_sep [] = []
-comma_sep xs = trim ys : comma_sep (drop 1 zs)
-    where
-        (ys,zs) = break (== ',') xs
 
 type Impl m = ST.StateT ([LatexDoc],LineInfo) (EitherT [Error] m)
 
@@ -191,10 +182,10 @@ instance Readable LatexDoc where
     read_one = do
         get_next
 
-data Str = String { toString :: String }
+data Str = String { toString :: Text }
 
 read_label :: Monad m
-           => Impl m (String,LineInfo)
+           => Impl m (Text,LineInfo)
 read_label = do
     x  <- get_next    
     let x' = trim_blank_text' x
@@ -217,46 +208,46 @@ instance Readable Int where
         ts <- ST.get
         (arg,ts) <- lift $ get_1_lbl ts
         ST.put ts
-        case reads arg of 
+        case reads $ unpack arg of 
             [(n,"")] -> return n
             _ -> lift $ do
-                E.left [Error ([s|invalid integer: '%s'|] arg) $ line_info ts]
+                E.left [Error ([st|invalid integer: '%s'|] arg) $ line_info ts]
     read_one = do
         (arg,li) <- read_label
-        case reads arg of
+        case reads $ unpack arg of
             [(n,"")] -> return n
             _ -> lift $ do
-                E.left [Error ([s|invalid integer: '%s'|] arg) li]
+                E.left [Error ([st|invalid integer: '%s'|] arg) li]
 
 instance Readable Double where
     read_args = do
         ts <- ST.get
         (arg,ts) <- lift $ get_1_lbl ts
         ST.put ts
-        case reads arg of 
+        case reads $ unpack arg of 
             [(n,"")] -> return n
             _ -> lift $ do
-                E.left [Error ([s|invalid number: '%s'|] arg) $ line_info ts]
+                E.left [Error ([st|invalid number: '%s'|] arg) $ line_info ts]
     read_one = do
         (arg,li) <- read_label
-        case reads arg of
+        case reads $ unpack arg of
             [(n,"")] -> return n
             _ -> lift $ do
-                E.left [Error ([s|invalid number: '%s'|] arg) li]
+                E.left [Error ([st|invalid number: '%s'|] arg) li]
 
 instance Readable (Maybe Label) where
     read_args = do
         ts <- ST.get
         (arg,ts) <- lift $ cmd_params 1 ts
         ST.put ts
-        let xs = (concatMap flatten' arg)
-        if strip xs == "" then 
+        let xs = (foldMap flatten' arg)
+        if T.strip xs == "" then 
             return Nothing
         else return $ Just $ label xs
     read_one = do
         arg <- get_next
         let xs = flatten' arg
-        if strip xs == "" then
+        if T.strip xs == "" then
             return Nothing
         else return $ Just $ label xs
 
@@ -294,16 +285,16 @@ instance Readable [[Str]] where
         ts <- ST.get
         ([arg],ts) <- lift $ cmd_params 1 ts
         ST.put ts
-        case reads $ flatten' arg of 
+        case reads $ unpack $ flatten' arg of 
             [(n,"")] -> return n
             _ -> lift $ do
-                throwError [Error ([s|invalid list of strings: '%s'|] $ show arg) $ line_info arg]
+                throwError [Error ([st|invalid list of strings: '%s'|] $ show arg) $ line_info arg]
     read_one = do
         arg <- get_next
-        case reads $ flatten' arg of 
+        case reads $ unpack $ flatten' arg of 
             [(n,"")] -> return n
             _ -> lift $ do
-                throwError [Error ([s|invalid list of strings: '%s'|] $ show arg) $ line_info arg]
+                throwError [Error ([st|invalid list of strings: '%s'|] $ show arg) $ line_info arg]
 
 instance Read Str where
     readPrec = do
@@ -313,7 +304,7 @@ instance Read Str where
             (do c <- RP.get
                 when (c == ',' || c == ']') $ RP.pfail
                 rec (c:xs)) RP.<++
-                return (String $ reverse xs)) [c]
+                return (String $ pack $ reverse xs)) [c]
     
 instance Readable (Set Label) where
     read_args = do
@@ -414,7 +405,7 @@ cmd_params n xs     = do
             _                 -> throwError [Error ("Expecting one more argument") $ line_info xs]
 
 get_1_lbl :: (Monad m)
-          => LatexDoc -> EitherT [Error] m (String, LatexDoc)
+          => LatexDoc -> EitherT [Error] m (Text, LatexDoc)
 get_1_lbl xs = do 
         ([x],z) <- cmd_params 1 xs
         let x' = trim_blank_text' x
@@ -454,7 +445,7 @@ with_line_info li cmd =
     -- Given a Latex document piece, find one instance
     -- of the given command, its arguments and the
     -- the parts surrounding it to the left and right
-find_cmd_arg :: Int -> [String] -> LatexDoc
+find_cmd_arg :: Int -> [Text] -> LatexDoc
              -> Maybe (LatexDoc,LatexToken,[LatexDoc],LatexDoc)
 find_cmd_arg n cmds xs = -- (x@(Text xs _) : cs) =
         case unconsTex xs of
@@ -519,7 +510,7 @@ toEither m = M $ EitherT $ mapRWST f $ do
         f m = m >>= \(x,y,_) -> return (x,y,[])
 
 bind :: (MonadError [Error] m,MonadReader r m,Syntactic r)
-     => String -> Maybe a -> m a
+     => Text -> Maybe a -> m a
 bind msg Nothing = do
         li <- asks line_info
         throwError [Error msg li]
@@ -527,7 +518,7 @@ bind _ (Just x) = return x
 
 bind_all :: (Traversable t,MonadReader r m,Syntactic r,MonadError [Error] m)
          => t a
-         -> (a -> String) 
+         -> (a -> Text) 
          -> (a -> Maybe b)
          -> m (t b)
 bind_all xs msgs lu = do
@@ -549,7 +540,7 @@ insert_new x y m
     | otherwise         = Just $ M.insert x y m
 
 error_list :: Monad m
-           => [(Bool, String)] -> RWST LineInfo [Error] s m ()
+           => [(Bool, Text)] -> RWST LineInfo [Error] s m ()
 error_list [] = return ()
 error_list ( (b,msg):xs ) =
             if not b then
@@ -560,8 +551,8 @@ error_list ( (b,msg):xs ) =
                 error_list xs
 
 data ParamT m = ParamT
-    { blocksT :: [(String, VEnvBlock m)]
-    , cmdsT   :: [(String, VCmdBlock m)] 
+    { blocksT :: [(Text, VEnvBlock m)]
+    , cmdsT   :: [(Text, VCmdBlock m)] 
     }
 
 newtype VisitorT m a = VisitorT { unVisitor :: ErrorT (ReaderT (LineInfo, LatexDoc) m) a }
@@ -634,13 +625,13 @@ run_visitor li xs (VisitorT cmd) = EitherT $ do
             Left err      -> return $ Left err
 
 visitor :: Monad m 
-        => [(String,VEnvBlock m)] 
-        -> [(String,VCmdBlock m)] 
+        => [(Text,VEnvBlock m)] 
+        -> [(Text,VCmdBlock m)] 
         -> VisitorT m ()
 visitor blks cmds = do
-        unless (all (\(x,_) -> take 1 x == "\\") cmds) 
-            $ error $ "Document.Visitor.visitor: "
-                    ++ [s|all commands must start with '\\': %s|] (show $ map fst cmds)
+        unless (all (\(x,_) -> "\\" `T.isPrefixOf` x) cmds) 
+            $ error $ unpack $ "Document.Visitor.visitor: "
+                    <> [st|all commands must start with '\\': %s|] (show $ map fst cmds)
         xs <- VisitorT $ lift $ asks snd
         runReaderT (do
             forM_ (contents' xs) ff
@@ -649,15 +640,15 @@ visitor blks cmds = do
 --        VisitorT $ RWS.tell w
 --        forM 
 
-visit_doc :: [(String,EnvBlock s a)] 
-          -> [(String,CmdBlock s a)] 
+visit_doc :: [(Text,EnvBlock s a)] 
+          -> [(Text,CmdBlock s a)] 
           -> LatexDoc -> a 
           -> RWS b [Error] s a
 visit_doc blks cmds cs x = do
 --        s0 <- RWS.get
-        unless (all (\(x,_) -> take 1 x == "\\") cmds) 
-            $ error $ "Document.Visitor.visit_doc: "
-                    ++ [s|all commands must start with '\\': %s|] (show $ map fst cmds)
+        unless (all (\(x,_) -> "\\" `T.isPrefixOf` x) cmds) 
+            $ error $ unpack $ "Document.Visitor.visit_doc: "
+                    <> [st|all commands must start with '\\': %s|] (show $ map fst cmds)
         (err,x) <- flip ST.runStateT x $ 
             runEitherT $ 
             run_visitor (line_info cs) cs $ visitor 

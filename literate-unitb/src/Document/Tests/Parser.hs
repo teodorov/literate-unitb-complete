@@ -16,6 +16,8 @@ import Control.Lens
 import Control.Monad.State
 
 import Data.Map
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 test_case :: TestCase
 test_case = test_cases 
@@ -32,8 +34,8 @@ path0 = [path|Tests/parser/main.tex|]
 case0 :: IO POResult
 case0 = verify path0 0
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/input/INV/m0:inv0"
@@ -45,8 +47,8 @@ result0 = unlines
 case1 :: IO POResult
 case1 = verify path0 1
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/INIT/INV/m1:inv0"
     , "  o  m1/INIT/INV/m1:inv1"
     , "  o  m1/INIT/INV/m1:inv2"
@@ -110,8 +112,8 @@ result1 = unlines
 case2 :: IO POResult
 case2 = verify path0 2
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "passed 0 / 0"
     ]
 

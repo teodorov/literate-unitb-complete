@@ -46,6 +46,8 @@ import           Data.Existential
 import           Data.Map as M hiding ( map, (\\) )
 import qualified Data.Map as M
 import           Data.List as L hiding ( union, insert, inits )
+import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.Text (Text)
 import qualified Data.Traversable as T
 
 import Test.QuickCheck hiding (Result(..),label)
@@ -57,7 +59,7 @@ import Utilities.Syntactic
 run_phase2_vars :: Pipeline MM SystemP1 SystemP2
 run_phase2_vars = C.id &&& symbols >>> liftP wrapup
     where
-        err_msg = [s|Multiple symbols with the name %s|] . render
+        err_msg = [st|Multiple symbols with the name %s|] . renderText
         wrap = L.map (second $ makeCell . uncurry3 TheoryDef)
         symbols = arr (view mchMap) >>> run_phase
             [ variable_decl
@@ -180,7 +182,7 @@ instance IsVarScope MachineVar where
     toMchDecl s (MchVar v Inherited _) = map Right [PAbstractVars s v,PStateVars s v]
     toMchDecl s (DelMchVar (Just v) Local li)     = map Right [PDelVars s (v,li),PAbstractVars s v]
     toMchDecl s (DelMchVar (Just v) Inherited li) = [Right $ PDelVars s (v,li)]
-    toMchDecl s (DelMchVar Nothing _ li)    = [Left $ Error ([Printf.s|deleted variable '%s' does not exist|] $ render s) li]
+    toMchDecl s (DelMchVar Nothing _ li)    = [Left $ Error ([Printf.st|deleted variable '%s' does not exist|] $ renderText s) li]
 
 instance IsVarScope MachineDef where
     toOldEventDecl _ _ = []
@@ -213,7 +215,7 @@ dummy_decl = machine_var_decl
 
 machine_var_decl :: IsVarScope var
                  => (Var -> DeclSource -> LineInfo -> var)
-                 -> String
+                 -> Text
                  -> MPipeline MachineP1
                         [(Name,VarScope)]
 machine_var_decl scope kw = machineCmd kw $ \(Identity (PlainText xs)) _m p1 -> do
@@ -226,7 +228,7 @@ promote_param = machineCmd "\\promote" $ \(Conc lbl,VarName n) _m p1 -> do
             let _    = lbl :: EventId
                 evts = L.view pEventIds p1 
             evt <- bind
-                ([s|event '%s' is undeclared|] $ pretty lbl)
+                ([st|event '%s' is undeclared|] $ prettyText lbl)
                 $ as_label lbl `M.lookup` evts
             li <- ask
             return $ [(n,makeCell $ Evt $ M.singleton (Right evt) 
@@ -286,7 +288,7 @@ instance IsVarScope EvtDecls where
                                 $ M.filterWithKey (const.isLeft) m
 
 event_var_decl :: (Var -> EvtScope Var)
-               -> String
+               -> Text
                -> MPipeline MachineP1
                     [(Name,VarScope)]
 event_var_decl escope kw = machineCmd kw $ \(Conc lbl,PlainText xs) _m p1 -> do
@@ -294,7 +296,7 @@ event_var_decl escope kw = machineCmd kw $ \(Conc lbl,PlainText xs) _m p1 -> do
                 ts   = L.view pAllTypes p1
                 evts = L.view pEventIds p1 
             evt <- bind
-                ([s|event '%s' is undeclared|] $ pretty lbl)
+                ([st|event '%s' is undeclared|] $ prettyText lbl)
                 $ as_label lbl `M.lookup` evts
             li <- ask
             vs <- hoistEither $ get_variables' ts xs li

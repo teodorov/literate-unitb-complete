@@ -51,6 +51,7 @@ import Data.List.NonEmpty as NE
 import Data.Map  as M
 import Data.Maybe
 import Data.Semigroup
+import           Data.Text (Text)
 
 import Test.QuickCheck
 import Test.QuickCheck.Report
@@ -82,7 +83,7 @@ test = $(makeTestSuite "Unit tests for the parser")
 name0 :: TestName
 name0 = testName "test 0, phase 1 (structure), create object" 
 
-mId :: String -> MachineId
+mId :: Text -> MachineId
 mId = MId . makeName
 
 case0 :: IO (MMap MachineP1)
@@ -421,7 +422,7 @@ case4 = return $ do
                 local (const Local) $
                     del_event "ce1" "act1" [("ae1a",li 6),("ae1b",li 7)] Action -- $ c [act| x := x - 1 |]
 
-decl :: String -> GenericType -> State ParserSetting ()
+decl :: Text -> GenericType -> State ParserSetting ()
 decl n t = decls %= insert_symbol (z3Var n t)
 
 result4 :: Either [Error] SystemP3

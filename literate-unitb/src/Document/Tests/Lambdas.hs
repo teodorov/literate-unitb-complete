@@ -14,6 +14,8 @@ import UnitB.Expr
     -- Libraries
 import           Data.Map hiding ( map )
 import qualified Data.Map as M
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Test.UnitTest
 
@@ -59,16 +61,16 @@ part3 :: TestCase
 part3 = test_cases
             "part 3"
             [ (poCase "test 9, verify disjunction rule" (verify path9 0) result9)
-            , (stringCase "test 10, error: cyclic proof" (find_errors path10) result10)
-            , (stringCase   "test 11, intermediate goals of monotonic \
+            , (textCase "test 10, error: cyclic proof" (find_errors path10) result10)
+            , (textCase   "test 11, intermediate goals of monotonic \
                               \simplification" case11 result11)
             , (aCase "test 12, bound variable with ambiguous type"
                 case12 result12)
-            , stringCase "test 13, inv6, PO" case13 result13
+            , textCase "test 13, inv6, PO" case13 result13
             ]
 
-result0 :: String
-result0 = unlines 
+result0 :: Text
+result0 = T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -108,8 +110,8 @@ result0 = unlines
 path0 :: FilePath
 path0 = [path|Tests/cubes-t0.tex|]
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -160,8 +162,8 @@ result1 = unlines
 path1 :: FilePath
 path1 = [path|Tests/cubes-t1.tex|]
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -222,8 +224,8 @@ result2 = unlines
 path2 :: FilePath
 path2 = [path|Tests/cubes-t2.tex|]
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -353,11 +355,11 @@ case5 = runEitherT (do
         [m] -> right $ m!.props.safety
         _   -> left [Error "a single machine is expected" (LI "" 0 0)])
 
-case6 :: IO (String, Map Label Sequent)
+case6 :: IO (Text, Map Label Sequent)
 case6 = verify path6 0
 
-result6 :: String
-result6 = unlines
+result6 :: Text
+result6 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -441,11 +443,11 @@ result6 = unlines
 path6 :: FilePath
 path6 = [path|Tests/cubes-t5.tex|]
 
-case7 :: IO (String, Map Label Sequent)
+case7 :: IO (Text, Map Label Sequent)
 case7 = verify path7 0
 
-result7 :: String
-result7 = unlines
+result7 :: Text
+result7 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -532,11 +534,11 @@ result7 = unlines
 path7 :: FilePath
 path7 = [path|Tests/cubes-t4.tex|]
 
-case8 :: IO (String, Map Label Sequent)
+case8 :: IO (Text, Map Label Sequent)
 case8 = verify path8 0
 
-result8 :: String
-result8 = unlines
+result8 :: Text
+result8 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -622,8 +624,8 @@ result8 = unlines
 path8 :: FilePath
 path8 = [path|Tests/cubes-t7.tex|]
 
-result9 :: String
-result9 = unlines
+result9 :: Text
+result9 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -712,8 +714,8 @@ path9 = [path|Tests/cubes-t8.tex|]
 path10 :: FilePath
 path10 = [path|Tests/cubes-t9.tex|]
 
-result10 :: String
-result10 = unlines
+result10 :: Text
+result10 = T.unlines
     [ "A cycle exists in the liveness proof"
     , "error 339:1:"
     , "\tProgress property prog0 (refined in m0)"
@@ -729,19 +731,19 @@ result10 = unlines
     , ""
     ]
 
-case11 :: IO String
+case11 :: IO Text
 case11 = do
         proof_obligation path2 "m0/evt/INV/inv5/main goal/step 4" 0
         -- pos <- list_file_obligations path2
         -- case pos of
         --     Right [(_,pos)] -> do
         --         let po = pos ! label "m0/evt/INV/inv5/main goal/step (287,1)"
-        --             cmd = unlines $ map pretty_print' $ z3_code po
+        --             cmd = T.unlines $ map pretty_print' $ z3_code po
         --         return cmd
         --     x -> return $ show x
 
-result11 :: String
-result11 = unlines 
+result11 :: Text
+result11 = T.unlines 
     [ "; m0/evt/INV/inv5/main goal/step 4"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1075,19 +1077,19 @@ result11 = unlines
 path12 :: FilePath
 path12 = [path|Tests/cubes-t10.tex|]
 
-result12 :: String
-result12 = unlines 
+result12 :: Text
+result12 = T.unlines 
         [  "error 274:3:\n    type of j is ill-defined: _a"
         ]
 
-case12 :: IO String
+case12 :: IO Text
 case12 = find_errors path12
 
-case13 :: IO String
+case13 :: IO Text
 case13 = proof_obligation path3 "m0/evt/INV/inv6" 0
 
-result13 :: String
-result13 = unlines
+result13 :: Text
+result13 = T.unlines
     [ "; m0/evt/INV/inv6"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

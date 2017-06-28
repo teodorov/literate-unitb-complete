@@ -15,6 +15,8 @@ import Control.Lens hiding (uncons)
 import Data.List.Lens
 import Data.Maybe
 import Data.String.Utils
+import           Data.Text (unpack)
+import qualified Data.Text as T
 
 import Language.Haskell.TH hiding (Name)
 import Language.Haskell.TH.Quote
@@ -72,7 +74,7 @@ makePattern str = Pattern kw' args''
         args' = fromMaybe (error "field names should start with '$'")
                     $ args^?below (prefixed "$")
         kw' :: Name
-        kw' = either (error . unlines) id $ isZ3Name $ pack kw
+        kw' = either (error . unpack . T.unlines) id $ isZ3Name $ pack kw
         args'' = map (^? filtered (/= "_")) args'
 
 funPat :: String -> PatQ

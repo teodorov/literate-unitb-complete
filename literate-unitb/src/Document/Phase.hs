@@ -45,6 +45,7 @@ import Data.List.NonEmpty as NE
 import Data.Map as M hiding ((!))
 import Data.Maybe as MM
 import Data.Semigroup
+import Data.Text (Text)
 import qualified Data.Traversable as T
 import Data.Tuple.Generics
 
@@ -65,13 +66,13 @@ triggerP :: Pipeline MM (Maybe a) a
 triggerP = Pipeline empty_spec empty_spec triggerM
 
 cmdSpec :: IsTuple LatexArg a 
-        => String -> Proxy a -> DocSpec
+        => Text -> Proxy a -> DocSpec
 cmdSpec cmd p = DocSpec M.empty (M.singleton cmd $ ArgumentSpec nargs p)
     where
         nargs = len latexArgProxy p
 
 envSpec :: IsTuple LatexArg a 
-        => String -> Proxy a -> DocSpec
+        => Text -> Proxy a -> DocSpec
 envSpec env p = DocSpec (M.singleton env $ ArgumentSpec nargs p) M.empty
     where
         nargs = len latexArgProxy p
@@ -99,7 +100,7 @@ parseArgs xs = do
 machineCmd :: forall result args ctx. 
               ( Monoid result
               , IsTuple LatexArg args )
-           => String
+           => Text
            -> (args -> MachineId -> ctx -> M result) 
            -> Pipeline MM (MMap ctx) (Maybe (MMap result))
 machineCmd cmd f = Pipeline m_spec empty_spec g
@@ -131,7 +132,7 @@ cmdFun f xs m ctx = case x of
 
 machineEnv :: forall result args ctx.
               ( Monoid result, IsTuple LatexArg args )
-           => String
+           => Text
            -> (args -> LatexDoc -> MachineId -> ctx -> M result)
            -> Pipeline MM (MMap ctx) (Maybe (MMap result))
 machineEnv env f = Pipeline m_spec empty_spec g
@@ -160,7 +161,7 @@ envFun f xs m ctx = case x of
 
 contextCmd :: forall a b c. 
               ( Monoid a, IsTuple LatexArg b )
-           => String
+           => Text
            -> (b -> ContextId -> c -> M a) 
            -> Pipeline MM (CMap c) (Maybe (CMap a))
 contextCmd cmd f = Pipeline empty_spec c_spec g
@@ -175,7 +176,7 @@ contextCmd cmd f = Pipeline empty_spec c_spec g
 
 contextEnv :: forall result args ctx.
               ( Monoid result, IsTuple LatexArg args )
-           => String
+           => Text
            -> (args -> LatexDoc -> ContextId -> ctx -> M result)
            -> Pipeline MM (CMap ctx) (Maybe (CMap result))
 contextEnv env f = Pipeline empty_spec c_spec g
@@ -428,21 +429,21 @@ get_event :: (HasMachineP1 phase,MonadReader LineInfo m,MonadError [Error] m)
 get_event p2 ev_lbl = do
         let evts = p2^.pEventIds
         bind
-            ([s|event '%s' is undeclared|] $ pretty ev_lbl)
+            ([st|event '%s' is undeclared|] $ prettyText ev_lbl)
             $ ev_lbl `M.lookup` evts
 
 get_abstract_event :: HasMachineP1 phase => phase -> EventId -> M EventId
 get_abstract_event p2 ev_lbl = do
         let evts = p2^.pEventSplit & M.mapKeys as_label . M.mapWithKey const
         bind
-            ([s|event '%s' is undeclared|] $ pretty ev_lbl)
+            ([st|event '%s' is undeclared|] $ prettyText ev_lbl)
             $ as_label ev_lbl `M.lookup` evts
 
 get_concrete_event :: HasMachineP1 phase => phase -> EventId -> M EventId
 get_concrete_event p2 ev_lbl = do
         let evts = p2^.pEventMerge & M.mapKeys as_label . M.mapWithKey const
         bind
-            ([s|event '%s' is undeclared|] $ pretty ev_lbl)
+            ([st|event '%s' is undeclared|] $ prettyText ev_lbl)
             $ as_label ev_lbl `M.lookup` evts
 
 get_events :: ( Traversable f
@@ -454,11 +455,11 @@ get_events :: ( Traversable f
 get_events p2 ev_lbl = do
             let evts = p2^.pEventIds
             bind_all ev_lbl
-                ([s|event '%s' is undeclared|] . pretty)
+                ([st|event '%s' is undeclared|] . prettyText)
                 $ (`M.lookup` evts)
 
 --pParams   :: HasMachineP2 mch
---          => Getter mch (Map EventId (Map String Var))
+--          => Getter mch (Map EventId (Map Text Var))
 --pParams = pEvents . onMap eParams
 pSchSynt  :: HasMachineP2 mch 
           => Getter mch (Map EventId ParserSetting)    
@@ -609,7 +610,7 @@ topological_order = Pipeline empty_spec empty_spec $ \es' -> do
         vs <- triggerM =<< sequence <$> mapM (cycl_err_msg lis) cs
         return $ Hierarchy vs es
     where
-        struct = "refinement structure" :: String
+        struct = "refinement structure" :: Text
         cycle_msg = msg struct
         cycl_err_msg :: MonadWriter [Error] m 
                      => Map MachineId LineInfo 
@@ -617,10 +618,10 @@ topological_order = Pipeline empty_spec empty_spec $ \es' -> do
         cycl_err_msg _ (AcyclicSCC v) = return $ Just v
         cycl_err_msg lis (CyclicSCC vs) = do
             tell [MLError cycle_msg $ nonEmpty'
-                $ L.map (first pretty) $ M.toList
+                $ L.map (first prettyText) $ M.toList
                 $ lis `M.intersection` fromList' vs ] 
             return Nothing -- (error "topological_order")
-        msg = [s|A cycle exists in the %s|]
+        msg = [st|A cycle exists in the %s|]
 
 fromList' :: Ord a => [a] -> Map a ()
 fromList' xs = M.fromList $ L.zip xs $ L.repeat ()

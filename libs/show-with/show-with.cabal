@@ -60,7 +60,7 @@ library
   default-extensions:    TypeSynonymInstances, FlexibleInstances
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <5, transformers >=0.4 && <0.6, generic-instances, prelude-extras
+  build-depends:       base >=4.8 && <5, transformers >=0.4 && <0.6, generic-instances, prelude-extras, text
   
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns

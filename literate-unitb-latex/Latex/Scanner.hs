@@ -12,9 +12,9 @@ where
 import Control.Monad
 
 import Data.Maybe
--- import qualified Data.List.NonEmpty as NE
+import qualified Data.List.NonEmpty as NE
 import Data.List as L
--- import Data.String.Lines as L
+import Data.String.Lines as L
 import Data.Text as T
 
 import Utilities.Syntactic
@@ -78,7 +78,7 @@ line_number fn xs     = L.concatMap f ys
     where
         f (n, xs)  = L.map (g n) xs
         g n (i, x) = (x, LI fn n i)
-        ys         = L.zip [1..] $ L.map (L.zip [1..] . unpack) $ T.lines xs
+        ys         = L.zip [1..] $ L.map (L.zip [1..]) $ NE.toList $ L.lines' $ unpack xs
         --addEOL = maybe [] (uncurry (++) . (second (:[]))) . unconsR
         --ys         = zip [1..] $ map (zip [1..] . (++ "\n")) $ lines xs
 

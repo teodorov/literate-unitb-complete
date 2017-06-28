@@ -31,6 +31,8 @@ import Control.Precondition
 import           Data.List ( sort )
 import qualified Data.List.NonEmpty as NE
 import           Data.Map  as M hiding (map)
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Test.UnitTest
 
@@ -44,8 +46,8 @@ test = test_cases
         "Unit-B" 
         [  poCase "0: 'x eventually increases' verifies" (check_mch example0) (result_example0)
         ,  poCase "1: train, model 0, verification" (check_mch train_m0) (result_train_m0)
-        ,  stringCase "2: train, m0 transient / enablement PO" (get_tr_en_po train_m0) result_train_m0_tr_en_po
-        ,  stringCase "3: train, m0 transient / falsification PO" (get_tr_neg_po train_m0) result_train_m0_tr_neg_po
+        ,  textCase "2: train, m0 transient / enablement PO" (get_tr_en_po train_m0) result_train_m0_tr_en_po
+        ,  textCase "3: train, m0 transient / falsification PO" (get_tr_neg_po train_m0) result_train_m0_tr_neg_po
         ,  aCase "4: Feasibility and partitioning" case3 result3
         ,  aCase "5: Debugging the partitioning" case4 result4
         ,  T.test_case
@@ -123,8 +125,8 @@ train_m0 = do
                         event_table .= new_event_set vs (fromList [enter, leave])
         return m
 
-result_example0 :: String
-result_example0 = unlines 
+result_example0 :: Text
+result_example0 = T.unlines 
     [ "  o  m0/INIT/INV/J0"
     , "  o  m0/SKIP/CO/CO0"
     , "  o  m0/TR0/TR/evt/EN"
@@ -134,8 +136,8 @@ result_example0 = unlines
     , "passed 6 / 6"
     ]
 
-result_train_m0 :: String
-result_train_m0 = unlines 
+result_train_m0 :: Text
+result_train_m0 = T.unlines 
     [ "  o  train_m0/INIT/INV/J0"
     , "  o  train_m0/TR0/TR/WFIS/t/t@prime"
     , "  o  train_m0/TR0/TR/leave/EN"
@@ -145,8 +147,8 @@ result_train_m0 = unlines
     , "passed 6 / 6"
     ]
 
-result_example0_tr_en_po :: String
-result_example0_tr_en_po = unlines [
+result_example0_tr_en_po :: Text
+result_example0_tr_en_po = T.unlines [
     " sort: pfun [a,b], set [a]",
     " x: Int",
     " y: Int",
@@ -154,8 +156,8 @@ result_example0_tr_en_po = unlines [
     "|----",
     " (=> (= x 0) (= x y))"]
 
-result_train_m0_tr_en_po :: String
-result_train_m0_tr_en_po = unlines 
+result_train_m0_tr_en_po :: Text
+result_train_m0_tr_en_po = T.unlines 
     [ " sort: Pair [a,b], guarded [a], set [a]"
     , " card[_a]: (set a) -> Int"
     , " const[_a,_b]: b -> (Array a b)"
@@ -289,8 +291,8 @@ result_train_m0_tr_en_po = unlines
     , " (=> (select st t) (select st t_{param}))"
     ]
 
-result_train_m0_tr_neg_po :: String
-result_train_m0_tr_neg_po = unlines 
+result_train_m0_tr_neg_po :: Text
+result_train_m0_tr_neg_po = T.unlines 
     [ " sort: Pair [a,b], guarded [a], set [a]"
     , " card[_a]: (set a) -> Int"
     , " const[_a,_b]: b -> (Array a b)"
@@ -426,7 +428,7 @@ result_train_m0_tr_neg_po = unlines
     , " (=> (select st t) (not (select st' t)))"
     ]
 
-check_mch :: Either [Error] RawMachine -> IO (String, Map Label Sequent)
+check_mch :: Either [Error] RawMachine -> IO (Text, Map Label Sequent)
 check_mch em = do
     case em of
         Right m -> do
@@ -437,7 +439,7 @@ check_mch em = do
 
 get_cmd_tr_po :: Monad m 
               => Either [Error] RawMachine 
-              -> m (Either [Error] String)
+              -> m (Either [Error] Text)
 get_cmd_tr_po em = return (do
         m <- em
         let lbl = composite_label [as_label $ _name m, "TR/TR0/t@param"]
@@ -446,20 +448,20 @@ get_cmd_tr_po em = return (do
             cmd = either id z3_code po
         return cmd)
     
-get_tr_en_po :: Either [Error] RawMachine -> IO String
+get_tr_en_po :: Either [Error] RawMachine -> IO Text
 get_tr_en_po em = either (return . show_err) return $ do
         m   <- em
         let lbl = composite_label [as_label $ _name m, "TR0/TR/leave/EN"]
             pos = proof_obligation m
-            po  = either id pretty $ lookupSequent lbl pos
+            po  = either id prettyText $ lookupSequent lbl pos
         return $ po
 
-get_tr_neg_po :: Either [Error] RawMachine -> IO String
+get_tr_neg_po :: Either [Error] RawMachine -> IO Text
 get_tr_neg_po em = either (return . show_err) return $ do
         m   <- em
         let lbl = composite_label [as_label $ _name m, "TR0/TR/leave/NEG"]
             pos = proof_obligation m
-            po  = either id pretty $ lookupSequent lbl pos
+            po  = either id prettyText $ lookupSequent lbl pos
         return po
 
 case3 :: IO [([Var], [Expr])]

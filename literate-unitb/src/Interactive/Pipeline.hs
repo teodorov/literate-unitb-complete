@@ -37,11 +37,15 @@ import Control.Monad.Trans.State
 import Control.Precondition
 
 import           Data.Char
-import qualified Data.List as L
+import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Map as M 
                     ( insert, keys
                     , toList, unions )
 import qualified Data.Map as M 
+import           Data.Monoid ((<>))
+import           Data.Text (Text,pack,unpack)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import GHC.Generics (Generic)
 
@@ -71,7 +75,7 @@ data Shared = Shared
         , fname      :: FilePath
         , exit_code  :: MVar ()
         , parser_state :: Observable ParserState
-        , focus    :: Observable (Maybe String)
+        , focus    :: Observable (Maybe Text)
         , dump_cmd :: Observable (Maybe DumpCmd)
         , redraw   :: Observable Bool
         }
@@ -89,7 +93,7 @@ data Params' pos = Params
         , no_verif :: Bool
         , reset :: Bool
         , _pos :: pos
-        , init_focus :: Maybe String
+        , init_focus :: Maybe Text
         } deriving (Generic)
 
 makeLenses ''Params'
@@ -131,7 +135,7 @@ parser (Shared { .. })  = return $ do
                     ms <- hoistEither $ mapM f $ M.elems $ s!.machines
                     pos <- hoistEither $ mapM theory_po $ M.elems $ s!.theories
                     let cs = M.fromList $ map (uncurry h) $ do
-                                (x,ys) <- zip (map label (s!.theories.to keys)) pos
+                                (x,ys) <- zip (map (label.pack) (s!.theories.to keys)) pos
                                 y <- toList ys
                                 return (x,y)
                     liftIO $ evaluate (ms, cs, s)
@@ -176,7 +180,7 @@ prover (Shared { .. }) = do
         handler :: (PrettyPrintable t) => (t, Label) -> ErrorCall -> IO b
         handler lbl@(_,x) err = do
             write_obs dump_cmd $ Just $ Only x
-            fail ([s|During %s: %s|] (pretty lbl) (show err))
+            fail ([s|During %s: %s|] (prettyText lbl) (show err))
         worker req = forever $ do
             -- (k,po) <- takeMVar req
             (k,po) <- atomically $ readTBQueue req
@@ -186,17 +190,17 @@ prover (Shared { .. }) = do
             dec 1
             modify_obs pr_obl $ return . insert k (po,Just $ r == Valid)
 
-proof_report :: Maybe String
+proof_report :: Maybe Text
              -> M.Map Key (Seq,Maybe Bool) 
              -> [Error] -> Bool 
-             -> [String]
+             -> [Text]
 proof_report = proof_report' False
 
 proof_report' :: Bool
-              -> Maybe String
+              -> Maybe Text
               -> M.Map Key (Seq,Maybe Bool) 
               -> [Error] -> Bool 
-              -> [String]
+              -> [Text]
 proof_report' showSuccess pattern outs es isWorking = 
                      header ++
                      ys ++ 
@@ -208,24 +212,27 @@ proof_report' showSuccess pattern outs es isWorking =
                        else " "
                      ]
     where
+        header :: [Text]
         header  = maybe [] head pattern
+        footer :: [Text]
         footer  = maybe [] foot pattern
         head pat = 
                 [ "#"
-                , "# Restricted to " ++ pat
+                , "# Restricted to " <> pat
                 , "#"
                 ]
         foot _ = 
-                [ [s|# hidden: %d failures|] (length xs - length ys)
+                [ [st|# hidden: %d failures|] (length xs - length ys)
                 ]
         xs = filter (failure . snd) (zip [(0 :: Int) ..] $ M.toAscList outs)
+        ys :: [Text]
         ys = map f $ filter (match . snd) xs
-        match xs  = maybe True (\f -> f `L.isInfixOf` map toLower (show $ snd $ fst xs)) pattern
+        match xs  = maybe True (\f -> f `T.isInfixOf` T.map toLower (pack . show $ snd $ fst xs)) pattern
         failure :: (a,(b,Maybe Bool)) -> Bool
         failure x
             | showSuccess = True
             | otherwise   = maybe False not $ snd $ snd x
-        f (n,((m,lbl),(_,_))) = [s| x %s - %s  (%d)|] (pretty m) (pretty lbl) n
+        f (n,((m,lbl),(_,_))) = [st| x %s - %s  (%d)|] (prettyText m) (prettyText lbl) n
 
 run_all :: [IO (IO ())] -> IO [ThreadId]
 run_all xs = do
@@ -255,15 +262,15 @@ display (Shared { .. }) = do
             cursorUpLine $ length ys
             clearFromCursorToScreenBeginning
             forM_ ys $ \x -> do
-                let lns = lines x
+                let lns = T.lines x
                 forM_ lns $ \x -> do
-                    putStr x
+                    T.putStr x
                     clearFromCursorToLineEnd 
-                    putStrLn ""
+                    T.putStrLn ""
             let u = M.size $ M.filter (isNothing.snd) outs
-            st <- read_obs parser_state
+            state <- read_obs parser_state
             du <- isJust `liftM` read_obs dump_cmd
-            putStr $ [s|number of workers: %d; untried: %d; parser: %s; dumping: %s|] w u (show st) (show du)
+            T.putStr $ [st|number of workers: %d; untried: %d; parser: %s; dumping: %s|] w u (show state) (show du)
             clearFromCursorToLineEnd 
             -- hFlush stdout
             putStrLn ""
@@ -284,9 +291,9 @@ serialize (Shared { .. }) = do
 --        (pos@(out,_),es) <- takeMVar ser
         es <- read_obs error_list
         -- dump_pos fname pos
-        writeFile 
+        T.writeFile 
             (fname ++ ".report") 
-            (unlines $ proof_report' True Nothing out es False)
+            (T.unlines $ proof_report' True Nothing out es False)
 
 dump :: Shared -> IO (IO b)
 dump (Shared { .. }) = do
@@ -325,9 +332,9 @@ summary (Shared { .. }) = do
 keyboard :: Shared -> IO ()
 keyboard sh@(Shared { .. }) = do
         modify_obs redraw $ return . not
-        xs <- getLine
-        let xs' = map toLower xs
-            ws  = words xs'
+        xs <- T.getLine
+        let xs' = T.map toLower xs
+            ws  = T.words xs'
         if xs' == "quit" 
         then return ()
         else do
@@ -351,11 +358,11 @@ keyboard sh@(Shared { .. }) = do
                 write_obs focus Nothing
             else if take 1 ws == ["dump"]
                     && length ws == 2  
-                    && all isDigit (ws ! 1) then do
+                    && T.all isDigit (ws ! 1) then do
                 modify_obs dump_cmd $ \st -> do
                     if isNothing st then do
                         pos <- read_obs pr_obl
-                        return $ Just $ Only $ snd $ keys pos ! (read $ ws ! 1)
+                        return $ Just $ Only $ snd $ keys pos ! (read $ unpack $ ws ! 1)
                     else return Nothing
             else if xs == "dumpfail" then do
                 modify_obs dump_cmd $ \st -> do
@@ -370,7 +377,7 @@ keyboard sh@(Shared { .. }) = do
             else if take 1 ws == ["focus"] && length ws == 2 then do
                 write_obs focus $ Just (ws ! 1)
             else do
-                putStrLn $ [s|Invalid command: '%s'|] xs
+                T.putStrLn $ [st|Invalid command: '%s'|] xs
             keyboard sh
 
 run_pipeline :: FilePath -> Params -> IO ()

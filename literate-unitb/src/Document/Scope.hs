@@ -63,12 +63,15 @@ import qualified Data.List.NonEmpty as NE
 import           Data.Map as M
 import           Data.Maybe as MM
 import           Data.Semigroup (Semigroup(..),First(..))
+import           Data.Text (Text)
 import qualified Data.Traversable as T
 
 import GHC.Generics.Instances 
 
 import Test.QuickCheck as QC hiding (Failure,Success)
 import Test.QuickCheck.ZoomEq
+
+import Text.Pretty
 
 import Utilities.Syntactic
 
@@ -84,11 +87,11 @@ makePrisms ''InhStatus
 class (Ord a,Show a,ZoomEq a,PrettyPrintable a) => Scope a where
     type Impl a :: *
     type Impl a = DefaultClashImpl a
-    kind :: a -> String
-    error_item :: a -> NonEmpty (String,LineInfo)
+    kind :: a -> Text
+    error_item :: a -> NonEmpty (Text,LineInfo)
     default error_item :: ( HasLineInfo a li, ErrorItem li
                           , ClashImpl (Impl a), HasImplIso (Impl a) a) 
-                       => a -> NonEmpty (String,LineInfo)
+                       => a -> NonEmpty (Text,LineInfo)
     error_item x = errorItemImpl (kind x) (x^.lineInfo)
 
     keep_from :: DeclSource -> a -> Maybe a
@@ -164,9 +167,9 @@ class ClashImpl a where
     makeInheritedImpl :: a -> Maybe a
 
 class ErrorItem err where
-    errorItemImpl :: String 
+    errorItemImpl :: Text 
                   -> err 
-                  -> NonEmpty (String,LineInfo)
+                  -> NonEmpty (Text,LineInfo)
 
 instance ErrorItem LineInfo where
     errorItemImpl kind x = pure (kind,x)
@@ -237,6 +240,7 @@ instance Ord a => Ord (NonEmptyListSet a) where
 instance (Show a,Ord a) => Show (NonEmptyListSet a) where
     show x = "listSet " ++ show (setToList x)
 instance (PrettyPrintable a,Ord a) => PrettyPrintable (NonEmptyListSet a) where
+    pretty = defaultPretty
 
 instance (ZoomEq a,Ord a) => ZoomEq (NonEmptyListSet a) where
     x .== y = setToList x .== setToList y
@@ -260,6 +264,7 @@ data RefScope = Old | New
     deriving (Eq,Ord,Show)
 
 instance PrettyPrintable a => PrettyPrintable (InhStatus a) where
+    pretty = defaultPretty
 
 instance PrettyPrintable RefScope where
     pretty = show
@@ -279,7 +284,7 @@ all_errors :: Traversable t
 all_errors m = T.mapM fromEither' m >>= (return . T.sequence)
 
 make_table :: (Ord a, PrettyPrintable a) 
-           => (a -> String) 
+           => (a -> Text) 
            -> [(a,b,LineInfo)] 
            -> Either [Error] (M.Map a (b,LineInfo))
 make_table f xs = validationToEither $ M.traverseWithKey failIf' $ M.fromListWith (<>) $ L.map mkCell' xs 
@@ -287,23 +292,23 @@ make_table f xs = validationToEither $ M.traverseWithKey failIf' $ M.fromListWit
         mkCell' (x,y,z) = (x,(y,z) :| [])
         failIf' _ (x :| []) = pure x
         failIf' k xs = Failure $ err k (snd <$> xs)
-        err x li = [MLError (f x) (fmap (pretty x,) li)]
+        err x li = [MLError (f x) (fmap (prettyText x,) li)]
 
 make_all_tables' :: (Scope b, Show a, Ord a, Ord k) 
-                 => (a -> String) 
+                 => (a -> Text) 
                  -> M.Map k [(a,b)] 
                  -> MM (Maybe (M.Map k (M.Map a b)))
 make_all_tables' f xs = T.sequence <$> T.sequence (M.map (make_table' f) xs `using` parTraversable rseq)
 
 make_all_tables :: (PrettyPrintable a, Ord a, Ord k) 
-                => (a -> String)
+                => (a -> Text)
                 -> M.Map k [(a, b, LineInfo)] 
                 -> MM (Maybe (M.Map k (M.Map a (b,LineInfo))))
 make_all_tables f xs = all_errors (M.map (make_table f) xs `using` parTraversable rseq)
 
 make_table' :: forall a b.
                (Ord a, Show a, Scope b) 
-            => (a -> String) 
+            => (a -> Text) 
             -> [(a,b)] 
             -> MM (Maybe (M.Map a b))
 make_table' f items = all_errors $ M.mapWithKey g conflicts

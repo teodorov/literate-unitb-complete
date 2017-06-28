@@ -26,7 +26,10 @@ import Control.Precondition
 
 import qualified Data.List as L
 import qualified Data.Map as M
+import           Data.Monoid ((<>))
 import qualified Data.Set as S
+import           Data.Text (Text,pack,unpack)
+import qualified Data.Text as T
 
 import GHC.Generics
 
@@ -52,7 +55,7 @@ prop_type_error = forAll (liftM snd mch_with_type_error) f_prop_type_error
 
 f_prop_type_error :: Tex -> Property
 f_prop_type_error (Tex tex) = 
-        either (\m -> counterexample (show_err m) $ all is_type_error m) (const $ property False) (all_machines tex) 
+        either (\m -> counterexample (unpack $ show_err m) $ all is_type_error m) (const $ property False) (all_machines tex) 
 
 prop_expr_parser :: ExprNotation -> Property
 prop_expr_parser (ExprNotation ctx n e) = 
@@ -60,7 +63,7 @@ prop_expr_parser (ExprNotation ctx n e) =
         counterexample (pretty ctx) $
         e' === parse (withLI text)
     where
-        text = showExpr n $ getExpr e
+        text = unpack $ showExpr n $ getExpr e
         parse  = fmap getExpr . parse_expr (setting_from_context n ctx & expected_type .~ Nothing)
         e' = Right e
         li = LI "" 0 0
@@ -70,7 +73,7 @@ data ExprNotation = ExprNotation Context Notation RawExpr
     deriving Generic
 
 instance Show ExprNotation where
-     show (ExprNotation _ n e) = showExpr n e
+     show (ExprNotation _ n e) = unpack $ showExpr n e
 
 instance Arbitrary ExprNotation where
     arbitrary = sized $ \n -> resize (n `min` 20) $ do
@@ -99,9 +102,9 @@ data MachineInput = MachineInput RawMachine [LatexNode]
 
 is_type_error :: Error -> Bool
 is_type_error e = 
-            "type error:" `L.isInfixOf` msg
-        ||  "expected type:" `L.isInfixOf` msg
-        ||  "signature:" `L.isInfixOf` msg
+            "type error:" `T.isInfixOf` msg
+        ||  "expected type:" `T.isInfixOf` msg
+        ||  "signature:" `T.isInfixOf` msg
     where
         msg = message e
 
@@ -134,34 +137,34 @@ permute_aux n xs = sized $ \size -> do
         zs <- permute_aux (n-1) (drop buck ys)
         return $ z ++ zs
 
-showExpr :: (TypeSystem t, IsQuantifier q) => Notation -> AbsExpr Name t q -> String
+showExpr :: (TypeSystem t, IsQuantifier q) => Notation -> AbsExpr Name t q -> Text
 showExpr notation e = show_e e
     where
         root_op (FunApp f _) = find_op f
         root_op _ = Nothing
         find_op f = view name f `M.lookup` m_ops 
-        show_e v@(Word _) = pretty v
+        show_e v@(Word _) = prettyText v
         show_e (FunApp f xs) 
-            | length xs == 2 = [s|%s %s %s|] 
+            | length xs == 2 = [st|%s %s %s|] 
                                 (show_left_sub_e op x)
                                 op_name
                                 (show_right_sub_e op y)
-            | length xs == 1 = [s|%s %s|] 
+            | length xs == 1 = [st|%s %s|] 
                                 op_name
                                 (show_right_sub_e op x)
             | length xs == 0 = error $ [s|show_e: not a binary or unary operator '%s' %s|]
-                                    (render $ f^.name)
-                                    (L.intercalate ", " $ map pretty xs)
+                                    (renderText $ f^.name)
+                                    (T.intercalate ", " $ map prettyText xs)
             | otherwise      = show_e (funApp f $ [head xs, funApp f $ tail xs])
             where
                 x = xs ! 0
                 y = xs ! 1
                 op = maybe (Right plus) id $ find_op f
-                op_name = maybe unknown (render . view name) $ find_op f
-                unknown = [s|<unknown function: %s %s>|] 
-                            (render $ f^.name)
+                op_name = maybe unknown (renderText . view name) $ find_op f
+                unknown = [st|<unknown function: %s %s>|] 
+                            (renderText $ f^.name)
                             (show $ map Pretty $ M.keys m_ops)
-        show_e (Lit n _) = pretty n
+        show_e (Lit n _) = prettyText n
         show_e _ = "<unknown expression>"
         m_ops :: M.Map Name Operator
         m_ops = M.fromList $ zip (map functionName xs) xs
@@ -172,35 +175,35 @@ showExpr notation e = show_e e
                 g op' = (notation^.struct) G.! (op',op)
                 f op'
                     | g op' == LeftAssoc = show_e e
-                    | otherwise          = [s|(%s)|] $ show_e e
+                    | otherwise          = [st|(%s)|] $ show_e e
         show_right_sub_e op e = maybe (show_e e) f $ root_op e
             where
                 g op' = (notation^.struct) G.! (op,op')
                 f op'
                     | g op' == RightAssoc = show_e e
-                    | otherwise           = [s|(%s)|] $ show_e e
+                    | otherwise           = [st|(%s)|] $ show_e e
 
 latex_of :: RawMachine -> Gen LatexDoc
 latex_of m = do
         let m_name = BracketNode $ Bracket Curly li 
-                           (Doc li [ Text (TextBlock (show $ _name m) li) ] li)
+                           (Doc li [ Text (TextBlock (pack $ show $ _name m) li) ] li)
                            li
             show_t t = M.findWithDefault "<unknown>" t type_map
-            type_map :: M.Map Type String
+            type_map :: M.Map Type Text
             type_map = M.fromList 
                         [ (int, "\\Int")
                         , (bool, "\\Bool")
                         , (set_type int, "\\set[\\Int]")
                         , (fun_type int int, "\\Int \\pfun \\Int")
                         ]
-            cmd :: String -> [String] -> [LatexNode]
+            cmd :: Text -> [Text] -> [LatexNode]
             cmd n args = Text (Command n li) : concatMap farg args
             farg x = [ BracketNode $ Bracket Curly li (Doc li [ Text (TextBlock x li) ] li) li, blank ]
-            var_decl (Var n t) = cmd "\\variable" [(render n ++ " : " ++ show_t t)]
+            var_decl (Var n t) = cmd "\\variable" [(renderText n <> " : " <> show_t t)]
             decls = map var_decl $ M.elems $ m!.variables
             imp_stat :: Name -> [LatexNode]
-            imp_stat xs = cmd "\\with" [render xs]
-            inv_decl (lbl,xs) = cmd "\\invariant" [pretty lbl, showExpr (all_notation m) xs]
+            imp_stat xs = cmd "\\with" [renderText xs]
+            inv_decl (lbl,xs) = cmd "\\invariant" [prettyText lbl, showExpr (all_notation m) xs]
             invs        = map inv_decl $ M.toList $ m!.props.inv
             imports = map imp_stat $ filter (/= makeName "basic") 
                         $ M.keys $ m!.theory.extends
@@ -245,13 +248,13 @@ data Tex = Tex { unTex :: LatexDoc }
 instance Show Tex where
     show (Tex tex) = unlines
             [ "" -- show m
-            , flatten' tex]
+            , unpack $ flatten' tex]
 
 var_set :: Gen (M.Map Name Var)
 var_set = do
     nvar  <- choose (0,5)
     types <- L.sort `liftM` vectorOf nvar choose_type
-    let vars = zipWith (Var . makeName . (:[])) ['a'..] types
+    let vars = zipWith (Var . makeName . T.singleton) ['a'..] types
     return $ symbol_table vars
             
 basic_notation :: Notation
@@ -269,7 +272,7 @@ gen_machine b = fix (\retry n -> do
             -- types <- L.sort `liftM` vectorOf nvar choose_type
             vars <- var_set
             -- let vars = map (uncurry $ Var . (:[])) $ zip ['a'..'z'] types
-            let inv_lbl = map (label . [s|inv%d|]) ([0..] :: [Int])
+            let inv_lbl = map (label . [st|inv%d|]) ([0..] :: [Int])
                             -- map (\x -> label $ "inv" ++ show x) [0..]
             ninv <- choose (0,5)
             bs   <- mk_errors b ninv
@@ -376,21 +379,21 @@ run_spec :: (PropName -> Property -> IO (a, Result))
          -> IO ([a], Bool)
 run_spec = $forAllProperties'
 
-show_list :: Show a => [a] -> String
-show_list xs = [s|[%s]|] $ L.intercalate "\n," $ surround " " " " ys
+show_list :: Show a => [a] -> Text
+show_list xs = [st|[%s]|] $ L.intercalate "\n," $ surround " " " " ys
     where
         ys = map show xs
         surround pre suf xs = map (\x -> pre ++ x ++ suf) xs
 
-subexpression :: RawExpr -> [(RawExpr, Type, String)]
+subexpression :: RawExpr -> [(RawExpr, Type, Text)]
 subexpression e = f [] e
     where
         f xs e = (e, type_of e, comment e) : visit f xs e
-        comment :: RawExpr -> String
-        comment (FunApp (Fun act f _ argt rt _) arg) = [s|%s %s (%s) : %s -> %s|] 
-                    (pretty act) (render f) 
-                    (pretty arg) (pretty argt) 
-                    (pretty rt)
+        comment :: RawExpr -> Text
+        comment (FunApp (Fun act f _ argt rt _) arg) = [st|%s %s (%s) : %s -> %s|] 
+                    (prettyText act) (renderText f) 
+                    (prettyText arg) (prettyText argt) 
+                    (prettyText rt)
         comment _ = "<>"
 
 -- main :: IO ()
@@ -409,7 +412,7 @@ subexpression e = f [] e
         -- writeFile "actual_exp.txt" $ show mch'
         -- writeFile "expect_exp.txt" $ unlines
         --     [ -- show tex
-        --     show $ (Right mch :: Either String RawMachine) ]
+        --     show $ (Right mch :: Either Text RawMachine) ]
         -- -- writeFile "actual.txt" (show mch')
         -- -- writeFile "expect.txt" ("Right " ++ show [mch])
         -- -- writeFile "tex.txt" (show $ Tex tex)

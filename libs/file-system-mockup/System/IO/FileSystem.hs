@@ -28,9 +28,10 @@ import Control.Precondition
 
 import Data.Default
 import Data.Map as M hiding ((!))
+import           Data.Text (Text)
+import qualified Data.Text.IO as T
 
-import Prelude hiding (readFile,writeFile)
-import qualified Prelude as P
+import Prelude hiding (readFile,writeFile,FilePath)
 
 import System.Directory hiding 
             ( createDirectoryIfMissing
@@ -61,9 +62,9 @@ class Monad m => FileSystem m where
         , createDirectoryIfMissing
         , ifFileExists, doesFileExist
         , doesDirectoryExist #-}
-    readFile  :: ExistingFile s -> m String
+    readFile  :: ExistingFile s -> m Text
     readFile fn = getNoParam $ liftFS (NoParam $ readFile fn)
-    writeFile :: Pre => FilePath -> String -> m ()
+    writeFile :: Pre => FilePath -> Text -> m ()
     writeFile fn xs = getNoParam $ liftFS (NoParam $ writeFile fn xs)
     ifFileExists :: FilePath -> (forall s. ExistingFile s -> m a) -> m (Maybe a) 
     ifFileExists fn = getOneParam $ lift2FS (OneParam $ ifFileExists fn)
@@ -103,8 +104,8 @@ instance FileSystem FileSystemM where
 
 instance FileSystem IO where
     readFile (ExistingFile fn) = do
-        P.readFile fn
-    writeFile = P.writeFile
+        T.readFile fn
+    writeFile = T.writeFile
     ifFileExists fn cmd = do
         b <- doesFileExist fn
         if b then do
@@ -120,7 +121,7 @@ newtype MockFileSystem a = MockFileSystem
     deriving (Functor,Applicative,Monad)
 
 newtype MockFileSystemState' = MockFileSystemState 
-        { _files :: Map FilePath (Maybe String) }
+        { _files :: Map FilePath (Maybe Text) }
     deriving (Show)
 
 type MockFileSystemState = Checked MockFileSystemState'

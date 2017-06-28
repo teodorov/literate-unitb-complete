@@ -67,6 +67,8 @@ import           Data.Proxy.TH
 import           Data.Relation (type(<->),(|>),(<|))
 import qualified Data.Relation as R
 import qualified Data.Set as S
+import           Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Traversable as T
 import           Data.Witherable  as W
 
@@ -145,24 +147,24 @@ run_phase4_proofs = proc (SystemP r_ord p3) -> do
                              <.> proofs 
         returnA -< SystemP r_ord p4
     where
-        refClash :: ProgId -> String
-        refClash   = [s|Multiple refinement of progress property %s|] . pretty
-        commClash :: DocItem -> String
-        commClash  = [s|Multiple comments for %s|] . pretty
-        proofClash :: Label -> String
-        proofClash = [s|Multiple proofs labeled %s|] . pretty
+        refClash :: ProgId -> Text
+        refClash   = [st|Multiple refinement of progress property %s|] . prettyText
+        commClash :: DocItem -> Text
+        commClash  = [st|Multiple comments for %s|] . prettyText
+        proofClash :: Label -> Text
+        proofClash = [st|Multiple proofs labeled %s|] . prettyText
         only_one :: EventId -> [((ProgId, ProgressProp), LineInfo)] 
                  -> MM (Maybe ((ProgId, ProgressProp), LineInfo))
         only_one _ []   = return Nothing
         only_one _ [x]  = return (Just x)
-        only_one eid (x:xs) = tell [MLError ([s|Multiple refinement provided for the fine schedule of %s|] $ pretty eid) 
-                                    $ first (pretty . fst) <$> (x:|xs)] >> return Nothing
+        only_one eid (x:xs) = tell [MLError ([st|Multiple refinement provided for the fine schedule of %s|] $ prettyText eid) 
+                                    $ first (prettyText . fst) <$> (x:|xs)] >> return Nothing
 
 make_phase4 :: MachineP3 
             -> Map EventId [((Label, ScheduleChange), LineInfo)]
             -> Map EventId (Maybe ((ProgId,ProgressProp),LineInfo))
             -> Map ProgId ((Rule,[(ProgId,ProgId)]),LineInfo) 
-            -> Map DocItem (String,LineInfo)
+            -> Map DocItem (Text,LineInfo)
             -> Map Label (Tactic Proof, LineInfo) 
             -> MachineP4
 make_phase4 p3 coarse_refs fine_refs prog_ref comments proofs 
@@ -191,12 +193,12 @@ raiseStructError (Conc ls@(LiveStruct { .. }))
         edges :: [R.Relation LiveEvtId LiveEvtId]
         edges  = L.map ((\s -> s <| live_live |> s) . S.fromList) cycles
         es = W.mapMaybe (fmap (MLError $ msg machine_id) . nonEmpty . L.map err_item . R.toList) edges
-        err_item :: (LiveEvtId, LiveEvtId) -> (String, LineInfo)
+        err_item :: (LiveEvtId, LiveEvtId) -> (Text, LineInfo)
         err_item = uncurry (\les -> first $ name les) . (id &&& uncurry li)
         msg _ = "A cycle exists in the liveness proof"
-        name :: (LiveEvtId,a) -> MachineId -> String
-        name (Left e,_) m = [s|Event %s (refined in %s)|] (pretty e) (pretty m)
-        name (Right prop,_) m = [s|Progress property %s (refined in %s)|] (pretty prop) (pretty m)
+        name :: (LiveEvtId,a) -> MachineId -> Text
+        name (Left e,_) m = [st|Event %s (refined in %s)|] (prettyText e) (prettyText m)
+        name (Right prop,_) m = [st|Progress property %s (refined in %s)|] (prettyText prop) (prettyText m)
         li (Left e) (Right l) = evt_info ! (e,l)
         li (Left _) (Left _)  = error "raiseStructError: event refined by event"
         li (Right l) _ = live_info ! l
@@ -236,7 +238,7 @@ mergeLiveness (Conc cl) (Abs al) = Conc LiveStruct
 refine_prog_prop :: MPipeline MachineP3
                 [(ProgId,(Rule,[(ProgId,ProgId)]),LineInfo)]
 refine_prog_prop = machineCmd "\\refine" $ \(goal, RuleName rule, hyps, PlainText hint) _m p3 -> do
-        let rule' = map toLower rule
+        let rule' = T.map toLower rule
             goal' = as_label goal
             hyps' = map as_label hyps
             dep = map (goal,) hyps
@@ -257,7 +259,7 @@ ref_replace_csched = machineCmd "\\replace" $ \(Abs evt_lbl,added',prog) m p3 ->
             return (pprop,evt)
         toEither $ do
             _ <- fromEither undefined $ _unM $ bind_all added 
-                    (\lbl -> [s|'%s' is not the label of a coarse schedule of '%s' added during refinement|] (pretty lbl) (pretty evt)) 
+                    (\lbl -> [st|'%s' is not the label of a coarse schedule of '%s' added during refinement|] (prettyText lbl) (prettyText evt)) 
                     (`M.lookup` (M.unions $ p3^.evtSplitConcrete evt eCoarseSched))
             return ()
         let rule = replace (as_label prog,pprop)
@@ -275,10 +277,10 @@ ref_replace_fsched = machineCmd "\\replacefine" $ \(Abs evt_lbl,prog) m p3 -> do
         return $ EventRef [] [(evt,[(rule,li)])]
 
 
-all_comments :: MPipeline MachineP3 [(DocItem, String, LineInfo)]
+all_comments :: MPipeline MachineP3 [(DocItem, Text, LineInfo)]
 all_comments = machineCmd "\\comment" $ \(PlainText item',PlainText cmt') _m p3 -> do
                 li <- ask
-                let item = L.filter (/= '$') $ remove_ref $ flatten' item'
+                let item = T.filter (/= '$') $ remove_ref $ flatten' item'
                     cmt = flatten' cmt'
                     -- prop = props m
                     invs = p3^.pInvariant
@@ -303,7 +305,7 @@ all_comments = machineCmd "\\comment" $ \(PlainText item',PlainText cmt') _m p3 
                 else case is_var of
                     Just item -> return $ DocVar item
                     _ -> do
-                        let msg = [s|`%s` is not one of: a variable, an event, an invariant or a progress property |]
+                        let msg = [st|`%s` is not one of: a variable, an event, an invariant or a progress property |]
                         unless (not $ or conds)
                             $ fail "all_comments: conditional not exhaustive"
                         raise $ Error (msg item) li
@@ -316,7 +318,7 @@ liveness_proofs = machineEnv "liveness" $ \(Identity (PO po)) xs _m p3 -> do
         proof <- parseLatex (liveness p3) xs ()
         let dep = [ (goal,h) | h <- proof^.partsOf traverseProgId ]
             goal = PId $ label po
-        prop <- bind ([s|'%s' is not the name of a progress property in this machine|] po)
+        prop <- bind ([st|'%s' is not the name of a progress property in this machine|] po)
             $ goal `M.lookup` (p3^.pProgress)
         return [(goal,(makeMonotonicity prop proof,dep),li)]
 
@@ -331,7 +333,7 @@ liveness m = withLineInfo $ proc () -> do
         prop = withCommand "\\progstep" $ progStep m
         nostep :: LatexParserA (RawProgressProp,RuleProxy) VoidInference
         nostep = lift' $ \(prog,rule) -> maybe 
-            (raise' $ Error $ [s|Expecting premises to rule: %s|] $ readCell1' (pretty . rule_name') rule) 
+            (raise' $ Error $ [st|Expecting premises to rule: %s|] $ readCell1' (prettyText . rule_name') rule) 
             return
             (readCell1' (voidInference (Sub Dict) prog) rule)
         makeRule :: LatexParserA ([EventOrRef],LatexDoc,VoidInference) ProofTree
@@ -415,14 +417,14 @@ stepList' m =
         transient :: LatexParser RawTransient
         transient = withCommand "\\trstep" $ trStep m
 
-parse_naked_rule :: String -> M RuleProxy
+parse_naked_rule :: Text -> M RuleProxy
 parse_naked_rule rule = do
     li <- ask
     case M.lookup rule ruleProxies of
         Just x -> return x
-        Nothing -> raise $ Error ([s|invalid refinement rule: %s|] rule) li
+        Nothing -> raise $ Error ([st|invalid refinement rule: %s|] rule) li
 
-ruleProxies :: Map String RuleProxy
+ruleProxies :: Map Text RuleProxy
 ruleProxies = fromList $ execWriter $ do
         "discharge"    `with` [pr|Discharge|]
         "disjunction"  `with` [pr|Disjunction|]
@@ -451,12 +453,12 @@ all_proofs = machineEnv "proof" $ \(Identity (PO po)) xs m p3 -> do
 get_progress_prop :: MachineP3 -> MachineId -> ProgId -> M ProgressProp
 get_progress_prop p3 _m lbl =  
             bind
-                ([s|progress property '%s' is undeclared|] $ pretty lbl)
+                ([st|progress property '%s' is undeclared|] $ prettyText lbl)
                 $ lbl `M.lookup` (L.view pProgress p3)
 
 
 
-parse_rule' :: String
+parse_rule' :: Text
             -> RuleParserParameter
             -> M Rule
 parse_rule' rule param = do
@@ -464,9 +466,9 @@ parse_rule' rule param = do
     case M.lookup rule refinement_parser of
         Just f -> M $ EitherT $ mapRWST (\x -> return (runIdentity x)) $
             runEitherT $ _unM $ f param
-        Nothing -> raise $ Error ([s|invalid refinement rule: %s|] rule) li
+        Nothing -> raise $ Error ([st|invalid refinement rule: %s|] rule) li
 
-refinement_parser :: Map String (
+refinement_parser :: Map Text (
                   RuleParserParameter
                -> M Rule)
 refinement_parser = fromList 

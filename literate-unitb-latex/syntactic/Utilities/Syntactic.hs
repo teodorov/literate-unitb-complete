@@ -36,7 +36,7 @@ import Text.Pretty
 import Text.Printf.TH
 
 
-data Error = Error String LineInfo | MLError String (NonEmpty (String,LineInfo))
+data Error = Error Text LineInfo | MLError Text (NonEmpty (Text,LineInfo))
     deriving (Eq,Typeable,Show,Ord,Read,Generic)
 
 data LineInfo = LI 
@@ -113,7 +113,7 @@ end (tok,li) = lexemeLength tok li
 afterLast :: Token a => LineInfo -> [(a,LineInfo)] -> LineInfo
 afterLast li xs = maybe li end $ lastMay xs
 
-with_li :: LineInfo -> Either [String] b -> Either [Error] b
+with_li :: LineInfo -> Either [Text] b -> Either [Error] b
 with_li li = either (\x -> Left $ map (`Error` li) x) Right
 
 instance Syntactic LineInfo where
@@ -138,25 +138,25 @@ instance Arbitrary LineInfo where
 showLiLong :: LineInfo -> String
 showLiLong (LI fn ln col) = [printf|%s:%d:%d|] fn ln col
 
-report :: Error -> String
+report :: Error -> Text
 report (Error msg li) = [printf|%s:\n    %s|] (showLiLong li) msg
 report (MLError msg ys) = [printf|%s\n%s|] msg
                 (intercalate "\n" 
                     $ map (\(msg,li) -> [printf|%s:\n\t%s\n|] (showLiLong li) msg) 
                     $ sortOn snd $ NE.toList ys)
 
-makeReport :: Monad m => EitherT [Error] m String -> m String
+makeReport :: Monad m => EitherT [Error] m Text -> m Text
 makeReport = liftM fst . makeReport' () . liftM (,())
 
-makeReport' :: Monad m => a -> EitherT [Error] m (String,a) -> m (String,a)
+makeReport' :: Monad m => a -> EitherT [Error] m (Text,a) -> m (Text,a)
 makeReport' def m = eitherT f return m
     where    
         f x = return ("Left " ++ show_err x,def)
 
-format_error :: Error -> String
+format_error :: Error -> Text
 format_error = report
 
-message :: Error -> String
+message :: Error -> Text
 message (Error msg _) = msg
 message (MLError msg _) = msg
 
@@ -206,7 +206,7 @@ consStream x (StringLi xs li) = StringLi (x:xs) li
 stream :: LineInfo -> TokenStream a
 stream = StringLi []
 
-neLines :: String -> NonEmpty String
+neLines :: Text -> NonEmpty Text
 neLines [] = [] :| []
 neLines ('\n':xs) = [] :| (y:ys)
     where
@@ -241,7 +241,7 @@ locToLI loc = LI
             (srcLocStartLine loc)
             (srcLocStartCol loc)
 
-errorTrace :: I.Pre => [FilePath] -> CallStack -> String -> [Error]
+errorTrace :: I.Pre => [FilePath] -> CallStack -> Text -> [Error]
 errorTrace fs stack msg = [MLError msg $ nonEmpty' $ loc & mapped._2 %~ locToLI]
     where
         loc = getSrcLocs fs stack

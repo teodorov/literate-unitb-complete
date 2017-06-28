@@ -14,7 +14,9 @@ import Control.Lens hiding (uncons)
 
 import Data.List
 import Data.Maybe
-import Data.String.Utils as S
+import Data.Monoid
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Language.Haskell.TH hiding (Name)
 import Language.Haskell.TH.Quote
@@ -49,22 +51,22 @@ prog = QuasiQuoter
     , quoteType = undefined
     }
 
-parseAction :: Loc -> ParserSetting -> String -> Action
+parseAction :: Loc -> ParserSetting -> Text -> Action
 parseAction loc p str = Assign v e
     where
-        (rVar,rExpr) = second (intercalate ":=") $ fromMaybe err $ uncons (S.split ":=" str)
+        (rVar,rExpr) = second (T.intercalate ":=") $ fromMaybe err $ uncons (T.splitOn ":=" str)
         v@(Var _ t)  = parseVar loc p rVar
         e  = parseExpr loc p' rExpr
         p' = p & expected_type .~ Just t
         li = asLI loc
-        err = error $ "\n"++ show_err [Error ([s|misshapen assignment: '%s'|] str) li]
+        err = error $ T.unpack $ "\n" <> show_err [Error ([st|misshapen assignment: '%s'|] str) li]
 
-parseSafetyProp :: Loc -> ParserSetting -> String -> SafetyProp
+parseSafetyProp :: Loc -> ParserSetting -> Text -> SafetyProp
 parseSafetyProp = parseParts makeSafety "UNLESS" "safety property" parseExpr parseExpr
     where
         makeSafety e0 e1 = Unless [] e0 e1
 
-parseProgressProp :: Loc -> ParserSetting -> String -> ProgressProp
+parseProgressProp :: Loc -> ParserSetting -> Text -> ProgressProp
 parseProgressProp = parseParts makeProgress "LEADS-TO" "progress property" parseExpr parseExpr
     where
         makeProgress e0 e1 = LeadsTo [] e0 e1

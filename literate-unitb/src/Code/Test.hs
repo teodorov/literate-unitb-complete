@@ -22,10 +22,14 @@ import Control.Precondition
 import Data.Either.Combinators hiding (fromRight')
 import Data.List as L
 import Data.Map hiding ((!))
+import           Data.Text (Text,pack)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import System.Directory
 import System.IO.Unsafe
-import System.Process
+-- import System.Process
+import System.Process.Text as T
 
 import Test.UnitTest
 
@@ -35,20 +39,20 @@ test_case = test
 test :: TestCase
 test = test_cases
             "code generation in the cube example"
-            [ (stringCase "test0: code for the {state}" case0 result0)
-            , (stringCase "test1: code for the {event}" case1 result1)
-            , (stringCase "test2: code for the {initialization}" case2 result2) 
-            , (stringCase "test3: code for the {procedure + loop}" case3 result3) 
-            , (stringCase "test4: {whole source file}" case4 result4) 
-            , (stringCase "test5: run {source file}" case5 result5) 
-            , (stringCase "test6: verify {control flow graph}" case6 result6) 
-            , (stringCase "test7: {concurrent} code" case7 result7)
-            , (stringCase "test8: {run concurrent} code" case8 result8)
+            [ (textCase "test0: code for the {state}" case0 result0)
+            , (textCase "test1: code for the {event}" case1 result1)
+            , (textCase "test2: code for the {initialization}" case2 result2) 
+            , (textCase "test3: code for the {procedure + loop}" case3 result3) 
+            , (textCase "test4: {whole source file}" case4 result4) 
+            , (textCase "test5: run {source file}" case5 result5) 
+            , (textCase "test6: verify {control flow graph}" case6 result6) 
+            , (textCase "test7: {concurrent} code" case7 result7)
+            , (textCase "test8: {run concurrent} code" case8 result8)
             ]
 
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
         [ "data State = State"
         , "    { v_a :: Int" 
         , "    , v_b :: Int" 
@@ -56,21 +60,21 @@ result0 = unlines
         , "    , v_f :: M.Map (Int) (Int)" 
         , "    , v_n :: Int }" ]
 
-input :: Either String RawMachineAST
+input :: Either Text RawMachineAST
 input = unsafePerformIO $ fmap (view' syntax.raw) <$> parse path0
 
 path0 :: FilePath
 path0 = [path|Tests/cubes-t8.tex|]
 
-case0 :: IO String
+case0 :: IO Text
 case0 = do x <- runEitherT $ do
                 m <- hoistEither input
                 EitherT $ return $ run $ struct m
            return $ either id id x    
         
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
         [ "let s' = s"
         , "        { v_n = (v_n + 1)"
         , "        , v_a = (v_a + v_b)"
@@ -80,14 +84,14 @@ result1 = unlines
         , "        }" 
         ]
      
-case1 :: IO String
+case1 :: IO Text
 case1 = do x <- runEitherT $ do
                 m <- hoistEither input
                 EitherT $ return $ run $ void $ event_body_code m $ (conc_events m ! Right "evt")^.new
            return $ either id id x    
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
         [ "s' = State"
         , "     { v_b = 1"
         , "     , v_c = 6" 
@@ -96,14 +100,14 @@ result2 = unlines
         , "     , v_f = M.empty"
         , "     }" ]
      
-case2 :: IO String
+case2 :: IO Text
 case2 = do let x = do
                 m <- raw <$> input
                 run $ init_code m
            return $ either id id x    
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
         [ "find_cubes c_N = do"
         , "        execState proc s'"
         , "    where"
@@ -134,7 +138,7 @@ result3 = unlines
         , "                   proc'" 
         ]
 
-case3 :: IO String
+case3 :: IO Text
 case3 = do let x = do
                 m <- raw <$> input
                 run $ machine_code "find_cubes" m $ n `zeq` bigN
@@ -143,8 +147,8 @@ case3 = do let x = do
         (n)      = fromRight' $ fst $ var "n" int
         (bigN)   = fromRight' $ fst $ var "N" int
      
-result4 :: String
-result4 = unlines
+result4 :: Text
+result4 = T.unlines
         [ "{-# LANGUAGE RecordWildCards #-}"
         , "import Data.Map as M"
         , "import Data.Set as S"
@@ -195,7 +199,7 @@ result4 = unlines
 
 
 
-case4 :: IO String
+case4 :: IO Text
 case4 = do let x = do
                 m <- input
                 source_file "find_cubes" m $ n `zeq` bigN
@@ -204,8 +208,8 @@ case4 = do let x = do
         (n)      = fromRight' $ fst $ var "n" int
         (bigN)   = fromRight' $ fst $ var "N" int
 
-result7 :: String
-result7 = unlines
+result7 :: Text
+result7 = T.unlines
         [ "{-# LANGUAGE RecordWildCards #-}"
         , "import Data.Map as M"
         , "import Data.Set as S"
@@ -267,7 +271,7 @@ result7 = unlines
         , "                   proc'" 
         ]
 
-case7 :: IO String
+case7 :: IO Text
 case7 = do let x = do
                 m <- input
                 let vars = L.map fromString'' ["n","f","b"]
@@ -277,18 +281,18 @@ case7 = do let x = do
         (n)      = fromRight' $ fst $ var "n" int
         (bigN)   = fromRight' $ fst $ var "N" int
 
-result8 :: String
-result8 = unlines 
+result8 :: Text
+result8 = T.unlines 
     [ "1000" ]
 
-case8 :: IO String
+case8 :: IO Text
 case8 = do  xs <- runEitherT $ do
                 m  <- hoistEither input
                 let vars = L.map fromString'' ["n","f","b"]
                 xs <- hoistEither $ source_file' vars "find_cubes" m $ n `zeq` bigN
                 lift $ do 
                     file <- tempFile "Tests/code.hs"
-                    writeFile file $ unlines
+                    T.writeFile file $ T.unlines
                         [ xs
                         , ""
                         , "main = do"
@@ -301,8 +305,8 @@ case8 = do  xs <- runEitherT $ do
         (n)      = fromRight' $ fst $ var "n" int
         (bigN)   = fromRight' $ fst $ var "N" int
 
-result5 :: String
-result5 = unlines
+result5 :: Text
+result5 = T.unlines
             [ "0^3 = 0"
             , "1^3 = 1"
             , "2^3 = 8"
@@ -314,13 +318,13 @@ result5 = unlines
             , "8^3 = 512"
             , "9^3 = 729" ]
 
-case5 :: IO String
+case5 :: IO Text
 case5 = do  xs <- runEitherT $ do
                 m  <- hoistEither input
                 xs <- hoistEither $ source_file "find_cubes" m $ n `zeq` bigN
                 lift $ do 
                     file <- tempFile "Tests/code.hs"
-                    writeFile file $ unlines
+                    T.writeFile file $ T.unlines
                         [ xs
                         , ""
                         , "main = do"
@@ -334,31 +338,31 @@ case5 = do  xs <- runEitherT $ do
         (n)      = fromRight' $ fst $ var "n" int
         (bigN)   = fromRight' $ fst $ var "N" int
 
-result6 :: String
-result6 = unlines 
+result6 :: Text
+result6 = T.unlines 
     [ "(m0/body/disabled/evt,Valid)"
     , "(m0/body/forced,Valid)"
     ]
 
-case6 :: IO String
+case6 :: IO Text
 case6 = liftM (either id id) $ runEitherT $ do
     m  <- hoistEither input
     let cfg = default_cfg m
     pos <- hoistEither 
-        $ mapLeft unlines
+        $ mapLeft T.unlines
         $ safety m [] [] cfg
     -- xs <- hoistEither $ source_file "find_cubes" m $ n `zeq` bigN
     xs <- lift $ discharge_all (toAscList pos)
-    return $ unlines $ L.map (show . (_1 %~ Pretty)) $ zip (keys pos) xs
+    return $ T.unlines $ L.map (pack . show . (_1 %~ Pretty)) $ zip (keys pos) xs
 
-parse :: FilePath -> IO (Either String Machine)
+parse :: FilePath -> IO (Either Text Machine)
 parse path = do
     r <- parse_machine path
     case r of
         Right [m] -> do
             return $ Right m
         Right _ -> return $ Left "wrong number of machines"
-        Left x  -> return $ Left $ unlines $ L.map show x
+        Left x  -> return $ Left $ T.unlines $ L.map (pack . show) x
 
 -- data POLabel = 
 --             POLoop 
@@ -370,11 +374,11 @@ parse path = do
 --             | PONumber Int
 --     deriving (Eq)
 
--- type M = ReaderT [Branch] (Either String)
+-- type M = ReaderT [Branch] (Either Text)
 
 -- type Branch = ([POLabel],Either [Label] [Expr])
 
--- make_cfg :: [Branch] -> Either String Program
+-- make_cfg :: [Branch] -> Either Text Program
 -- make_cfg bs 
 --         | valid     = 
 --             case bs' of

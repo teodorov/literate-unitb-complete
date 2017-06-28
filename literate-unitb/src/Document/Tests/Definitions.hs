@@ -5,41 +5,45 @@ import Document.Tests.Suite as S
 
 import Test.UnitTest
 
+    -- Libraries
+import           Data.Text (Text)
+import qualified Data.Text as T
+
 test_case :: TestCase
 test_case = test
 
 test :: TestCase
 test = test_cases
             "Specification and refinement of a lock-free algorithm"
-            [ stringCase "parsing and using definitions" case0 result0 
+            [ textCase "parsing and using definitions" case0 result0 
             , poCase "proving using definitions" case1 result1 
-            , stringCase "invariance proof obligation" case2 result2 ]
+            , textCase "invariance proof obligation" case2 result2 ]
 
 path0 :: FilePath
 path0 = [path|Tests/definitions/definitions.tex|]
 
-case0 :: IO String
+case0 :: IO Text
 case0 = do
     find_errors path0
 
-result0 :: String
+result0 :: Text
 result0 = "no errors"
 
 case1 :: IO POResult
 case1 = verify path0 0
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , " xxx m0/act/INV/inv0"
     , "passed 1 / 2"
     ]
 
-case2 :: IO String
+case2 :: IO Text
 case2 = proof_obligation path0 "m0/act/INV/inv0" 0
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "; m0/act/INV/inv0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

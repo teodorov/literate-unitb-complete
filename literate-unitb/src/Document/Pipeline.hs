@@ -29,6 +29,7 @@ import           Data.Hashable
 import           Data.List as L
 import qualified Data.Map as M
 import           Data.String
+import           Data.Text (Text,pack,unpack)
 import           Data.Tuple.Generics
 
 import GHC.Generics.Instances
@@ -51,8 +52,8 @@ instance Monad (MM' a) where
             run (MM x) = x
 
 data DocSpec = DocSpec 
-            { getEnvSpec :: M.Map String ArgumentSpec 
-            , getCommandSpec :: M.Map String ArgumentSpec
+            { getEnvSpec :: M.Map Text ArgumentSpec 
+            , getCommandSpec :: M.Map Text ArgumentSpec
             }
 
 data ArgumentSpec = forall a. IsTuple LatexArg a => ArgumentSpec Int (Proxy a)
@@ -70,17 +71,17 @@ convertInput (Input mch ctx) = Input
         (M.map convertBlocks mch) 
         (M.map convertBlocks ctx)
 
-newtype ContextId = CId { getCId :: String }
+newtype ContextId = CId { getCId :: Text }
     deriving (Eq,Ord,Hashable)
 
 instance IsLabel ContextId where
     as_label (CId x) = label x
 
 instance Show ContextId where
-    show = getCId
+    show = unpack . getCId
 
 instance IsString ContextId where
-    fromString = CId
+    fromString = CId . pack
 
 liftEither :: Either [Error] a -> MM' c a
 liftEither (Left xs) = MM $ tell xs >> mzero
@@ -105,7 +106,7 @@ empty_spec = DocSpec M.empty M.empty
 instance Monoid DocSpec where
     mappend (DocSpec xs0 ys0) (DocSpec xs1 ys1) = DocSpec (xs0 `unionM` xs1) (ys0 `unionM` ys1) 
         where
-            unionM = M.unionWithKey (\k _ -> error $ "command name clash: " ++ k)
+            unionM = M.unionWithKey (\k _ -> error $ unpack $ "command name clash: " <> k)
     mempty = empty_spec
 
 data Pipeline m a b = Pipeline DocSpec DocSpec (a -> m b)
@@ -137,8 +138,8 @@ data Cmd = BlockCmd
 type DocBlocks = DocBlocksRaw InputMap
 type DocBlocksBuilder = DocBlocksRaw InputMapBuilder
 
-newtype InputMap a = InputMap { getInputMap :: M.Map String [a] }
-newtype InputMapBuilder a = InputMapBuilder { getInputMapBuilder :: DList (String,DList a) }
+newtype InputMap a = InputMap { getInputMap :: M.Map Text [a] }
+newtype InputMapBuilder a = InputMapBuilder { getInputMapBuilder :: DList (Text,DList a) }
 
 data DocBlocksRaw f = DocBlocks 
     { getEnv :: OnFunctor f Env
@@ -173,7 +174,7 @@ machine_spec (Pipeline m _ _) = m
 context_spec :: Pipeline m a b -> DocSpec
 context_spec (Pipeline _ c _) = c
 
-item :: String -> a
+item :: Text -> a
      -> OnFunctor InputMapBuilder a
 item n x = OnFunctor $ InputMapBuilder $ pure (n,pure x)
 
@@ -232,7 +233,7 @@ isBlank _ = False
 
 {-# INLINE runPipeline' #-}
 runPipeline' :: M.Map Name [LatexDoc]
-             -> M.Map String [LatexDoc]
+             -> M.Map Text [LatexDoc]
              -> a
              -> Pipeline MM a b 
              -> Either [Error] b
@@ -248,13 +249,13 @@ runPipeline' ms cs arg p = runMM (f arg) input
 latexArgProxy :: Proxy LatexArg
 latexArgProxy = Proxy
 
-machineSyntax :: Pipeline m a b -> [String]
+machineSyntax :: Pipeline m a b -> [Text]
 machineSyntax (Pipeline mch _ _) = 
            M.foldMapWithKey cmd (getCommandSpec mch)
         ++ M.foldMapWithKey env (getEnvSpec mch)
     where
-        argument p = [s|{%s}|] (argKind p)
-        cmd x (ArgumentSpec _ xs) = [x ++ foldMapTupleType latexArgProxy argument xs]
-        env x (ArgumentSpec _ xs) = [[s|\\begin{%s}%s .. \\end{%s}|] x
-                    (foldMapTupleType latexArgProxy argument xs :: String) x]
+        argument p = [st|{%s}|] (argKind p)
+        cmd x (ArgumentSpec _ xs) = [x <> foldMapTupleType latexArgProxy argument xs]
+        env x (ArgumentSpec _ xs) = [[st|\\begin{%s}%s .. \\end{%s}|] x
+                    (foldMapTupleType latexArgProxy argument xs :: Text) x]
 

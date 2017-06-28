@@ -115,9 +115,9 @@ make_machine (MId m) p4 = mch'
         concrEvt eid evt olds = do
             let n = length olds
                 absEvents = intercalate "," $ (traverse %~ prettyEvent.fst) $ NE.toList olds
-                missingErr e = [s|The events merged into %s (%s) do not all have an action labelled %s|] e absEvents
-                oneActErr    = [s|Event %s, action %s|]
-                diffActsErr  = [s|The action %s of the events merged into %s differ|]
+                missingErr e = [st|The events merged into %s (%s) do not all have an action labelled %s|] e absEvents
+                oneActErr    = [st|Event %s, action %s|]
+                diffActsErr  = [st|The action %s of the events merged into %s differ|]
                 collapseActions :: Label
                                 -> NonEmpty (SkipOrEvent, (NonEmpty LineInfo, Action))
                                 -> Either [Error] Action
@@ -125,12 +125,12 @@ make_machine (MId m) p4 = mch'
                     | length acts == n && length (group $ (traverse %~ view (_2._2)) . NE.toList $ acts) == 1 
                         = Right . snd . snd $ NE.head acts
                     | length acts /= n = Left . pure
-                        $ MLError ( missingErr (prettyEvent eid) (pretty lbl) ) 
-                          [ (oneActErr (prettyEvent e) (pretty lbl),li)
+                        $ MLError ( missingErr (prettyEvent eid) (prettyText lbl) ) 
+                          [ (oneActErr (prettyEvent e) (prettyText lbl),li)
                             | (e,(lis,_act)) <- acts, li <- lis ]
                     | otherwise        = Left . pure
-                        $ MLError ( diffActsErr (pretty lbl) (prettyEvent eid) ) 
-                          [ (oneActErr (prettyEvent e) (pretty lbl),li)
+                        $ MLError ( diffActsErr (prettyText lbl) (prettyEvent eid) ) 
+                          [ (oneActErr (prettyEvent e) (prettyText lbl),li)
                               | (e,(lis,_act)) <- acts, li <- lis ]
             oldAction <- itraverseValidation collapseActions
                         $ M.unionsWith (<>) . NE.toList 

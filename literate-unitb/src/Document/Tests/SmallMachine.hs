@@ -15,6 +15,8 @@ import Control.Lens.Misc
 
 import qualified Data.List.NonEmpty as NE
 import           Data.Map as M hiding ( map )
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Test.UnitTest
 
@@ -33,24 +35,24 @@ test = test_cases "small machine example" [
             case2 result2),
         (poCase "test 3 (verification)" 
             case3 result3),
-        (stringCase "test 4 (proof obligation, invariance)" 
+        (textCase "test 4 (proof obligation, invariance)" 
             case4 result4),
-        (stringCase "test 5 (co, 'skip' proof obligation)" 
+        (textCase "test 5 (co, 'skip' proof obligation)" 
             case5 result5),
         (poCase "test 6 (verification, coarse schedule stronger than guard)" 
             case6 result6),
-        (stringCase "test 7 (schedulability proof obligation)" 
+        (textCase "test 7 (schedulability proof obligation)" 
             case7 result7),
-        (stringCase "test 8 (schedulability without selecting schedules (trivially true))" 
+        (textCase "test 8 (schedulability without selecting schedules (trivially true))" 
             case8 result8),
             -- default: false is no longer weakened away
-        --(stringCase "test 9 (coarse schedule weakening, PO)" 
+        --(textCase "test 9 (coarse schedule weakening, PO)" 
         --    case9 result9),
-        (stringCase "test 10 (transient PO, enablement)" 
+        (textCase "test 10 (transient PO, enablement)" 
             case10 result10), 
-        (stringCase "test 11 (transient PO, negation)" 
+        (textCase "test 11 (transient PO, negation)" 
             case11 result11),
-        (stringCase "test 12 name clash between coarse schedule and co properties" 
+        (textCase "test 12 name clash between coarse schedule and co properties" 
             case12 result12) 
         ]
 
@@ -68,8 +70,8 @@ case1 :: IO (Either [Error] [Machine])
 case1 = do
     parse path1
 
-result2 :: String
-result2 = unlines 
+result2 :: Text
+result2 = T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/inc/FIS/x@prime"
@@ -86,11 +88,11 @@ result2 = unlines
 path2 :: FilePath
 path2 = [path|Tests/small_machine_t2.tex|]
 
-case2 :: IO (String, Map Label Sequent)
+case2 :: IO (Text, Map Label Sequent)
 case2 =  verify path2 0
 
-result3 :: String
-result3 = unlines 
+result3 :: Text
+result3 = T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , " xxx m0/SKIP/CO/co0"
     , "  o  m0/inc/CO/co0"
@@ -105,11 +107,11 @@ result3 = unlines
 path3 :: FilePath
 path3 = [path|Tests/small_machine.tex|]
 
-case3 :: IO (String, Map Label Sequent)
+case3 :: IO (Text, Map Label Sequent)
 case3 = verify path3 0
 
-result4 :: String
-result4 = unlines 
+result4 :: Text
+result4 = T.unlines 
     [ "; m0/inc/INV/inv0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -141,14 +143,14 @@ result4 = unlines
     , "; m0/inc/INV/inv0"
     ]
 
-show_po :: FilePath -> Label -> IO String
-show_po path lbl = proof_obligation path (pretty lbl) 0
+show_po :: FilePath -> Label -> IO Text
+show_po path lbl = proof_obligation path (prettyText lbl) 0
 
-case4 :: IO String
+case4 :: IO Text
 case4 = show_po path3 "m0/inc/INV/inv0"
 
-result5 :: String
-result5 = unlines 
+result5 :: Text
+result5 = T.unlines 
     [ "; m0/SKIP/CO/co0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -178,11 +180,11 @@ result5 = unlines
     , "; m0/SKIP/CO/co0"
     ]
 
-case5 :: IO String
+case5 :: IO Text
 case5 = show_po path3 "m0/SKIP/CO/co0"
 
-result6 :: String
-result6 = unlines 
+result6 :: Text
+result6 = T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , " xxx m0/SKIP/CO/co0"
     , "  o  m0/inc/CO/co0"
@@ -198,11 +200,11 @@ result6 = unlines
 path6 :: FilePath
 path6 = [path|Tests/small_machine_t3.tex|]
 
-case6 :: IO (String, Map Label Sequent)
+case6 :: IO (Text, Map Label Sequent)
 case6 = verify path6 0
 
-result7 :: String
-result7 = unlines 
+result7 :: Text
+result7 = T.unlines 
     [ "; m0/inc/SCH/grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -228,14 +230,14 @@ result7 = unlines
     , "; m0/inc/SCH/grd0"
     ]
 
-case7 :: IO String
+case7 :: IO Text
 case7 = show_po path6 "m0/inc/SCH/grd0"
 
 path8 :: FilePath
 path8 = [path|Tests/small_machine_t4.tex|]
 
-result8 :: String
-result8 = unlines 
+result8 :: Text
+result8 = T.unlines 
     [ "; m0/inc/SCH/grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -261,11 +263,11 @@ result8 = unlines
     , "; m0/inc/SCH/grd0"
     ]
 
-case8 :: IO String
+case8 :: IO Text
 case8 = show_po path8 "m0/inc/SCH/grd0"
 
-result9 :: String
-result9 = unlines
+result9 :: Text
+result9 = T.unlines
     [ "; m0/inc/C_SCH/weaken/c0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -293,11 +295,11 @@ result9 = unlines
     , "; m0/inc/C_SCH/weaken/c0"
     ]
 
-case9 :: IO String
+case9 :: IO Text
 case9 = show_po path6 "m0/inc/C_SCH/weaken/c0"
 
-result10 :: String
-result10 = unlines 
+result10 :: Text
+result10 = T.unlines 
     [ "; m0/tr0/TR/inc/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -323,11 +325,11 @@ result10 = unlines
     , "; m0/tr0/TR/inc/EN"
     ]
 
-case10 :: IO String
+case10 :: IO Text
 case10 = show_po path6 "m0/tr0/TR/inc/EN"
 
-result11 :: String
-result11 = unlines
+result11 :: Text
+result11 = T.unlines
     [ "; m0/tr0/TR/inc/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -361,7 +363,7 @@ result11 = unlines
     , "; m0/tr0/TR/inc/NEG"
     ]
 
-case11 :: IO String
+case11 :: IO Text
 case11 = show_po path6 "m0/tr0/TR/inc/NEG"
 
 var_x :: Var
@@ -432,12 +434,12 @@ m1_props = m0_props
 path12 :: FilePath
 path12 = [path|Tests/small_machine_t12.tex|]
 
-case12 :: IO String
+case12 :: IO Text
 case12 = do
     find_errors path12
 
-result12 :: String
-result12 = unlines
+result12 :: Text
+result12 = T.unlines
     [ "Multiple expressions with the label c0"
     , "error 41:1:"
     , "\tcoarse schedule (event 'inc')"

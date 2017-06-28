@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies,CPP,TemplateHaskell,OverloadedStrings #-}
 module Logic.Names.Internals 
     ( module Logic.Names.Internals
-    , NonEmpty((:|))
+    , NEText(..)
     )
 where
 
@@ -163,7 +163,7 @@ instance IsBaseName Name where
     addPrime = primes %~ (+1)
     generateNames n = n : [ n & base %~ numbered i | i <- [0 ..] ]
     language Proxy = latexName
-    z3NameText = either (assertFalse' . L.unlines) id . isZ3Name
+    z3NameText = either (assertFalse' . unpack . T.unlines) id . isZ3Name
     texName = fromString''
 
 class IsBaseName n => IsName n where
@@ -213,7 +213,7 @@ instance IsBaseName InternalName where
     generateNames (InternalName pre n suf) = 
             InternalName pre <$> generateNames n <*> pure suf
     language Proxy = asInternal' <$> z3Name'
-    z3NameText = either (assertFalse' . L.unlines) id . isZ3InternalName
+    z3NameText = either (assertFalse' . unpack . T.unlines) id . isZ3InternalName
     texName str = asInternal' $ (texName str :: Name)
 
 instance Hashable Name where
@@ -241,15 +241,15 @@ fromText' nm = InternalName "" (fromJust' $ isZ3Name' n) suf
 isZ3Name' :: Text -> Maybe Name
 isZ3Name' = rightToMaybe . isZ3Name
 
-isZ3Name :: Text -> Either [String] Name
+isZ3Name :: Text -> Either [Text] Name
 isZ3Name = parseLanguage z3Name'
 
-parseLanguage :: Language a -> Text -> Either [String] a
-parseLanguage lang str = mapLeft (\x -> [err,show x]) $ parse' lang "" str
+parseLanguage :: Language a -> Text -> Either [Text] a
+parseLanguage lang str = mapLeft (\x -> [err,pack $ show x]) $ parse' lang "" str
     where
-        err = [s|invalid name: '%s'|] str
+        err = [st|invalid name: '%s'|] str
 
-isName :: Text -> Either [String] Name
+isName :: Text -> Either [Text] Name
 isName = parseLanguage latexName
 
 isName' :: Text -> Maybe Name
@@ -280,7 +280,7 @@ reserved pre n = InternalName pre (makeName $ pack $ show n) ""
 internal :: Lens' InternalName Name
 internal f (InternalName pre n suf) = (\n' -> InternalName pre n' suf) <$> f n
 
-isZ3InternalName :: Text -> Either [String] InternalName
+isZ3InternalName :: Text -> Either [Text] InternalName
 isZ3InternalName = parseLanguage z3InternalName
  
 z3InternalName :: Language InternalName
@@ -400,10 +400,10 @@ tex = QuasiQuoter
     , quoteType = undefined }
 
 parseZ3Name :: String -> ExpQ
-parseZ3Name str = either (fail . L.unlines) TH.lift $ isZ3Name $ pack str
+parseZ3Name str = either (fail . unpack . T.unlines) TH.lift $ isZ3Name $ pack str
 
 parseTexName :: String -> ExpQ
-parseTexName str = either (fail . L.unlines) TH.lift $ isName $ pack str
+parseTexName str = either (fail . unpack . T.unlines) TH.lift $ isName $ pack str
 
 prop_subst_idempotent :: Text -> Property
 prop_subst_idempotent xs = replaceAll substToZ3 (replaceAll substToZ3 xs) === replaceAll substToZ3 xs

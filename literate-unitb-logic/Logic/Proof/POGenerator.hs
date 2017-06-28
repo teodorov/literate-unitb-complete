@@ -33,6 +33,7 @@ import Control.Monad.State
 
 import           Data.DList as D
 import           Data.List  as L
+import           Data.List.NonEmpty as NE
 import           Data.Map as M hiding ( map )
 import qualified Data.Map as M
 import           Data.Semigroup

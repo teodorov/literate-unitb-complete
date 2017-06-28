@@ -44,14 +44,20 @@ import           Data.Map as M hiding
                     , delete, filter, null
                     , (\\), mapMaybe )
 import qualified Data.Map as M
+import           Data.Monoid ((<>))
 import           Data.Serialize
 import qualified Data.Set as S
+import           Data.Text (Text,pack)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
 import GHC.Generics (Generic1)
 import GHC.Generics.Instances
 
 import Test.QuickCheck.ZoomEq
 
+import TextShow (showt)
+import Text.Pretty
 import Text.Printf.TH as Printf
 
 import Utilities.Syntactic
@@ -184,6 +190,7 @@ instance Eq1 MachinePO' where
     eq1 = (==)
 #endif
 instance PrettyPrintable expr => PrettyPrintable (MachinePO' expr) where
+    pretty = defaultPretty
 instance NFData expr => NFData (MachinePO' expr) where
 instance NFData expr => NFData (MachineWithProofs' expr) where
 instance Serialize expr => Serialize (MachineWithProofs' expr) where
@@ -226,7 +233,7 @@ withPOs ps m = fmap check' $ do
             let poBox = box $ \() -> raw_machine_pos' m
                 pos = unbox poBox
                 p = intersectionWith (\s (t,li) -> eitherToValidation $ runTactic li s t) pos ps
-                f lbl (_,li) = Error ([Printf.s|proof obligation does not exist: %s\n\n%s|] 
+                f lbl (_,li) = Error ([Printf.st|proof obligation does not exist: %s\n\n%s|] 
                                         (pretty lbl) (unlines $ map pretty $ M.keys pos)) li
                 errs = concat (p^.partsOf (traverse._Failure)) ++ elems (mapWithKey f $ ps `difference` pos)
                 errs' | null errs = sequenceA p
@@ -236,7 +243,7 @@ withPOs ps m = fmap check' $ do
             return $ MachinePO m p poBox (box $ \() -> pos)
             --proof_obligation_field (const $ box . const <$> proof_obligation' pos m) m'
 
-verify_changes :: Machine -> Map Label (Bool,Sequent) -> IO (Map Label (Bool,Sequent), String,Int)
+verify_changes :: Machine -> Map Label (Bool,Sequent) -> IO (Map Label (Bool,Sequent), Text,Int)
 verify_changes m old_pos = do
         let pos = proof_obligation m
             new_pos = differenceWith f pos old_pos
@@ -253,40 +260,40 @@ verify_changes m old_pos = do
             | p0 == p1  = Nothing 
             | otherwise = Just p0
 
-str_verify_machine :: HasExpr expr => Machine' expr -> IO (String,Int,Int)
+str_verify_machine :: HasExpr expr => Machine' expr -> IO (Text,Int,Int)
 str_verify_machine = str_verify_machine_with (const Just)
 
 str_verify_machine_with :: HasExpr expr 
                         => (Label -> Sequent -> Maybe Sequent)
                         -> Machine' expr 
-                        -> IO (String,Int,Int)
+                        -> IO (Text,Int,Int)
 str_verify_machine_with opt m = do
         let pos = mapMaybeWithKey opt $ proof_obligation m
         xs <- verify_all pos
         format_result xs
 
-smoke_test_machine :: Machine -> IO (String)
+smoke_test_machine :: Machine -> IO Text
 smoke_test_machine m = do
         let pos = proof_obligation m
         rs <- flip filterM (M.toList pos) $ \(lbl,po) -> do
             r <- smoke_test lbl po
             return $ r == Valid
-        return $ L.unlines $ L.map (show . fst) rs
+        return $ T.unlines $ L.map (pack . show . fst) rs
 
 verify_machine :: Machine -> IO (Int, Int)
 verify_machine m = do
     (s,i,j) <- str_verify_machine m
-    putStrLn s
+    T.putStrLn s
     return (i,j)
 
-format_result :: Map Label Bool -> IO (String,Int,Int)
+format_result :: Map Label Bool -> IO (Text,Int,Int)
 format_result xs' = do
         let rs    = L.map f $ M.toAscList xs'
             total = L.length rs
             passed = L.length $ L.filter fst rs
-            xs = "passed " ++ (show passed) ++ " / " ++ show total
+            xs = "passed " <> showt passed <> " / " <> showt total
             ys = L.map snd rs ++ [xs]
-        return (L.unlines ys, passed, total)
+        return (T.unlines ys, passed, total)
     where
-        f (y,True)  = (True, "  o  " ++ pretty y)
-        f (y,False) = (False," xxx " ++ pretty y)
+        f (y,True)  = (True, "  o  " <> prettyText y)
+        f (y,False) = (False," xxx " <> prettyText y)

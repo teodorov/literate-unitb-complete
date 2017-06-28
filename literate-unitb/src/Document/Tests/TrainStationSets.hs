@@ -3,6 +3,9 @@ module Document.Tests.TrainStationSets where
 import Document.Tests.Suite
 
     -- Libraries
+import           Data.Text (Text)
+import qualified Data.Text as T
+
 import Test.UnitTest
 
 test_case :: TestCase
@@ -14,20 +17,20 @@ test = test_cases
             [ poCase "verify machine m0 (sets)" (verify path0 0) result0
             , poCase "verify machine m1 (sets)" (verify path0 1) result1
             , poCase "verify machine m2 (sets)" (verify path0 2) result2
-            , stringCase "m2, enablement proof obligation" case6 result6
-            , stringCase "m2, transient proof obligation, feasibility" case7 result7
-            , stringCase "m2, transient proof obligation, enablement" case10 result10
-            , stringCase "m2, transient proof obligation, negation" case11 result11
-            , stringCase "m2, safety property of schedule replacement" case8 result8
+            , textCase "m2, enablement proof obligation" case6 result6
+            , textCase "m2, transient proof obligation, feasibility" case7 result7
+            , textCase "m2, transient proof obligation, enablement" case10 result10
+            , textCase "m2, transient proof obligation, negation" case11 result11
+            , textCase "m2, safety property of schedule replacement" case8 result8
             , poCase "verify machine m3 (sets)" (verify path0 3) result5
-            , stringCase "type checking of boolean expressions" case3 result3
-            , stringCase "verify machine m3 error (wandering free variable)" case4 result4
-            , stringCase "witness well definedness PO" case9 result9
-            , stringCase "PO in m3 (sets)" case12 result12
+            , textCase "type checking of boolean expressions" case3 result3
+            , textCase "verify machine m3 error (wandering free variable)" case4 result4
+            , textCase "witness well definedness PO" case9 result9
+            , textCase "PO in m3 (sets)" case12 result12
             ]
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/m0:enter/FIS/in@prime"
     , "  o  m0/m0:leave/FIS/in@prime"
     , "  o  m0/m0:prog0/LIVE/discharge/tr/lhs"
@@ -38,8 +41,8 @@ result0 = unlines
     , "passed 7 / 7"
     ]
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/INIT/INV/inv0"
     , "  o  m1/m0:enter/FIS/in@prime"
     , "  o  m1/m0:enter/FIS/loc@prime"
@@ -124,8 +127,8 @@ result1 = unlines
     , "passed 81 / 81"
     ]
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "  o  m2/INIT/INV/m2:inv0"
     , "  o  m2/m0:enter/FIS/in@prime"
     , "  o  m2/m0:enter/FIS/loc@prime"
@@ -221,8 +224,8 @@ result2 = unlines
 path0 :: FilePath
 path0 = [path|Tests/train-station-set.tex|]
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "error 295:4:"
     , "    arguments of 'and' do not match its signature:"
     , "   signature: [\\Bool,\\Bool] -> \\Bool"
@@ -236,17 +239,17 @@ result3 = unlines
 path3 :: FilePath
 path3 = [path|Tests/train-station-set-err0.tex|]
 
-case3 :: IO String
+case3 :: IO Text
 case3 = find_errors path3
 
 path4 :: FilePath
 path4 = [path|Tests/train-station-set-err1.tex|]
 
-case4 :: IO String
+case4 :: IO Text
 case4 = find_errors path4
 
-result4 :: String
-result4 = unlines 
+result4 :: Text
+result4 = T.unlines 
     [ "error 494:27:"
     , "    unrecognized term: t"
     , "Perhaps you meant:"
@@ -254,8 +257,8 @@ result4 = unlines
     , "ext (variable)"
     ]
 
-result5 :: String
-result5 = unlines
+result5 :: Text
+result5 = T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INIT/INV/m3:inv2"
@@ -340,11 +343,11 @@ result5 = unlines
     , "passed 79 / 81"
     ]
 
-case6 :: IO String
+case6 :: IO Text
 case6 = proof_obligation path0 "m2/m2:tr1/TR/m1:moveout/EN" 2
 
-result6 :: String
-result6 = unlines
+result6 :: Text
+result6 = T.unlines
     [ "; m2/m2:tr1/TR/m1:moveout/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -802,11 +805,11 @@ result6 = unlines
     , "; m2/m2:tr1/TR/m1:moveout/EN"
     ]
 
-case7 :: IO String
+case7 :: IO Text
 case7 = proof_obligation path0 "m2/m2:tr0/TR/WFIS/t/t@prime" 2
 
-result7 :: String
-result7 = unlines
+result7 :: Text
+result7 = T.unlines
     [ "; m2/m2:tr0/TR/WFIS/t/t@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1261,11 +1264,11 @@ result7 = unlines
     , "; m2/m2:tr0/TR/WFIS/t/t@prime"
     ]
 
-case10 :: IO String
+case10 :: IO Text
 case10 = proof_obligation path0 "m2/m2:tr0/TR/m0:leave/EN" 2
 
-result10 :: String
-result10 = unlines
+result10 :: Text
+result10 = T.unlines
     [ "; m2/m2:tr0/TR/m0:leave/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1721,11 +1724,11 @@ result10 = unlines
     , "; m2/m2:tr0/TR/m0:leave/EN"
     ]
 
-case11 :: IO String
+case11 :: IO Text
 case11 = proof_obligation path0 "m2/m2:tr0/TR/m0:leave/NEG" 2
 
-result11 :: String
-result11 = unlines
+result11 :: Text
+result11 = T.unlines
     [ "; m2/m2:tr0/TR/m0:leave/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2195,11 +2198,11 @@ result11 = unlines
     , "; m2/m2:tr0/TR/m0:leave/NEG"
     ]
 
-case8 :: IO String
+case8 :: IO Text
 case8 = proof_obligation path0 "m3/m1:moveout/C_SCH/delay/0/saf/m1:moveout/SAF/m1:moveout" 3
 
-result8 :: String
-result8 = unlines
+result8 :: Text
+result8 = T.unlines
     [ "; m3/m1:moveout/C_SCH/delay/0/saf/m1:moveout/SAF/m1:moveout"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2707,11 +2710,11 @@ result8 = unlines
     , "; m3/m1:moveout/C_SCH/delay/0/saf/m1:moveout/SAF/m1:moveout"
     ]
 
-case9 :: IO String
+case9 :: IO Text
 case9 = proof_obligation path0 "m3/m3:tr0/TR/WD/witness/p" 3
 
-result9 :: String
-result9 = unlines
+result9 :: Text
+result9 = T.unlines
     [ "; m3/m3:tr0/TR/WD/witness/p"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3185,11 +3188,11 @@ result9 = unlines
     , "; m3/m3:tr0/TR/WD/witness/p"
     ]
 
-case12 :: IO String
+case12 :: IO Text
 case12 = proof_obligation path0 "m3/m3:ctr:plf/FIS/osgn@prime" 3
 
-result12 :: String
-result12 = unlines
+result12 :: Text
+result12 = T.unlines
     [ "; m3/m3:ctr:plf/FIS/osgn@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

@@ -17,6 +17,8 @@ import Control.Precondition ((!))
 import Data.List as L
 import Data.Map hiding ((!))
 import Data.Set  as S (Set,fromList)
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import Test.UnitTest
 
@@ -37,41 +39,41 @@ test_case = test_cases
         , poCase "puzzle, m4" case11 result11
         , aCase "puzzle, deleted variables, m3" case12 result12
         , aCase "puzzle, deleted variables, m4" case13 result13
-        , stringCase "puzzle, error: invariant referring to deleted variable" case14 result14
-        , stringCase "puzzle, error: assignment to deleted variable" case15 result15
+        , textCase "puzzle, error: invariant referring to deleted variable" case14 result14
+        , textCase "puzzle, error: assignment to deleted variable" case15 result15
         , aCase "test 16, puzzle, removing actions, m3" case16 result16
         , aCase "test 17, puzzle, removed actions, m4" case17 result17
-        , stringCase "test 18, simulation proof obligation" case18 result18
-        , stringCase "test 19, simulation proof obligation (init)" case19 result19
-        , stringCase "test 20, crashing proof obligation of invariant with witness" case20 result20
-        , stringCase "test 21, deleting non-existant action" case21 result21
-        , stringCase "test 30, duplicate declarations" case30 result30
-        , stringCase "test 22, error providing a witness for non-deleted variable" case22 result22
-        , stringCase "test 23, error deleting non-existant variable" case23 result23
+        , textCase "test 18, simulation proof obligation" case18 result18
+        , textCase "test 19, simulation proof obligation (init)" case19 result19
+        , textCase "test 20, crashing proof obligation of invariant with witness" case20 result20
+        , textCase "test 21, deleting non-existant action" case21 result21
+        , textCase "test 30, duplicate declarations" case30 result30
+        , textCase "test 22, error providing a witness for non-deleted variable" case22 result22
+        , textCase "test 23, error deleting non-existant variable" case23 result23
         , aCase "test 24, inherited vs local invariants" case24 result24
-        , stringCase "test 25, error: schedules and guards refer to deleted variables" case25 result25
+        , textCase "test 25, error: schedules and guards refer to deleted variables" case25 result25
         , aCase "test 27, old guards / new guards" case27 result27
-        , stringCase "test 28, illegal type application" case28 result28
-        , stringCase "test 29, theorem well-definedness" case29 result29
+        , textCase "test 28, illegal type application" case28 result28
+        , textCase "test 29, theorem well-definedness" case29 result29
         ]
 
 path0 :: FilePath
 path0 = [path|Tests/puzzle/puzzle.tex|]
 
-case0 :: IO (String, Map Label Sequent)
+case0 :: IO (Text, Map Label Sequent)
 case0 = verify path0 0
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/LIVE/prog0/ensure/TR/term/NEG"
     , "passed 1 / 1"
     ]
 
-case1 :: IO (String, Map Label Sequent)
+case1 :: IO (Text, Map Label Sequent)
 case1 = verify path0 1
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/INIT/INV/inv0"
     , "  o  m1/LIVE/prog3/ensure/TR/WFIS/p/p@prime"
     , "  o  m1/LIVE/prog3/ensure/TR/visit/NEG"
@@ -93,11 +95,11 @@ result1 = unlines
     , "passed 18 / 18"
     ]
 
-case2 :: IO String
+case2 :: IO Text
 case2 = proof_obligation path0 "m1/prog1/LIVE/induction/rhs" 1
 
-result2 :: String
-result2 = unlines
+result2 :: Text
+result2 = T.unlines
     [ "; m1/prog1/LIVE/induction/rhs"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -210,7 +212,7 @@ result2 = unlines
     , "; m1/prog1/LIVE/induction/rhs"
     ]
 
-case3 :: IO String
+case3 :: IO Text
 case3 = liftM (either id id) $ runEitherT $ do
     s <- get_system path0
     let ms  = s!.machines
@@ -219,8 +221,8 @@ case3 = liftM (either id id) $ runEitherT $ do
         evt   = nonSkipUpwards m ! visit
     return $ getListing $ event_summary' m visit evt
 
-result3 :: String
-result3 = unlines
+result3 :: Text
+result3 = T.unlines
     [ "\\noindent \\ref{visit} $[p]$ \\textbf{event}"
     , "\\begin{block}"
     , "  \\item   \\textbf{during}"
@@ -237,11 +239,11 @@ result3 = unlines
     , "\\end{block}"
     ]
 
-case4 :: IO String
+case4 :: IO Text
 case4 = proof_obligation path0 "m1/LIVE/prog3/ensure/TR/visit/EN" 1
 
-result4 :: String
-result4 = unlines
+result4 :: Text
+result4 = T.unlines
     [ "invalid label: m1/LIVE/prog3/ensure/TR/visit/EN"
     , "m1/INIT/INV/inv0"
     , "m1/LIVE/prog3/ensure/TR/WFIS/p/p@prime"
@@ -263,11 +265,11 @@ result4 = unlines
     , "m1/visit/SAF/saf2"
     ]
 
-case5 :: IO String
+case5 :: IO Text
 case5 = proof_obligation path0 "m1/LIVE/prog3/ensure/TR/visit/NEG" 1
 
-result5 :: String
-result5 = unlines
+result5 :: Text
+result5 = T.unlines
     [ "; m1/LIVE/prog3/ensure/TR/visit/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -398,11 +400,11 @@ result5 = unlines
     , "; m1/LIVE/prog3/ensure/TR/visit/NEG"
     ]
 
--- case6 :: IO String
+-- case6 :: IO Text
 -- case6 = proof_obligation path0 "m1/visit/SCH/0/REF/weaken" 1
 
--- result6 :: String
--- result6 = unlines
+-- result6 :: Text
+-- result6 = T.unlines
     -- [ "; m1/visit/SCH/0/REF/weaken"
     -- , "(set-option :auto-config false)"
     -- , "(declare-datatypes (a) ( (Maybe (Just (fromJust a)) Nothing) ))"
@@ -468,11 +470,11 @@ result5 = unlines
     -- , "; m1/visit/SCH/0/REF/weaken"
     -- ]
 
-case7 :: IO (String, Map Label Sequent)
+case7 :: IO (Text, Map Label Sequent)
 case7 = verify path0 2
 
-result7 :: String
-result7 = unlines
+result7 :: Text
+result7 = T.unlines
     [ "  o  m2/INIT/INV/inv1"
     , "  o  m2/INIT/INV/inv2"
     , "  o  m2/LIVE/prog10/ensure/TR/count/EN"
@@ -533,11 +535,11 @@ result7 = unlines
     , "passed 57 / 57"
     ]
 
-case8 :: IO (String, Map Label Sequent)
+case8 :: IO (Text, Map Label Sequent)
 case8 = verify path0 3
 
-result8 :: String
-result8 = unlines 
+result8 :: Text
+result8 = T.unlines 
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INIT/INV/m3:inv2"
@@ -607,11 +609,11 @@ result8 = unlines
     , "passed 66 / 66"
     ]
 
-case9 :: IO String
+case9 :: IO Text
 case9 = proof_obligation path0 "m3/INV/WD" 3
 
-result9 :: String
-result9 = unlines
+result9 :: Text
+result9 = T.unlines
     [ "; m3/INV/WD"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -839,11 +841,11 @@ result9 = unlines
     , "; m3/INV/WD"
     ]
 
-case10 :: IO String
+case10 :: IO Text
 case10 = proof_obligation path0 "m3/INIT/INV/m3:inv1" 3
 
-result10 :: String
-result10 = unlines
+result10 :: Text
+result10 = T.unlines
     [ "; m3/INIT/INV/m3:inv1"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -973,11 +975,11 @@ result10 = unlines
     , "; m3/INIT/INV/m3:inv1"
     ]
 
-case11 :: IO (String, Map Label Sequent)
+case11 :: IO (Text, Map Label Sequent)
 case11 = verify path0 4
 
-result11 :: String
-result11 = unlines
+result11 :: Text
+result11 = T.unlines
     [ "passed 0 / 0"
     ]
 
@@ -1010,11 +1012,11 @@ result13 = Right $ ( ["b","vs","n","c","fs"]
 path14 :: FilePath
 path14 = [path|Tests/puzzle/puzzle-err0.tex|]
 
-case14 :: IO String
+case14 :: IO Text
 case14 = find_errors path14
 
-result14 :: String
-result14 = unlines
+result14 :: Text
+result14 = T.unlines
         [ "error 225:24:"
         , "    unrecognized term: cs"
         , "Perhaps you meant:"
@@ -1027,11 +1029,11 @@ result14 = unlines
 path15 :: FilePath
 path15 = [path|Tests/puzzle/puzzle-err1.tex|]
 
-case15 :: IO String
+case15 :: IO Text
 case15 = find_errors path15
 
-result15 :: String
-result15 = unlines
+result15 :: Text
+result15 = T.unlines
     [ "In 'm3', event 'count', action 'act0' refers to deleted symbols"
     , "error 116:4:"
     , "\tdeleted variable 'cs'"
@@ -1107,11 +1109,11 @@ result17 = Right ( S.fromList ["m3:act0","m3:act1"]
                  , S.fromList []
                  , S.fromList ["m3:act0","m3:act1"])
 
-case18 :: IO String
+case18 :: IO Text
 case18 = proof_obligation path0 "m3/count/SIM/act0" 3
 
-result18 :: String
-result18 = unlines
+result18 :: Text
+result18 = T.unlines
     [ "; m3/count/SIM/act0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1359,11 +1361,11 @@ result18 = unlines
     , "; m3/count/SIM/act0"
     ]
 
-case20 :: IO String
+case20 :: IO Text
 case20 = proof_obligation path0 "m3/visit/INV/m3:inv0" 3
 
-result20 :: String
-result20 = unlines
+result20 :: Text
+result20 = T.unlines
     [ "; m3/visit/INV/m3:inv0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1662,11 +1664,11 @@ result20 = unlines
     , "; m3/visit/INV/m3:inv0"
     ]
 
-case19 :: IO String
+case19 :: IO Text
 case19 = proof_obligation path0 "m3/INIT/SIM/in2" 3
 
-result19 :: String
-result19 = unlines
+result19 :: Text
+result19 = T.unlines
     [ "; m3/INIT/SIM/in2"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1777,11 +1779,11 @@ result19 = unlines
 path21 :: FilePath
 path21 = [path|Tests/puzzle/puzzle-err2.tex|]
 
-case21 :: IO String
+case21 :: IO Text
 case21 = find_errors path21
 
-result21 :: String
-result21 = unlines
+result21 :: Text
+result21 = T.unlines
     [ "In 'm3', event 'flick', coarse schedule 'sch1' refers to deleted symbols"
     , "error 101:4:"
     , "\tdeleted variable 'ts'"
@@ -1848,22 +1850,22 @@ result21 = unlines
 path22 :: FilePath
 path22 = [path|Tests/puzzle/puzzle-err3.tex|]
 
-case22 :: IO String
+case22 :: IO Text
 case22 = find_errors path22
 
-result22 :: String
-result22 = unlines
+result22 :: Text
+result22 = T.unlines
     [ "error 227:2:\n    'c' is not a disappearing variable or a new index"
     ]
 
 path23 :: FilePath
 path23 = [path|Tests/puzzle/puzzle-err4.tex|]
 
-case23 :: IO String
+case23 :: IO Text
 case23 = find_errors path23
 
-result23 :: String
-result23 = unlines
+result23 :: Text
+result23 = T.unlines
     [ "error 227:2:\n    deleted variable \'xyz\' does not exist"
     ]
 
@@ -1882,11 +1884,11 @@ result24 = Right ( S.fromList ["inv0","inv1","inv2","m3:inv0","m3:inv1"
 path25 :: FilePath
 path25 = [path|Tests/puzzle/puzzle-err5.tex|]
 
-case25 :: IO String
+case25 :: IO Text
 case25 = find_errors path25
 
-result25 :: String
-result25 = unlines
+result25 :: Text
+result25 = T.unlines
     [ "In 'm3', event 'flick', coarse schedule 'sch1' refers to deleted symbols"
     , "error 101:4:"
     , "\tdeleted variable 'ts'"
@@ -1939,20 +1941,20 @@ result27 :: Either [Error] (Set Label,Set Label)
 result27 = Right ( S.fromList ["grd0","grd1","sch0","sch1","sch2"]
                  , S.fromList ["grd1","m3:grd1","m3:grd2","m3:csch1","m3:csch2","sch2"])
 
-case28 :: IO String
+case28 :: IO Text
 case28 = find_errors "Tests/puzzle/puzzle-err7.tex"
 
-result28 :: String
-result28 = unlines
+result28 :: Text
+result28 = T.unlines
     [ "error 238:24:"
     , "    Parameter mismatch. Expecting 1 type parameters, received 0."
     ]
 
-case29 :: IO String
+case29 :: IO Text
 case29 = proof_obligation path0 "m3/THM/WD" 3
 
-result29 :: String
-result29 = unlines
+result29 :: Text
+result29 = T.unlines
     [ "; m3/THM/WD"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2176,11 +2178,11 @@ result29 = unlines
 path30 :: FilePath
 path30 = [path|Tests/puzzle/puzzle-err8.tex|]
 
-case30 :: IO String
+case30 :: IO Text
 case30 = find_errors path30
 
-result30 :: String
-result30 = unlines
+result30 :: Text
+result30 = T.unlines
     [ "Multiple expressions with the label grd0"
     , "error 53:2:"
     , "\tguard (event 'term')"

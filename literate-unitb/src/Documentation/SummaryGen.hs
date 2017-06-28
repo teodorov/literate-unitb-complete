@@ -19,12 +19,13 @@ import Control.Monad.Trans.Reader (ReaderT(..),runReaderT)
 import Control.Precondition
 
 import Data.Default
-import Data.List as L ( intercalate )
 import qualified Data.List as L
 import           Data.List.NonEmpty as NE hiding ((!!))
 import           Data.Map as M hiding (map)
 import qualified Data.Map as M
 import           Data.Maybe as MM
+import           Data.Text (Text)
+import qualified Data.Text as T
 
 import System.FilePath
 import System.IO.FileSystem
@@ -38,7 +39,7 @@ newtype Doc a = Doc { getDoc :: ReaderT FilePath FileSystemM a }
     -- Reader parameters:
     --      AST -> LaTeX conversions
     --      path for listing creation
-type M = RWS Bool [String] ()
+type M = RWS Bool [Text] ()
     --      AST -> LaTeX conversions
     --      should we strike out expressions?
 
@@ -47,9 +48,9 @@ data ExprStyle = Tagged | Untagged | Definition
 data ExprDispOpt label expr = ExprDispOpt
         { _makeDoc :: label -> M ()                 -- Command to produce documentating comments
         , _style :: ExprStyle
-        , _pretty' :: label -> String
+        , _pretty' :: label -> Text
         , _isDefaultSpecial :: Maybe (label -> Label -> Bool)
-        , _makeString :: expr -> String           -- How to convert (AST) type `a` to LaTeX?
+        , _makeString :: expr -> Text           -- How to convert (AST) type `a` to LaTeX?
         }                                                      -- 
 
 makeLenses ''ExprDispOpt
@@ -59,24 +60,24 @@ isDefault p lbl = maybe False (\f -> f lbl "default")
                         (p^.isDefaultSpecial)
 
 makeRef :: ExprDispOpt label expr 
-        -> EventId -> label -> M String
+        -> EventId -> label -> M Text
 makeRef p pre lbl
-    | isDefault p lbl = return $ [s|(\\ref{%s}/default)|] $ pretty pre
-    | otherwise       = return $ [s|\\eqref{%s}|] (pretty pre ++ (p^.pretty') lbl)
+    | isDefault p lbl = return $ [st|(\\ref{%s}/default)|] $ prettyText pre
+    | otherwise       = return $ [st|\\eqref{%s}|] (prettyText pre <> (p^.pretty') lbl)
 
 combineLblExpr :: ExprDispOpt label expr
-               -> EventId -> label -> String -> M String
+               -> EventId -> label -> Text -> M Text
 combineLblExpr opts pre lbl expr = case opts^.style of 
-                    Untagged   -> [s|  \\item[ ]%s\n  %%%s|] 
+                    Untagged   -> [st|  \\item[ ]%s\n  %%%s|] 
                                             -- <$> makeRef opts pre lbl
                                             <$> format_formula expr
                                             <*> makeRef opts pre lbl
-                    Tagged     -> [s|  \\item[ %s ]%s|] 
+                    Tagged     -> [st|  \\item[ %s ]%s|] 
                                             <$> makeRef opts pre lbl
                                             <*> format_formula expr
-                    Definition -> fmap ("  \\item[] " ++)
+                    Definition -> fmap ("  \\item[] " <>)
                                     $ format_formula 
-                                    $ [s|%s \\3\\triangleq %s|] 
+                                    $ [st|%s \\3\\triangleq %s|] 
                                             (opts^.pretty' $ lbl) 
                                             expr
 
@@ -94,13 +95,13 @@ instance FileSystem Doc where
     lift2FS f = OneParam $ \g -> Doc $ ReaderT $ \fn -> getOneParam f $ \x -> runReaderT (getDoc $ g x) fn
 
 defOptions :: PrettyPrintable label 
-           => (expr -> String) 
+           => (expr -> Text) 
            -> ExprDispOpt label expr
 defOptions f = ExprDispOpt
             { _makeDoc = const $ return () 
             , _makeString = f 
             , _style = Untagged
-            , _pretty' = pretty
+            , _pretty' = prettyText
             , _isDefaultSpecial = Nothing
             }
 
@@ -131,19 +132,22 @@ make_file :: FilePath -> M () -> Doc ()
 make_file fn cmd = do
     path <- ask
     let xs = snd $ execRWS cmd False ()
-        root = [s|%%!TEX root=../%s|] (takeFileName path)
+        root = [st|%%!TEX root=../%s|] (takeFileName path)
+        
+        -- this is not writeFile from Prelude, it comes
+        -- from filesystem-mockup
     writeFile (dropExtension path </> fn) 
-        $ L.unlines $ root : xs
+        $ T.unlines $ root : xs
 
-keyword :: String -> String
-keyword kw = [s|\\textbf{%s}|] kw
+keyword :: Text -> Text
+keyword kw = [st|\\textbf{%s}|] kw
 
 machine_summary :: System -> Machine -> Doc ()
 machine_summary sys m = do
     path <- ask
     make_file fn $ 
         block $ do
-            item $ tell [keyword "machine" ++ " " ++ render (m!.name)]
+            item $ tell [keyword "machine" <> " " <> renderText (m!.name)]
             item $ refines_clause sys m
             item $ set_sum m
             item $ constant_sum m
@@ -174,20 +178,20 @@ machine_summary sys m = do
                         item $ input path $ event_file_name m k
             item $ kw_end
     where
-        fn = "machine_" ++ (render $ m!.name) <.> "tex"
+        fn = "machine_" ++ render (m!.name) <.> "tex"
 
-prop_file_name :: Machine -> String
-prop_file_name m = "machine_" ++ (render $ m!.name) ++ "_props" <.> "tex"
+prop_file_name :: Machine -> FilePath
+prop_file_name m = "machine_" ++ render (m!.name) ++ "_props" <.> "tex"
 
-indent :: Int -> String -> String
-indent n xs = intercalate "\n" $ L.map (margin ++) $ L.lines xs
+indent :: Int -> Text -> Text
+indent n xs = T.intercalate "\n" $ L.map (margin <>) $ T.lines xs
     where
-        margin = replicate n ' '
+        margin = T.replicate n " "
 
 item :: M () -> M ()
 item cmd = do
     let f [] = []
-        f xs = ["  \\item " ++ intercalate "\n" (L.map (indent 2) xs)]
+        f xs = ["  \\item " <> T.intercalate "\n" (L.map (indent 2) xs)]
     censor f cmd
 
 properties_summary :: Machine -> Doc ()
@@ -214,44 +218,44 @@ properties_summary m = do
     where
         fn = prop_file_name m
 
-asm_file :: Machine -> String
-asm_file m  = "machine_" ++ (render $ m!.name) ++ "_asm" <.> "tex"
+asm_file :: Machine -> FilePath
+asm_file m  = "machine_" ++ render (m!.name) ++ "_asm" <.> "tex"
 
-defs_file :: Machine -> String
-defs_file m  = "machine_" ++ (render $ m!.name) ++ "_def" <.> "tex"
+defs_file :: Machine -> FilePath
+defs_file m  = "machine_" ++ render (m!.name) ++ "_def" <.> "tex"
 
-inv_file :: Machine -> String
-inv_file m  = "machine_" ++ (render $ m!.name) ++ "_inv" <.> "tex"
+inv_file :: Machine -> FilePath
+inv_file m  = "machine_" ++ render (m!.name) ++ "_inv" <.> "tex"
 
-inv_thm_file :: Machine -> String
-inv_thm_file m  = "machine_" ++ (render $ m!.name) ++ "_thm" <.> "tex"
+inv_thm_file :: Machine -> FilePath
+inv_thm_file m  = "machine_" ++ render (m!.name) ++ "_thm" <.> "tex"
 
-live_file :: Machine -> String
-live_file m = "machine_" ++ (render $ m!.name) ++ "_prog" <.> "tex"
+live_file :: Machine -> FilePath
+live_file m = "machine_" <> render (m!.name) <> "_prog" <.> "tex"
 
-transient_file :: Machine -> String
-transient_file m = "machine_" ++ (render $ m!.name) ++ "_trans" <.> "tex"
+transient_file :: Machine -> FilePath
+transient_file m = "machine_" <> render (m!.name) <> "_trans" <.> "tex"
 
-saf_file :: Machine -> String
-saf_file m  = "machine_" ++ (render $ m!.name) ++ "_saf" <.> "tex"
+saf_file :: Machine -> FilePath
+saf_file m  = "machine_" <> render (m!.name) <> "_saf" <.> "tex"
 
-constraint_file :: Machine -> String
-constraint_file m  = "machine_" ++ (render $ m!.name) ++ "_co" <.> "tex"
+constraint_file :: Machine -> FilePath
+constraint_file m  = "machine_" <> render (m!.name) <> "_co" <.> "tex"
 
-getListing :: M () -> String
-getListing cmd = L.unlines $ snd $ execRWS cmd False ()
+getListing :: M () -> Text
+getListing cmd = T.unlines $ snd $ execRWS cmd False ()
 
-input :: FilePath -> String -> M ()
+input :: FilePath -> FilePath -> M ()
 input path fn = do
-    tell [[s|\\input{%s/%s}|] (takeBaseName path) $ dropExtension fn]
+    tell [[st|\\input{%s/%s}|] (takeBaseName path) $ dropExtension fn]
 
 kw_end :: M ()
 kw_end = tell ["\\textbf{end} \\\\"]
 
 event_file_name :: Machine -> EventId -> FilePath
-event_file_name m lbl = ((render $ m!.name) ++ "_" ++ rename lbl) <.> "tex"
+event_file_name m lbl = (render (m!.name) ++ "_" ++ reformat lbl) <.> "tex"
     where
-        rename lbl = L.map f $ pretty lbl
+        reformat lbl = L.map f $ pretty lbl
         f ':' = '-'
         f x   = x
 
@@ -259,7 +263,7 @@ comment_of :: Machine -> DocItem -> M ()
 comment_of m key = do
     item $ do
         case key `M.lookup` (m!.comments) of
-            Just cmt -> block $ item $ tell [[s|%s|] cmt]
+            Just cmt -> block $ item $ tell [[st|%s|] cmt]
             Nothing -> return ()
 
 init_summary :: Machine -> M ()
@@ -292,7 +296,7 @@ refines_clause :: System -> Machine -> M ()
 refines_clause sys m = do
     case join $ _name m `M.lookup` (sys!.ref_struct) of
         Nothing -> return ()
-        Just anc -> tell [keyword "refines" ++ " " ++ pretty anc]
+        Just anc -> tell [keyword "refines" <> " " <> prettyText anc]
 
 block :: M () -> M ()
 block cmd = do
@@ -307,14 +311,14 @@ set_sum m = section (keyword "sets") $
     unless (M.null $ m!.theory.types) $
     block $ do
         forM_ (keys $ m!.theory.types) $ \v -> do
-            item $ tell [[s|$%s$|] $ render v]
+            item $ tell [[st|$%s$|] $ renderText v]
 
 constant_sum :: Machine -> M ()
 constant_sum m = section (keyword "constants") $ 
     unless (M.null $ m!.theory.consts) $
     block $ do
         forM_ (elems $ m!.theory.consts) $ \v -> do
-            item $ tell [[s|$%s$|] $ varDecl v]
+            item $ tell [[st|$%s$|] $ varDecl v]
 
 variable_sum :: Machine -> M ()
 variable_sum m = section (keyword "variables") $ 
@@ -322,46 +326,46 @@ variable_sum m = section (keyword "variables") $
     block $ do
         when show_removals $ 
             forM_ (elems $ view' abs_vars m `M.difference` view' variables m) $ \v -> do
-                item $ tell [[s|$%s$\\quad(removed)|] $ varDecl v]
+                item $ tell [[st|$%s$\\quad(removed)|] $ varDecl v]
                 comment_of m (DocVar $ v^.name)
         forM_ (elems $ view' abs_vars m `M.intersection` view' variables m) $ \v -> do
-            item $ tell [[s|$%s$|] $ varDecl v]
+            item $ tell [[st|$%s$|] $ varDecl v]
             comment_of m (DocVar $ v^.name)
         forM_ (elems $ view' variables m `M.difference` view' abs_vars m) $ \v -> do
-            item $ tell [[s|$%s$\\quad(new)|] $ varDecl v]
+            item $ tell [[st|$%s$\\quad(new)|] $ varDecl v]
             comment_of m (DocVar $ v^.name)
 
 data Member = Elem | Subset
 
-varDecl :: Var -> String
-varDecl v = render (v^.name) ++ fromMaybe "" (isMember $ type_of v)
+varDecl :: Var -> Text
+varDecl v = renderText (v^.name) <> fromMaybe "" (isMember $ type_of v)
 
-withParenth :: Bool -> String -> String
-withParenth True  = [s|(%s)|]
+withParenth :: Bool -> Text -> Text
+withParenth True  = [st|(%s)|]
 withParenth False = id
 
-isMember :: Type -> Maybe String
-isMember t = join (preview (_FromSort.to f) t) <|> ((" \\in " ++) <$> typeToSet False t)
+isMember :: Type -> Maybe Text
+isMember t = join (preview (_FromSort.to f) t) <|> ((" \\in " <>) <$> typeToSet False t)
     where
         f (DefSort n _ _ _,ts) 
-            | n == [tex|\set|] = [s| \\subseteq %s|] <$> typeToSet False (ts !! 0)
+            | n == [tex|\set|] = [st| \\subseteq %s|] <$> typeToSet False (ts !! 0)
         f _ = Nothing
 
 
-typeToSet :: Bool -> Type -> Maybe String
+typeToSet :: Bool -> Type -> Maybe Text
 typeToSet paren = join . preview (_FromSort.to f)
     where
         f (DefSort n _ _ _,ts) 
-            | n == [tex|\set|] = withParenth paren . [s|\\pow.%s|] <$> typeToSet True (ts !! 0)
+            | n == [tex|\set|] = withParenth paren . [st|\\pow.%s|] <$> typeToSet True (ts !! 0)
             | n == [tex|\pfun|] = withParenth paren <$> 
-                                    liftM2 [s|%s \\pfun %s|] 
+                                    liftM2 [st|%s \\pfun %s|] 
                                         (typeToSet True (ts !! 0))
                                         (typeToSet True (ts !! 1))
         f (Sort n _ _,_) 
-            | otherwise  = Just (render n)
-        f (IntSort,[]) = Just [s|\\mathbb{Z}|]
-        f (RealSort,[]) = Just [s|\\mathbb{R}|]
-        f (BoolSort,[]) = Just [s|\\textbf{Bool}|]
+            | otherwise  = Just (renderText n)
+        f (IntSort,[]) = Just [st|\\mathbb{Z}|]
+        f (RealSort,[]) = Just [st|\\mathbb{R}|]
+        f (BoolSort,[]) = Just [st|\\textbf{Bool}|]
         f _ = Nothing
 
 
@@ -408,7 +412,7 @@ liveness_sum m = do
     where
         kw = "\\textbf{progress}"
         toString (LeadsTo _ p q) = 
-            [s|%s \\quad \\mapsto\\quad %s|]
+            [st|%s \\quad \\mapsto\\quad %s|]
                 (prettyPrint p)
                 (prettyPrint q)
 
@@ -420,7 +424,7 @@ safety_sum prop = do
     where
         kw = "\\textbf{safety}"
         toString (Unless _ p q) = 
-                [s|%s \\textbf{\\quad unless \\quad} %s|] p' q'
+                [st|%s \\textbf{\\quad unless \\quad} %s|] p' q'
             where
                 p' = prettyPrint p
                 q' = prettyPrint q
@@ -434,22 +438,22 @@ transient_sum m = do
     where
         kw = "\\textbf{transient}"
         toString (Tr _ p evts hint) = 
-                [s|%s \\qquad \\text{(%s$%s$%s)}|] 
+                [st|%s \\qquad \\text{(%s$%s$%s)}|] 
                     p' evts' sub'' lt'
             where
                 TrHint sub lt = hint
-                evts' :: String
-                evts' = intercalate "," $ L.map ([s|\\ref{%s}|] . pretty) (NE.toList evts)
+                evts' :: Text
+                evts' = T.intercalate "," $ L.map ([st|\\ref{%s}|] . pretty) (NE.toList evts)
                 sub'  = M.toList sub & traverse._2 %~ (prettyPrint . snd)
                 isNotIdent n (getExpr -> Word (Var n' _)) = n /= n'
                 isNotIdent _ _ = True
-                sub'' :: String
+                sub'' :: Text
                 sub'' 
                     | M.null $ M.filterWithKey isNotIdent $ M.map snd sub = ""
-                    | otherwise  = [s|: [%s]|] (intercalate ", " $ L.map asgnString sub')
-                asgnString (v,e) = [s|%s := %s'~|~%s|] (render v) (render v) e
-                lt' :: String
-                lt' = maybe "" ([s|, with \\eqref{%s}|] . pretty) lt
+                    | otherwise  = [st|: [%s]|] (T.intercalate ", " $ L.map asgnString sub')
+                asgnString (v,e) = [st|%s := %s'~|~%s|] (renderText v) (renderText v) e
+                lt' :: Text
+                lt' = maybe "" ([st|, with \\eqref{%s}|] . pretty) lt
                 p' = prettyPrint p
 
 constraint_sum :: Machine -> M ()
@@ -462,18 +466,18 @@ constraint_sum m = do
         kw = "\\textbf{safety}"
         toString (Co _ p) = prettyPrint p
 
-format_formula :: String -> M String
+format_formula :: Text -> M Text
 format_formula str = do
         sout <- ask    -- Strike out the formula?
         let sout' 
                 | sout      = "\\sout"
                 | otherwise = ""
-        return $ intercalate "\n" $ L.map (++ " %") $ L.lines $ sout' ++ "{$" ++ f str ++ "$}"
+        return $ T.intercalate "\n" $ L.map (<> " %") $ T.lines $ sout' <> "{$" <> f str <> "$}"
             -- what is the point of ending the L.lines with '%' ?
     where
-        f xs = concatMap g xs
+        f xs = T.concatMap g xs
         g '&' = ""
-        g x = [x]
+        g x = T.singleton x
 
 put_expr :: ExprDispOpt label expr     
          -> EventId             -- label prefix (for LaTeX cross referencing)
@@ -485,13 +489,13 @@ put_expr opts pre (lbl,e) = do
         opts^.makeDoc $ lbl
 
 put_all_expr' :: PrettyPrintable label 
-              => (a -> String) 
+              => (a -> Text) 
               -> EventId 
               -> [(label, a)] -> M ()
 put_all_expr' f = put_all_expr_with' f (return ())
 
 put_all_expr_with' :: PrettyPrintable label
-                   => (expr -> String)
+                   => (expr -> Text)
                    -> State (ExprDispOpt label expr) ()
                    -> EventId 
                    -> [(label, expr)] -> M ()
@@ -507,19 +511,19 @@ put_all_expr_with :: State (ExprDispOpt Label Expr) ()
                   -> EventId -> [(Label, Expr)] -> M ()
 put_all_expr_with opts = put_all_expr_with' prettyPrint opts
 
-section :: String -> M () -> M ()
+section :: Text -> M () -> M ()
 section kw cmd = do
     let f [] = []
         f xs = kw:xs
     censor f cmd
 
 index_sum :: EventId -> EventMerging' -> M ()
-index_sum lbl e = tell ["\\noindent \\ref{" ++ pretty lbl ++ "} " ++ ind ++ " \\textbf{event}"]
+index_sum lbl e = tell ["\\noindent \\ref{" <> prettyText lbl <> "} " <> ind <> " \\textbf{event}"]
     where
         ind 
             | M.null $ e^.indices = ""
-            | otherwise           = "$[" ++ inds ++ "]$"
-        inds = intercalate "," (L.map (render . view name) $ M.elems $ e^.indices)
+            | otherwise           = "$[" <> inds <> "]$"
+        inds = T.intercalate "," (L.map (renderText . view name) $ M.elems $ e^.indices)
 
 refines_sum :: EventMerging' -> M ()
 refines_sum e = do
@@ -528,8 +532,8 @@ refines_sum e = do
                   (MM.mapMaybe (rightToMaybe.fst) $ NE.toList $ e^.multiAbstract)
     where
         kw = "\\textbf{refines}"
-        disp :: EventId -> String
-        disp = [s|\\ref{%s}|] . pretty
+        disp :: EventId -> Text
+        disp = [st|\\ref{%s}|] . pretty
 
 csched_sum :: EventId -> EventMerging' -> M ()
 csched_sum lbl e = do
@@ -560,8 +564,8 @@ param_sum :: EventMerging' -> M ()
 param_sum e
     | M.null $ e^.params  = return ()
     | otherwise           = do
-        tell [[s|\\textbf{any} $%s$|] $ 
-                intercalate "," (L.map (render . view name) $ M.elems $ e^.params)]
+        tell [[st|\\textbf{any} $%s$|] $ 
+                T.intercalate "," (L.map (renderText . view name) $ M.elems $ e^.params)]
 
 guard_sum :: EventId -> EventMerging' -> M ()
 guard_sum lbl e = section kw $ do
@@ -581,15 +585,15 @@ act_sum lbl e = section kw $ do
     where 
         kw = "\\textbf{begin}"
         put_assign (Assign v e) = 
-            [s|%s \\bcmeq %s|] 
-                (render $ v^.name)
+            [st|%s \\bcmeq %s|] 
+                (renderText $ v^.name)
                 (prettyPrint e)
         put_assign (BcmSuchThat vs e) = 
-            [s|%s \\bcmsuch %s|] 
-                (intercalate "," $ L.map (render . view name) vs :: String)
+            [st|%s \\bcmsuch %s|] 
+                (T.intercalate "," $ L.map (renderText . view name) vs :: Text)
                 (prettyPrint e)
         put_assign (BcmIn v e) = 
-            [s|%s \\bcmin %s|] 
-                (render $ v^.name)
+            [st|%s \\bcmin %s|] 
+                (renderText $ v^.name)
                 (prettyPrint e)
 

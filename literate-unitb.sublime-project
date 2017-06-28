@@ -216,6 +216,7 @@
 			[
 				"*hs",
 				"*.cabal",
+				"*.tex",
 				"*.md"
 			],
 			"folder_exclude_patterns":

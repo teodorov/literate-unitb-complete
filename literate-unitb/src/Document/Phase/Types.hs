@@ -23,6 +23,7 @@ import Control.Lens.HierarchyTH
 import Data.Graph.Bipartite as G hiding (fromList')
 import Data.MakeTable
 import Data.Map as M
+import Data.Text (Text)
 import Data.Typeable
 
 import GHC.Generics (Generic)
@@ -110,7 +111,7 @@ data MachineP4' ae ce thy = MachineP4
     { _p3 :: MachineP3' ae ce thy
     , _pLiveRule :: M.Map ProgId ProofTree
     , _pProofs   :: M.Map Label (Tactic Proof, LineInfo)
-    , _pComments :: M.Map DocItem String
+    , _pComments :: M.Map DocItem Text
     } deriving (Show,Typeable,Generic)
 
 instance (Eq ea,Eq ce,Eq thy) => Eq (MachineP4' ea ce thy) where

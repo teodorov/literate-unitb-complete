@@ -3,6 +3,9 @@ module Document.Tests.UnlessExcept where
     -- Modules
 import Document.Tests.Suite
 
+import           Data.Text (Text)
+import qualified Data.Text as T
+
 import Test.UnitTest
 
 test_case :: TestCase
@@ -20,8 +23,8 @@ test = test_cases
 path0 :: FilePath
 path0 = [path|Tests/unless-except.tex|]
 
-result0 :: String
-result0 = unlines
+result0 :: Text
+result0 = T.unlines
     [ "  o  m0/evt0/FIS/p@prime"
     , " xxx m0/evt0/SAF/saf1"
     , "  o  m0/evt1/FIS/p@prime"
@@ -29,8 +32,8 @@ result0 = unlines
     , "passed 3 / 4"
     ]
 
-result1 :: String
-result1 = unlines
+result1 :: Text
+result1 = T.unlines
     [ "  o  m1/evt0/FIS/f@prime"
     , " xxx m1/evt0/SAF/saf1"
     , " xxx m1/evt0/WD/ACT/m0:act0"

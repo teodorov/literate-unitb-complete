@@ -18,6 +18,7 @@ import Data.Data
 import Data.Hashable
 import Data.Map as M
 import Data.Serialize
+import           Data.Text (Text)
 
 import GHC.Generics.Instances
 
@@ -78,8 +79,8 @@ primeAll :: IsName n => Map n (AbsVar n t) -> Map n (AbsVar n t)
 primeAll m = M.mapKeys addPrime $ M.map prime m
 
 z3Var :: Pre
-      => String -> t -> AbsVar Name t
-z3Var = Var . fromString''
+      => Text -> t -> AbsVar Name t
+z3Var = Var . fromText
 
 instance HasName (AbsVar n t) n where
     name = to $ \(Var x _) -> x
