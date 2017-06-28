@@ -725,7 +725,7 @@ result29 :: String
 result29 = unlines
     [ ""
     , ""
-    , "./suite/Logic/Test.hs:***:** - scopeCorrect'"
+    , "suite/Logic/Test.hs:***:** - scopeCorrect'"
     , "./Logic/Expr/Expr.hs:***:* - areVisible"
     , ""
     , " free vars = [y,z]"

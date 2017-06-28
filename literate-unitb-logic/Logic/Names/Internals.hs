@@ -353,12 +353,12 @@ replaceAll' sub = NEText . replaceAll sub . getText
 prefixedText :: Text -> Prism' Text Text
 prefixedText pre = prism' 
         (pre <>) 
-        (\x -> guard (pre `T.isPrefixOf` x) >> return (T.drop (T.length x) x))
+        (\x -> guard (pre `T.isPrefixOf` x) >> return (T.drop (T.length pre) x))
 
 suffixedText :: Text -> Prism' Text Text
 suffixedText suf = prism' 
         (<> suf) 
-        (\x -> guard (suf `T.isSuffixOf` x) >> return (T.drop (T.length x) x))
+        (\x -> guard (suf `T.isSuffixOf` x) >> return (T.dropEnd (T.length suf) x))
 
 preSubtituted :: Text -> (Text,Text) -> Maybe (Text,Text)
 preSubtituted xs (pat,sub) = (sub,) <$> xs^?prefixedText pat
@@ -424,7 +424,12 @@ prop_subst_left_inv xs =
 prop_subst_left_inv_regression :: Property
 prop_subst_left_inv_regression = regression
         prop_subst_left_inv
-        [ name0, name1, name2 ]
+        [ name0, name1, name2, name3 ]
+
+prop_subst_right_inv_regression :: Property
+prop_subst_right_inv_regression = regression
+        prop_subst_right_inv
+        [ name3' ]
 
 name0 :: Name
 name0 = Name True (NEText "sl") 1 ""
@@ -434,6 +439,12 @@ name1 = Name True (NEText "prime") 1 ""
 
 name2 :: Name
 name2 = Name {_backslash = False, _base = NEText "sl", _primes = 1, _suffix = ""}
+
+name3 :: Name
+name3 = Name {_backslash = False, _base = NEText "s", _primes = 1, _suffix = ""}
+
+name3' :: InternalName
+name3' = InternalName "" (Name {_backslash = True, _base = NEText {getText = "s"}, _primes = 0, _suffix = ""}) ""
 
 prop_subst_right_inv :: InternalName -> Property
 prop_subst_right_inv xs = 
