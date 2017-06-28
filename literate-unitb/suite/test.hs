@@ -16,7 +16,6 @@ import Document.Document hiding (system)
 import Document.Tests.SmallMachine as SM
 import qualified UnitB.Test as UB
 import Logic.UnitTest 
-import qualified Z3.Test as ZT
 import qualified Document.Test as DOC
 import qualified Utilities.Test as UT
 import qualified Code.Test as Code
@@ -39,14 +38,13 @@ import Test.QuickCheck.ZoomEq
 selected_test_case :: TestCase
 selected_test_case = test_cases 
         "Selected Literate Unit-B Test Case" 
-        [ ZT.test_case ]
+        [ UB.test_case ]
 
 test_case :: TestCase
 test_case = test_cases 
         "Literate Unit-B Test Suite" 
         [  DOC.test_case
         ,  UB.test_case
-        ,  ZT.test_case
 --        ,  FMT.test_case
         ,  UT.test_case
         ,  Code.test_case

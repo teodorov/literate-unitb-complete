@@ -8,10 +8,8 @@ import           Logic.Expr
 import qualified Logic.Expr.Const as Exp
 import           Logic.Expr.Parser
 import           Logic.Expr.Existential
-import           Logic.Names.Internals as Names
 import           Logic.Proof.POGenerator hiding (variables)
 import qualified Logic.Proof.POGenerator as POG
-import qualified Logic.Test as T
 import           Logic.UnitTest
 
 import Logic.Theories.FunctionTheory
@@ -50,9 +48,7 @@ test = test_cases
         ,  textCase "3: train, m0 transient / falsification PO" (get_tr_neg_po train_m0) result_train_m0_tr_neg_po
         ,  aCase "4: Feasibility and partitioning" case3 result3
         ,  aCase "5: Debugging the partitioning" case4 result4
-        ,  T.test_case
         ,  aCase "6: unless with except and split event" case5 result5
-        ,  QuickCheckProps "7: QuickCheck names" Names.run_props
         ]
 
 example0 :: Either [Error] RawMachine
