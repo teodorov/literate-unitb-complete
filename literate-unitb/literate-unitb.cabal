@@ -120,31 +120,6 @@ library
         UnitB.Syntax
         UnitB.System
         UnitB.UnitB
-          -- TEST CASES
-        -- Document.Tests.CompCalc
-        Document.Tests.Cubes
-        Document.Tests.Definitions
-        Document.Tests.GarbageCollector
-        -- Document.Tests.IndirectEq
-        Document.Tests.Lambdas
-        Document.Tests.LockFreeDeque
-        Document.Tests.LockFreeDeque.Stable
-        Document.Tests.Parser
-        Document.Tests.Phase
-        Document.Tests.Puzzle
-        Document.Tests.SmallMachine
-        Document.Tests.Suite
-        Document.Tests.TerminationDetection
-        Document.Tests.TrainStation
-        Document.Tests.TrainStationRefinement
-        Document.Tests.TrainStationSets
-        Document.Tests.UnlessExcept
-        Code.Test
-        Document.Phase.Test
-        Document.Test
-        Documentation.Test
-        UnitB.Test
-        Utilities.Test
 
   default-language:    Haskell2010
 
@@ -207,49 +182,6 @@ executable unitb-zip-name
   -- LANGUAGE extensions used by modules in this package.
   default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
 
-executable test_tmp
-  hs-source-dirs: suite
-  main-is: test_tmp.hs
-  default-language:    Haskell2010
-
-  build-depends:       base >=4.8 && < 5, literate-unitb, literate-unitb-latex, literate-unitb-logic, literate-unitb-utils, process, QuickCheck, unitb-testing, lens, quickcheck-report, mtl, monad-loops, semigroups, typelist-functor, containers, deepseq, text
-
-  ghc-options: -W -fwarn-missing-signatures 
-         -fwarn-incomplete-uni-patterns
-         -fwarn-missing-methods
-         -threaded  -fno-ignore-asserts
-         -fwarn-tabs
-         -j8
-  
-  -- LANGUAGE extensions used by modules in this package.
-  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
-
-
-executable test
-  hs-source-dirs: suite
-  main-is: test.hs
-  default-language:    Haskell2010
-
-  build-depends:       base >=4.8 && < 5, directory >= 1.2.2.0, literate-unitb, literate-unitb-latex, literate-unitb-logic, literate-unitb-utils, shelly, unitb-testing, lens, quickcheck-report, optparse-applicative, transformers, axiomatic-classes, control-invariants, process, text
-  
-  -- Modules included in this executable, other than Main.
-  -- other-modules:  test.hs     
-  ghc-options: -W -fwarn-missing-signatures 
-         -fwarn-incomplete-uni-patterns
-         -fwarn-missing-methods
-         -threaded  -fno-ignore-asserts
-         -fwarn-tabs
-         -j8
-  
-  -- LANGUAGE extensions used by modules in this package.
-  default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
-  
-  -- Directories containing source files.
-  -- hs-source-dirs:      .
-  
-  -- Base language which the package is written in.
-  default-language:    Haskell2010
-  
 test-suite tests
    ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
@@ -262,6 +194,31 @@ test-suite tests
    type: exitcode-stdio-1.0
    hs-source-dirs: suite
    default-language:    Haskell2010
+   other-modules:
+        Code.Test
+        -- Document.Tests.CompCalc
+        Document.Tests.Cubes
+        Document.Tests.Definitions
+        Document.Tests.GarbageCollector
+        -- Document.Tests.IndirectEq
+        Document.Tests.Lambdas
+        Document.Tests.LockFreeDeque
+        Document.Tests.LockFreeDeque.Stable
+        Document.Tests.Parser
+        Document.Tests.Phase
+        Document.Tests.Puzzle
+        Document.Tests.SmallMachine
+        Document.Tests.Suite
+        Document.Tests.TerminationDetection
+        Document.Tests.TrainStation
+        Document.Tests.TrainStationRefinement
+        Document.Tests.TrainStationSets
+        Document.Tests.UnlessExcept
+        Document.Test
+        Document.Phase.Test
+        Documentation.Test
+        UnitB.Test
+        Utilities.Test
    main-is: test.hs
    build-depends:       base >= 4.8 && < 5, literate-unitb,
                         shelly, directory >= 1.2.2.0, 
@@ -275,6 +232,9 @@ test-suite tests
                         optparse-applicative,
                         control-invariants,
                         process,
-                        text
+                        text, process-listlike,
+                        containers, either,
+                        mtl, syntax-error,
+                        bipartite-graph
    default-language:    Haskell2010
    default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams
