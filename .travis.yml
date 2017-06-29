@@ -81,7 +81,12 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
   
-  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
+    compiler: ": #stack 8.0.2 osx"
+    os: osx
+    script: True
+  
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
@@ -112,7 +117,12 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
+    compiler: ": #stack 8.0.2 osx"
+    os: osx
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
@@ -143,7 +153,12 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
+    compiler: ": #stack 8.0.2 osx"
+    os: osx
+    script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
@@ -184,7 +199,14 @@ jobs:
       - unitb-option --capacity 16
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
+    compiler: ": #stack 8.0.2 osx"
+    os: osx
+    script: 
+      - unitb-option --capacity 16
+      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+  
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
