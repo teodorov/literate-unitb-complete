@@ -74,7 +74,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >= 4.8 && < 5, lens, mtl, semigroups, safe, deepseq, transformers >= 0.3, either, containers, directory, filepath, parsec, QuickCheck, control-invariants, th-printf, axiomatic-classes, string-lenses, show-with, unitb-testing, generic-instances, pretty-printable, cereal, data-ordlist, syntax-error, quickcheck-report, text, mono-traversable, quickcheck-text
+  build-depends:       base >= 4.8 && < 5, lens, mtl, semigroups, safe, deepseq, either, parsec, control-invariants, th-printf, string-lenses, pretty-printable, syntax-error, text, mono-traversable
   
   -- Directories containing source files.
   hs-source-dirs:      .
