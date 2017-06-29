@@ -61,27 +61,27 @@ cache:
 jobs:
   include:
   - stage: Prepare cache
-    env: BUILD=stack ARGS="--resolver lts-3"
+    env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
   
-  - env: BUILD=stack ARGS="--resolver lts-6"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
   
-  - env: BUILD=stack ARGS="--resolver lts-7"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
   
-  - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
   
-  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
@@ -92,27 +92,27 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
 
-  - env: BUILD=stack ARGS="--resolver lts-3"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-6"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-7"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-logic --bench --no-run-benchmarks
@@ -123,27 +123,27 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
 
-  - env: BUILD=stack ARGS="--resolver lts-3"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-6"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-7"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: travis_long stack --no-terminal $ARGS test literate-unitb-scripts --bench --no-run-benchmarks
@@ -156,35 +156,35 @@ jobs:
       - unitb-option --capacity 16
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
 
-  - env: BUILD=stack ARGS="--resolver lts-3"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity 16
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-6"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity 16
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-7"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity 16
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity 16
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
-  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
@@ -208,8 +208,7 @@ jobs:
   allow_failures:
   - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
   # - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
-  - env: BUILD=stack ARGS="--resolver lts-2"
-  - env: BUILD=stack ARGS="--resolver nightly --stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
   # - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
   # - env: BUILD=cabal GHCVER=8.0.1 CABALVER=1.24 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
   # - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS="--stack-yaml stack-nightly.yaml"
@@ -278,7 +277,7 @@ before_install:
 
 install:
 - if [ -f configure.ac ]; then autoreconf -i; fi
-- travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-config literate-unitb-latex lens text
+- travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-logic literate-unitb --only-dependencies --test
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 # - |
 #   set -ex
@@ -367,7 +366,7 @@ deploy:
     tags: true
     repo: unitb/literate-unitb
     condition: $BUILD=stack 
-    condition: $ARGS="--resolver lts-6"
+    condition: $ARGS="--stack-yaml stack-lts-6.yaml"
 notifications:
   slack:
     secure: uXA7VRfa4tcKGttj6C6OsxC3GByJ/7ptfZog3flbra4gJrKQ/50cVobOSUwbvsZbDiCf4keiOF3uqSc2eLWAVoivH2Fg3sd0QbPC9WlnPPAyfjjnBa4G+gZMyLko9ZLEyN0H1WAqx3zYLS2NuPag56mETlmqir6hJ4dOqZqla85kDrOBO5kHJVP8Qt7bGF5XCJs7gBQP5CT4Y5dNBvrg19HO672+6PML7sDMxiZ0nISI+rTm4mzn3po/1ISlVF7Y9bCBCk39Vvh92tvT4UWjGYr9Ji0sC91LJXSAlIc0vI3UvttxA4QcLlQeB+wS0ETM2/boRSWxcMYP4EhMokiUzsY75M7uHeY+BzAQx8l9OSFrsfiena0gALGNeR16d2OVMB7+ef/W0b5jYqxfSI6Dd8XKehlZbP1mqCxKLdDMFzdVqTigh9xvd/6ReqcH1+a4sveS0WY+kgU+/Icxro5mp0L0n/FgniMSG8fNdKE/MQEp03gAhVfn9Z4uqZ4S48oHR5OIh5fyCCxRi2TRnqg8hIVijc30KhXi2yikDa58DsFhvLoOsiOBKy6uwWE5ibDssw6mKgMtjUIAcwqm3l5RQ/eW9EU/nB4C86NL84uSR0AnjD5trssh1DnL9q/TWLzo1etwRIxx8XtXji0pZiN+mgUt6YStI0haJ2bd7wiYGIs=

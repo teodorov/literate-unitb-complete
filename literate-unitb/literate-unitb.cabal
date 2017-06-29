@@ -243,6 +243,7 @@ test-suite tests
                         th-printf,
                         pseudomacros,
                         time, map-syntax,
-                        file-system-mockup
+                        file-system-mockup,
+                        semigroups
    default-language:    Haskell2010
    default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes
