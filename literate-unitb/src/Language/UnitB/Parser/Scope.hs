@@ -60,7 +60,7 @@ import Data.List as L
 import qualified Data.List.Ordered as Ord
 import           Data.List.NonEmpty as NE hiding (length,tail,head,map)
 import qualified Data.List.NonEmpty as NE 
-import           Data.Map as M
+import           Data.HashMap.Lazy as M
 import           Data.Maybe as MM
 import           Data.Semigroup (Semigroup(..),First(..))
 import           Data.Text (Text)
@@ -127,7 +127,7 @@ class (Ord a,Show a,ZoomEq a,PrettyPrintable a) => Scope a where
     axiom_Scope_mergeAssociative x y z = not (clashFree [x,y,z]) .||. x <+> (y <+> z) .== (x <+> y) <+> z
 
 rename_events :: (Scope a) 
-              => M.Map EventId [EventId] 
+              => M.HashMap EventId [EventId] 
               -> a -> [a]
 rename_events m = rename_events' (\e -> findWithDefault [e] e m)
 
@@ -139,9 +139,9 @@ merge_scopes x y = fromJust' $ merge_scopes' x y
 
 scopeUnion :: Ord k
            => (a -> a -> Maybe a) 
-           -> M.Map k a 
-           -> M.Map k a 
-           -> Maybe (M.Map k a)
+           -> M.HashMap k a 
+           -> M.HashMap k a 
+           -> Maybe (M.HashMap k a)
 scopeUnion f m0 m1 = sequence $ unionWith f' (Just <$> m0) (Just <$> m1)
     where
         f' x y = join $ f <$> x <*> y
@@ -286,7 +286,7 @@ all_errors m = T.mapM fromEither' m >>= (return . T.sequence)
 make_table :: (Ord a, PrettyPrintable a) 
            => (a -> Text) 
            -> [(a,b,LineInfo)] 
-           -> Either [Error] (M.Map a (b,LineInfo))
+           -> Either [Error] (M.HashMap a (b,LineInfo))
 make_table f xs = validationToEither $ M.traverseWithKey failIf' $ M.fromListWith (<>) $ L.map mkCell' xs 
     where
         mkCell' (x,y,z) = (x,(y,z) :| [])
@@ -296,21 +296,21 @@ make_table f xs = validationToEither $ M.traverseWithKey failIf' $ M.fromListWit
 
 make_all_tables' :: (Scope b, Show a, Ord a, Ord k) 
                  => (a -> Text) 
-                 -> M.Map k [(a,b)] 
-                 -> MM (Maybe (M.Map k (M.Map a b)))
+                 -> M.HashMap k [(a,b)] 
+                 -> MM (Maybe (M.HashMap k (M.HashMap a b)))
 make_all_tables' f xs = T.sequence <$> T.sequence (M.map (make_table' f) xs `using` parTraversable rseq)
 
 make_all_tables :: (PrettyPrintable a, Ord a, Ord k) 
                 => (a -> Text)
-                -> M.Map k [(a, b, LineInfo)] 
-                -> MM (Maybe (M.Map k (M.Map a (b,LineInfo))))
+                -> M.HashMap k [(a, b, LineInfo)] 
+                -> MM (Maybe (M.HashMap k (M.HashMap a (b,LineInfo))))
 make_all_tables f xs = all_errors (M.map (make_table f) xs `using` parTraversable rseq)
 
 make_table' :: forall a b.
                (Ord a, Show a, Scope b) 
             => (a -> Text) 
             -> [(a,b)] 
-            -> MM (Maybe (M.Map a b))
+            -> MM (Maybe (M.HashMap a b))
 make_table' f items = all_errors $ M.mapWithKey g conflicts
         -- | PROBLEM: given x,y,z, it's possible that none conflict with each other but
         -- | x `merge` y conflicts with z
@@ -321,9 +321,9 @@ make_table' f items = all_errors $ M.mapWithKey g conflicts
             where
                 onlyOne (x :| []) = Right x
                 onlyOne xs = Left [xs]
-        items' :: M.Map a [b]
+        items' :: M.HashMap a [b]
         items' = M.map D.toList . fromListWith (<>) $ L.map (\(x,y) -> (x,pure y)) items
-        conflicts :: M.Map a (NonEmpty (NonEmpty b))
+        conflicts :: M.HashMap a (NonEmpty (NonEmpty b))
         conflicts = M.mapMaybe (nonEm . flip u_scc clash) items' 
         nonEm :: [[d]] -> Maybe (NonEmpty (NonEmpty d))
         nonEm = nonEmpty . MM.mapMaybe nonEmpty

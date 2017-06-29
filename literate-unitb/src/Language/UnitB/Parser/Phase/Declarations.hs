@@ -43,8 +43,8 @@ import           Data.List.NonEmpty as NE (toList)
 import           Data.Either
 import           Data.Either.Validation
 import           Data.Existential
-import           Data.Map as M hiding ( map, (\\) )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy as M hiding ( map, (\\) )
+import qualified Data.HashMap.Lazy as M
 import           Data.List as L hiding ( union, insert, inits )
 import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Text (Text)
@@ -77,7 +77,7 @@ run_phase2_vars = C.id &&& symbols >>> liftP wrapup
             vars <- triggerM
                 =<< make_all_tables' err_msg 
                 =<< triggerM vs'
-            let _  = vars :: MMap (Map Name VarScope)
+            let _  = vars :: MMap (HashMap Name VarScope)
             SystemP r_ord <$> T.sequence (make_phase2 <$> p1 <.> vars)
 
 newMch :: [(Name,VarScope)] 
@@ -111,7 +111,7 @@ unfail :: MM' c a -> MM' c (Maybe a)
 unfail (MM (MaybeT cmd)) = MM $ lift cmd
 
 make_phase2 :: MachineP1
-            -> Map Name VarScope
+            -> HashMap Name VarScope
             -> MM' c MachineP2 
 make_phase2 p1 vars = join $
         layeredUpgradeRecM newThy (newMch vars')
@@ -132,7 +132,7 @@ make_phase2 p1 vars = join $
                             -> SkipOrEvent -> EventP1 -> EventP2 -> MM' c EventP2)
         liftEvent f = do
             table <- M.fromListWith (++) <$> liftField f vars'
-            let _ = table :: Map EventId [EventP2Field] 
+            let _ = table :: HashMap EventId [EventP2Field] 
             return $ \m eid -> do
                 let _pSchSynt ::  EventP2 -> ParserSetting
                     _pSchSynt e = parser $ e^.eIndices
@@ -140,7 +140,7 @@ make_phase2 p1 vars = join $
                     _pEvtSynt :: EventP2 -> ParserSetting
                     _pEvtSynt e = parser $ e^.eIndParams
 
-                    parser :: Map Name Var
+                    parser :: HashMap Name Var
                            -> ParserSetting
                     parser table    = m^.pMchSynt & decls %~ union table
                 case eid of 

@@ -46,7 +46,7 @@ import Data.Functor.Classes
 import           Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, inits )
 import           Data.List.NonEmpty as NE hiding (inits)
-import           Data.Map as M
+import           Data.HashMap.Lazy as M
 import           Data.Maybe as M
 import qualified Data.Set as S
 import           Data.Serialize hiding (label,put)
@@ -63,7 +63,7 @@ import Test.QuickCheck.ZoomEq
 import Text.Pretty
 import Text.Printf.TH
 
-all_types :: Theory -> Map Name Sort
+all_types :: Theory -> HashMap Name Sort
 all_types th = unions (_types th : L.map all_types (elems $ _extends th)) 
 
 newtype EventMap expr = EventMap { _table :: 
@@ -82,19 +82,19 @@ data MachineBase expr =
     Mch 
         { _machineBaseName :: Name
         , _theory     :: Theory' expr
-        , _variables  :: Map Name Var
-        , _oldDefs    :: Map Name expr
-        , _machineBaseDefs     :: Map Name expr
-        , _machineBaseAbs_vars :: Map Name Var
-        , _del_vars   :: Map Name Var
-        , _init_witness :: Map Name (Witness' expr)
-        , _del_inits  :: Map Label expr
-        , _inits      :: Map Label expr
+        , _variables  :: HashMap Name Var
+        , _oldDefs    :: HashMap Name expr
+        , _machineBaseDefs     :: HashMap Name expr
+        , _machineBaseAbs_vars :: HashMap Name Var
+        , _del_vars   :: HashMap Name Var
+        , _init_witness :: HashMap Name (Witness' expr)
+        , _del_inits  :: HashMap Label expr
+        , _inits      :: HashMap Label expr
         , _event_table :: EventMap expr
         , _inh_props  :: PropertySet' expr
         , _props      :: PropertySet' expr
-        , _derivation :: Map ProgId ProofTree         
-        , _comments   :: Map DocItem Text 
+        , _derivation :: HashMap ProgId ProofTree         
+        , _comments   :: HashMap DocItem Text 
         , _machineBaseTimeout :: Float }
     deriving (Eq,Show,Typeable,Functor,Foldable,Traversable,Generic,Generic1)
 
@@ -185,7 +185,7 @@ class (Controls mch (Internal mch expr)
         , HasExpr expr
         , HasMachineBase (Internal mch expr) expr
         , HasName (Internal mch expr) Name 
-        , HasAbs_vars (Internal mch expr) (Map Name Var) ) 
+        , HasAbs_vars (Internal mch expr) (HashMap Name Var) ) 
         => HasMachine mch expr | mch -> expr where
     type Internal mch expr :: *
     empty_machine :: Name -> mch
@@ -279,11 +279,11 @@ instance (HasExpr expr,ZoomEq expr) => HasScope (MachineBase expr) where
             absVarsNdefs = (m^.abs_vars) `M.union` (m^.oldDefinedSymbols)
 
 definedSymbols :: HasExpr expr 
-               => Getter (MachineBase expr) (Map Name Var)
+               => Getter (MachineBase expr) (HashMap Name Var)
 definedSymbols = defs.to (M.mapWithKey (\n -> Var n.type_of.getExpr))
 
 oldDefinedSymbols :: HasExpr expr 
-               => Getter (MachineBase expr) (Map Name Var)
+               => Getter (MachineBase expr) (HashMap Name Var)
 oldDefinedSymbols = oldDefs.to (M.mapWithKey (\n -> Var n.type_of.getExpr))
 
 instance Controls (MachineBase expr) (MachineBase expr) where 
@@ -293,7 +293,7 @@ all_refs :: HasMachine machine expr
 all_refs = F.toList . all_refs'
 
 all_refs' :: HasMachine machine expr
-          => machine -> Map (SkipOrEvent, SkipOrEvent) (EventRef expr)
+          => machine -> HashMap (SkipOrEvent, SkipOrEvent) (EventRef expr)
 all_refs' m = readGraph (m!.events) $ do
         es <- getEdges
         m  <- forM (M.toList es) $ \(e,()) -> do
@@ -304,7 +304,7 @@ all_refs' m = readGraph (m!.events) $ do
         return $ M.fromList m
 
 conc_events :: HasMachine machine expr
-            => machine -> Map SkipOrEvent (ConcrEvent' expr)
+            => machine -> HashMap SkipOrEvent (ConcrEvent' expr)
 conc_events = M.map fst . backwardEdges . view' events
 
 upward_event :: Pre 
@@ -324,8 +324,8 @@ downward_event m lbl = readGraph (m!.events) $ do
              <*> T.forM es (\e -> (,) <$> rightKey (target e) <*> rightInfo (target e))
 
 new_event_set :: HasExpr expr
-              => Map Name Var
-              -> Map EventId (Event' expr)
+              => HashMap Name Var
+              -> HashMap EventId (Event' expr)
               -> EventMap expr
 new_event_set vs es = EventMap $ fromJust' $ makeGraph $ do
         skip <- newLeftVertex (Left SkipEvent) skip_abstr
@@ -337,15 +337,15 @@ new_event_set vs es = EventMap $ fromJust' $ makeGraph $ do
         newEdge skip =<< newRightVertex (Left SkipEvent) def
 
 makeWitness :: HasExpr expr
-            => Map Name Var 
-            -> Event' expr -> Map Name (Witness' expr)
+            => HashMap Name Var 
+            -> Event' expr -> HashMap Name (Witness' expr)
 makeWitness vs = view $ actions.to frame.to f -- .to (traverse._2.namesOf %~ asInternal)
     where 
         wit v = WitEq v $ zword v
         f m = M.fromList $ L.map (view name &&& wit) $ M.elems $ m `M.difference` vs
 
 nonSkipUpwards :: HasMachine machine expr
-               => machine -> Map EventId (EventMerging expr)
+               => machine -> HashMap EventId (EventMerging expr)
 nonSkipUpwards m = readGraph (m!.events) $ do
         es <- getRightVertices
         ms <- forM es $ \e -> do
@@ -357,7 +357,7 @@ nonSkipUpwards m = readGraph (m!.events) $ do
         return $ M.fromList $ concat ms
 
 nonSkipDownwards :: HasMachine machine expr
-                 => machine -> Map EventId (EventSplitting expr)
+                 => machine -> HashMap EventId (EventSplitting expr)
 nonSkipDownwards m = readGraph (m!.events) $ do
         es <- getLeftVertices
         ms <- forM es $ \e -> do
@@ -369,7 +369,7 @@ nonSkipDownwards m = readGraph (m!.events) $ do
         return $ M.fromList $ concat ms
 
 all_upwards :: HasMachine machine expr
-            => machine -> Map SkipOrEvent (EventMerging expr)
+            => machine -> HashMap SkipOrEvent (EventMerging expr)
 all_upwards m = readGraph (m!.events) $ do
         es <- getRightVertices
         ms <- forM es $ \e -> do
@@ -381,7 +381,7 @@ all_upwards m = readGraph (m!.events) $ do
     -- M.mapWithKey (upward m) (conc_events m)
 
 all_downwards :: HasMachine machine expr
-              => machine -> Map SkipOrEvent (EventSplitting expr)
+              => machine -> HashMap SkipOrEvent (EventSplitting expr)
 all_downwards m = readGraph (m!.events) $ do
         es <- getLeftVertices
         ms <- forM es $ \e -> do
@@ -481,8 +481,8 @@ _name = MId . view' machineBaseName
 
 ba_predicate :: (HasConcrEvent' event RawExpr,Show expr)
              => MachineAST' expr 
-             -> event -> Map Label RawExpr
-ba_predicate m evt =          ba_predicate' (m!.variables) (evt^.new.actions :: Map Label RawAction)
+             -> event -> HashMap Label RawExpr
+ba_predicate m evt =          ba_predicate' (m!.variables) (evt^.new.actions :: HashMap Label RawAction)
                     --`M.union` ba_predicate' (m^.del_vars) (evt^.abs_actions)
                     `M.union` M.mapKeys (label.renderText) (witnessDef <$> evt^.witness)
                     `M.union` M.mapKeys (skipLbl.renderText) (M.map eqPrime noWitness)

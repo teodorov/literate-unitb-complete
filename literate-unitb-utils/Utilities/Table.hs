@@ -18,7 +18,7 @@ import Data.Typeable
 
 import Prelude hiding (lookup,null,map,filter)
 
-import Data.Map
+import Data.HashMap.Lazy
 
 
 #ifdef __HASHED_KEYS__
@@ -37,7 +37,7 @@ type Map = HashMap
 
 type Map = HashMap
 #else
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 type Map = M.Map
 
 #endif

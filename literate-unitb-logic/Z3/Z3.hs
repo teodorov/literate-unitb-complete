@@ -75,7 +75,7 @@ import System.Process.Text
 import TextShow (showt)
 import Text.Printf.TH
 
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 
 total_caps :: SSem
 total_caps = unsafePerformIO $ new $ z3_config^.capacity
@@ -323,7 +323,7 @@ map_failures po_name cmd = catch cmd $ \(Z3Exception i msg) -> do
 --        gen = M.fromList $ L.map f $ S.elems $ S.unions $ L.map variables types
 --        f x = (x, GENERIC x)
 --        
---specialize_stmt :: S.Set Type -> Statement -> Map Label Expr
+--specialize_stmt :: S.Set Type -> Statement -> HashMap Label Expr
 --specialize_stmt types (Statement pat e) = fromList $ zip ys $ map (flip substitute_type_vars e) xs
 --    where
 --        xs = match_all pat (S.elems types)

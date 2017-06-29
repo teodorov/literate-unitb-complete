@@ -33,7 +33,7 @@ import           Data.Existential
 import           Data.List as L
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
-import           Data.Map as M hiding ( map, (\\), (!) )
+import           Data.HashMap.Lazy as M hiding ( map, (\\), (!) )
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -45,9 +45,9 @@ import Utilities.Syntactic
 data RuleParserParameter = 
     RuleParserDecl 
         { getMachine :: MachineP3
-        --, getProgress :: Map Label ProgressProp
-        --, getSafety :: Map Label SafetyProp
-        --, getTransient :: Map Label Transient
+        --, getProgress :: HashMap Label ProgressProp
+        --, getSafety :: HashMap Label SafetyProp
+        --, getTransient :: HashMap Label Transient
         , getGoal :: Label
         , getHypotheses :: [Label]
         , getHint :: LatexDoc
@@ -67,16 +67,16 @@ getMachineId = view pMachineId . getMachine
 getParser :: RuleParserParameter -> ParserSetting
 getParser = view pMchSynt . getMachine
 
-getTransient :: RuleParserParameter -> Map Label Transient
+getTransient :: RuleParserParameter -> HashMap Label Transient
 getTransient = view pTransient . getMachine
 
-getProgress :: RuleParserParameter -> Map Label ProgressProp
+getProgress :: RuleParserParameter -> HashMap Label ProgressProp
 getProgress = mapKeysMonotonic as_label . view pProgress . getMachine
 
-getNewProgress :: RuleParserParameter -> Map Label ProgressProp
+getNewProgress :: RuleParserParameter -> HashMap Label ProgressProp
 getNewProgress = mapKeysMonotonic as_label . view (pNewPropSet.progress) . getMachine
 
-getSafety :: RuleParserParameter -> Map Label SafetyProp
+getSafety :: RuleParserParameter -> HashMap Label SafetyProp
 getSafety = view pSafety . getMachine
 
 getGoalProp :: RuleParserParameter -> M ProgressProp

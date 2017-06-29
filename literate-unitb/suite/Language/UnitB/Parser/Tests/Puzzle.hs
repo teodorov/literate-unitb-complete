@@ -15,7 +15,7 @@ import Control.Monad
 import Control.Precondition ((!))
 
 import Data.List as L
-import Data.Map hiding ((!))
+import Data.HashMap.Lazy hiding ((!))
 import Data.Set  as S (Set,fromList)
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -60,7 +60,7 @@ test_case = test_cases
 path0 :: FilePath
 path0 = [path|Tests/puzzle/puzzle.tex|]
 
-case0 :: IO (Text, Map Label Sequent)
+case0 :: IO (Text, HashMap Label Sequent)
 case0 = verify path0 0
 
 result0 :: Text
@@ -69,7 +69,7 @@ result0 = T.unlines
     , "passed 1 / 1"
     ]
 
-case1 :: IO (Text, Map Label Sequent)
+case1 :: IO (Text, HashMap Label Sequent)
 case1 = verify path0 1
 
 result1 :: Text
@@ -470,7 +470,7 @@ result5 = T.unlines
     -- , "; m1/visit/SCH/0/REF/weaken"
     -- ]
 
-case7 :: IO (Text, Map Label Sequent)
+case7 :: IO (Text, HashMap Label Sequent)
 case7 = verify path0 2
 
 result7 :: Text
@@ -535,7 +535,7 @@ result7 = T.unlines
     , "passed 57 / 57"
     ]
 
-case8 :: IO (Text, Map Label Sequent)
+case8 :: IO (Text, HashMap Label Sequent)
 case8 = verify path0 3
 
 result8 :: Text
@@ -975,7 +975,7 @@ result10 = T.unlines
     , "; m3/INIT/INV/m3:inv1"
     ]
 
-case11 :: IO (Text, Map Label Sequent)
+case11 :: IO (Text, HashMap Label Sequent)
 case11 = verify path0 4
 
 result11 :: Text

@@ -4,7 +4,7 @@ module Utilities.Functor where
 import Control.Lens hiding (Traversable1(..))
 
 import Data.Foldable hiding (toList)
-import Data.Map hiding (foldl,foldl')
+import Data.HashMap.Lazy hiding (foldl,foldl')
 
 newtype Swap1 f a b = Swap1 {swap1 :: f b a}
 newtype Swap2 f a b c = Swap2 {swap2 :: f c b a}
@@ -250,11 +250,11 @@ instance Traversable5 f => Traversable (Swap5 f a b c d e) where
 {-# INLINE traversePairs #-}
 traversePairs :: (Ord k1)
               => Traversal 
-        (Map k0 a0) (Map k1 a1)
+        (HashMap k0 a0) (HashMap k1 a1)
         (k0,a0) (k1,a1)
 traversePairs f = fmap fromList . traverse f . toList
 
-instance Foldable1 Map where
+instance Foldable1 HashMap where
     foldMap1 f = foldMapWithKey $ const . f
 
 evalList :: Foldable f => f a -> f a

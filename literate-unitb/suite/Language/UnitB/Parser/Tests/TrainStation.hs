@@ -22,7 +22,7 @@ import Control.Lens.Misc hiding (combine)
 import Control.Monad.State
 
 import qualified Data.List.NonEmpty as NE
-import Data.Map   as M hiding ( map )
+import Data.HashMap.Lazy   as M hiding ( map )
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
 

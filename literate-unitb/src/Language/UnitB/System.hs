@@ -27,7 +27,7 @@ import Data.Functor.Classes
 #endif
 import Data.Functor.Compose
 import Data.Graph.Bipartite
-import Data.Map as M hiding ((!))
+import Data.HashMap.Lazy as M hiding ((!))
 import Data.Serialize
 
 import GHC.Generics.Instances
@@ -41,9 +41,9 @@ type System' = Compose Checked SystemBase
 
 data SystemBase mch = Sys 
         {  _proof_struct :: [(Label,Label)]
-        ,  _ref_struct   :: Map MachineId (Maybe MachineId)
-        ,  _machines     :: Map MachineId mch
-        ,  _theories     :: Map String Theory
+        ,  _ref_struct   :: HashMap MachineId (Maybe MachineId)
+        ,  _machines     :: HashMap MachineId mch
+        ,  _theories     :: HashMap String Theory
         }
     deriving (Eq,Generic,Show,Functor,Foldable,Traversable)
 

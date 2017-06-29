@@ -30,8 +30,8 @@ import Data.Char
 import Data.Default
 import Data.Hashable
 import Data.List as L hiding (union)
-import           Data.Map hiding ( map, union, member )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy hiding ( map, union, member )
+import qualified Data.HashMap.Lazy as M
 import Data.Monoid
 import Data.PartialOrd
 import qualified Data.Set as S

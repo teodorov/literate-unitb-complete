@@ -20,7 +20,7 @@ import Utilities.EditDistance
 import           Data.Array 
 import           Data.List
 import           Data.List.Ordered as OL
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.Monoid
 import           Data.String.Brackets
 import           Data.String.Lines as Lines

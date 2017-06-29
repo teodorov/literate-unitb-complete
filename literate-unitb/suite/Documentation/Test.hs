@@ -14,8 +14,8 @@ import Documentation.SummaryGen
 import Control.Lens
 import Control.Precondition
 
-import Data.Map as M
-import Data.Map.Syntax
+import Data.HashMap.Lazy as M
+import Data.HashMap.Lazy.Syntax
 import           Data.Text (Text)
 import qualified Data.Text as T
 

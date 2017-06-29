@@ -22,7 +22,7 @@ import Control.Lens.HierarchyTH
 
 import Data.Graph.Bipartite as G hiding (fromList')
 import Data.MakeTable
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Text (Text)
 import Data.Typeable
 
@@ -68,11 +68,11 @@ type MachineP2RawDef' = MachineP2'' StringLi
 
 data MachineP2'' def ae ce thy = MachineP2
     { _p1 :: MachineP1' ae ce thy
-    , _pMchOldDef :: M.Map Name def
-    , _pMchDef    :: M.Map Name def
-    , _pDelVars   :: M.Map Name (Var,LineInfo)
-    , _pStateVars :: M.Map Name Var             -- machine variables
-    , _pAbstractVars :: M.Map Name Var          -- abstract machine variables
+    , _pMchOldDef :: M.HashMap Name def
+    , _pMchDef    :: M.HashMap Name def
+    , _pDelVars   :: M.HashMap Name (Var,LineInfo)
+    , _pStateVars :: M.HashMap Name Var             -- machine variables
+    , _pAbstractVars :: M.HashMap Name Var          -- abstract machine variables
     , _pMchSynt   :: ParserSetting                  -- parsing invariants and properties
     } deriving (Show,Typeable,Generic,Eq)
 
@@ -87,13 +87,13 @@ type MachineP3 = MachineP3' EventP3 EventP3 TheoryP3
 
 data MachineP3' ae ce thy = MachineP3
     { _p2 :: MachineP2' ae ce thy
-    , _pProgress  :: M.Map ProgId ProgressProp
-    , _pSafety    :: M.Map Label SafetyProp
-    , _pTransient :: M.Map Label Transient
-    , _pInvariant   :: M.Map Label Expr                     -- Invariants
-    , _pInitWitness :: M.Map Name Witness
-    , _pDelInits    :: M.Map Label Expr
-    , _pInit        :: M.Map Label Expr
+    , _pProgress  :: M.HashMap ProgId ProgressProp
+    , _pSafety    :: M.HashMap Label SafetyProp
+    , _pTransient :: M.HashMap Label Transient
+    , _pInvariant   :: M.HashMap Label Expr                     -- Invariants
+    , _pInitWitness :: M.HashMap Name Witness
+    , _pDelInits    :: M.HashMap Label Expr
+    , _pInit        :: M.HashMap Label Expr
     , _pOldPropSet  :: PropertySet
     , _pNewPropSet  :: PropertySet
     } deriving (Show,Typeable,Generic,Eq)
@@ -109,9 +109,9 @@ type MachineP4 = MachineP4' EventP4 EventP3 TheoryP3
 
 data MachineP4' ae ce thy = MachineP4
     { _p3 :: MachineP3' ae ce thy
-    , _pLiveRule :: M.Map ProgId ProofTree
-    , _pProofs   :: M.Map Label (Tactic Proof, LineInfo)
-    , _pComments :: M.Map DocItem Text
+    , _pLiveRule :: M.HashMap ProgId ProofTree
+    , _pProofs   :: M.HashMap Label (Tactic Proof, LineInfo)
+    , _pComments :: M.HashMap DocItem Text
     } deriving (Show,Typeable,Generic)
 
 instance (Eq ea,Eq ce,Eq thy) => Eq (MachineP4' ea ce thy) where
@@ -137,22 +137,22 @@ data EventP1 = EventP1
 
 data EventP2 = EventP2 
     { _e1 :: EventP1 
-    , _eIndices :: M.Map Name Var
-    , _eDelIndices :: M.Map Name (Var,LineInfo)
-    , _eParams  :: M.Map Name Var
+    , _eIndices :: M.HashMap Name Var
+    , _eDelIndices :: M.HashMap Name (Var,LineInfo)
+    , _eParams  :: M.HashMap Name Var
     , _eSchSynt :: ParserSetting
     , _eEvtSynt :: ParserSetting
     } deriving (Show,Typeable,Generic,Eq)
 
 data EventP3 = EventP3 
     { _e2 :: EventP2 
-    , _eCoarseSched :: M.Map Label Expr     
-    , _eFineSched   :: M.Map Label Expr
-    , _eGuards   :: M.Map Label Expr       
-    , _eActions  :: M.Map Label (NonEmpty LineInfo,Action)
-    , _eWitness  :: M.Map Name Witness
-    , _eParamWitness :: M.Map Name Witness
-    , _eIndWitness   :: M.Map Name Witness
+    , _eCoarseSched :: M.HashMap Label Expr     
+    , _eFineSched   :: M.HashMap Label Expr
+    , _eGuards   :: M.HashMap Label Expr       
+    , _eActions  :: M.HashMap Label (NonEmpty LineInfo,Action)
+    , _eWitness  :: M.HashMap Name Witness
+    , _eParamWitness :: M.HashMap Name Witness
+    , _eIndWitness   :: M.HashMap Name Witness
     } deriving (Show,Typeable,Generic,Eq)
 
 data EventP4 = EventP4 
@@ -182,24 +182,24 @@ type PostponedDef = (Def,DeclSource,LineInfo)
 
 data TheoryP1 = TheoryP1
     { _t0 :: TheoryP0
-    , _pImports   :: M.Map Name Theory
-    , _pTypes     :: M.Map Name Sort
-    , _pAllTypes  :: M.Map Name Sort
+    , _pImports   :: M.HashMap Name Theory
+    , _pTypes     :: M.HashMap Name Sort
+    , _pAllTypes  :: M.HashMap Name Sort
     , _pSetDecl   :: [(Name, PostponedDef)]
     } deriving (Show,Typeable,Generic,Eq)
 
 data TheoryP2 = TheoryP2
     { _t1 :: TheoryP1 
-    , _pDefinitions :: M.Map Name Def
-    , _pConstants :: M.Map Name Var
-    , _pDummyVars :: M.Map Name Var             -- dummy variables
+    , _pDefinitions :: M.HashMap Name Def
+    , _pConstants :: M.HashMap Name Var
+    , _pDummyVars :: M.HashMap Name Var             -- dummy variables
     , _pNotation  :: Notation
     , _pCtxSynt   :: ParserSetting                  -- parsing assumptions
     } deriving (Show,Typeable,Generic,Eq)
 
 data TheoryP3 = TheoryP3
     { _t2 :: TheoryP2
-    , _pAssumptions :: M.Map Label Expr
+    , _pAssumptions :: M.HashMap Label Expr
     } deriving (Show,Typeable,Generic,Eq)
 
 data SystemP m = SystemP
@@ -218,14 +218,14 @@ type SystemP4 = SystemP MachineP4
   -- TODO: write contracts
 data Hierarchy k = Hierarchy 
         { order :: [k]
-        , edges :: M.Map k k }
+        , edges :: M.HashMap k k }
     deriving (Show,Typeable,Generic)
 
 instance Eq k => Eq (Hierarchy k) where
     h0 == h1 = edges h0 == edges h1
 
-type MMap = M.Map MachineId
-type CMap = M.Map ContextId
+type MMap = M.HashMap MachineId
+type CMap = M.HashMap ContextId
 
 instance NFData MachineP0
 instance (NFData ae,NFData ce,NFData thy) 
@@ -280,12 +280,12 @@ p1 = machineP2' . lens _p1 (\p2 x -> p2 { _p1 = x })
 
 pDelVars   :: HasMachineP2' mch 
            => Lens' (mch ae ce thy) 
-                    (Map Name (Var,LineInfo)) 
+                    (HashMap Name (Var,LineInfo)) 
 pDelVars = machineP2' . $(oneLens '_pDelVars)
 pDefs  :: Traversal (MachineP2'' def ae ce thy) 
                     (MachineP2'' def' ae ce thy) 
-                    (Map Name def)
-                    (Map Name def')
+                    (HashMap Name def)
+                    (HashMap Name def')
 pDefs = (\f (MachineP2 { .. }) -> 
                (\x' y' -> MachineP2 _p1 x' y' _pDelVars _pStateVars 
                                  _pAbstractVars _pMchSynt) 
@@ -293,22 +293,22 @@ pDefs = (\f (MachineP2 { .. }) ->
 pMchDef    :: HasMachineP2' mch 
            => Lens (mch ae ce thy) 
                    (mch ae ce thy) 
-                   (Map Name (DefType (mch ae ce thy)))
-                   (Map Name (DefType (mch ae ce thy)))
+                   (HashMap Name (DefType (mch ae ce thy)))
+                   (HashMap Name (DefType (mch ae ce thy)))
 pMchDef = machineP2' . $(oneLens '_pMchDef)
 pMchOldDef :: HasMachineP2' mch 
            => Lens (mch ae ce thy) 
                    (mch ae ce thy) 
-                   (Map Name (DefType (mch ae ce thy)))
-                   (Map Name (DefType (mch ae ce thy)))
+                   (HashMap Name (DefType (mch ae ce thy)))
+                   (HashMap Name (DefType (mch ae ce thy)))
 pMchOldDef = machineP2' . $(oneLens '_pMchOldDef)
 pStateVars :: HasMachineP2' mch 
            => Lens' (mch ae ce thy) 
-                    (Map Name Var)
+                    (HashMap Name Var)
 pStateVars = machineP2' . $(oneLens '_pStateVars)
 pAbstractVars :: HasMachineP2' mch 
            => Lens' (mch ae ce thy) 
-                    (Map Name Var)
+                    (HashMap Name Var)
 pAbstractVars = machineP2' . $(oneLens '_pAbstractVars)
 pMchSynt   :: HasMachineP2' mch 
            => Lens' (mch ae ce thy) 

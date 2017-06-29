@@ -68,7 +68,7 @@ import           Control.Monad.Trans.Writer ( WriterT ( .. ), runWriterT )
 import           Data.Either.Validation
 import           Data.Foldable as F
 import           Data.List as L
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Set hiding (map)
@@ -316,7 +316,7 @@ instance Readable (Set Label) where
         arg <- get_next
         return $ fromList $ map label $ comma_sep (flatten' arg)
 
-instance Readable (M.Map Label ()) where
+instance Readable (M.HashMap Label ()) where
     read_args = do
         M.fromSet (const ()) <$> read_args
     read_one = do
@@ -533,8 +533,8 @@ bind_all xs msgs lu = do
 
 
 insert_new :: Ord a 
-           => a -> b -> M.Map a b 
-           -> Maybe (M.Map a b)
+           => a -> b -> M.HashMap a b 
+           -> Maybe (M.HashMap a b)
 insert_new x y m
     | x `M.member` m    = Nothing
     | otherwise         = Just $ M.insert x y m

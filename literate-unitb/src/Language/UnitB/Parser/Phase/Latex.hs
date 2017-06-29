@@ -34,7 +34,7 @@ import Data.Existential
 import Data.Functor.Alt
 import Data.Functor.Compose
 import Data.List as L
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Proxy.TH
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -217,8 +217,8 @@ parseLatexT (LatexParser env cmd _eLu _cLu _e f) xs x = runEitherT $ do
             $ rewriteDoc (fromList $ (,()) <$> env) (fromList cmd) xs
         EitherT $ evalStateT (runEitherT $ f x) pruned
 
-rewriteDoc :: Map Text ()
-           -> Map Text (Cell1 Proxy (IsTuple LatexArg))
+rewriteDoc :: HashMap Text ()
+           -> HashMap Text (Cell1 Proxy (IsTuple LatexArg))
            -> LatexDoc
            -> Validation [Error] (TokenStream LatexMatch)
 rewriteDoc es cs d = case unconsTex d of

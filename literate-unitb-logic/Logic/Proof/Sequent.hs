@@ -20,7 +20,7 @@ import Data.Char
 import Data.Default
 import Data.List as L
 import Data.List.Ordered as L
-import Data.Map    as M hiding ( map )
+import Data.HashMap.Lazy    as M hiding ( map )
 import Data.Maybe  as MM hiding (fromJust)
 import Data.PartialOrd
 import qualified Data.Set  as S
@@ -51,8 +51,8 @@ type FOSequent = GenSequent InternalName FOType FOQuantifier FOExpr
 type AbsSequent t q = GenSequent Name t q (AbsExpr Name t q)
 
 data SyntacticProp = SyntacticProp  
-        { _associative  :: M.Map Name ExprP
-        , _monotonicity :: Map (Relation,Function) (ArgDep Rel) }
+        { _associative  :: M.HashMap Name ExprP
+        , _monotonicity :: HashMap (Relation,Function) (ArgDep Rel) }
             -- (rel,fun) --> rel
     deriving (Eq,Show,Generic)
 
@@ -78,7 +78,7 @@ data GenSequent name t q expr = Sequent
         , _genSequentContext  :: GenContext name t q
         , _genSequentSyntacticThm :: SyntacticProp
         , _genSequentNameless :: [expr] 
-        , _genSequentNamed :: M.Map Label expr
+        , _genSequentNamed :: M.HashMap Label expr
         , _genSequentGoal  :: expr }
     deriving (Eq, Generic, Show, Functor, Foldable, Traversable)
 
@@ -129,10 +129,10 @@ instance HasExprs (GenSequent n t q e) e where
                 <*> traverse f hyp1 
                 <*> f g
 
-instance HasSorts (GenSequent n t q e) (M.Map Name Sort) where
+instance HasSorts (GenSequent n t q e) (M.HashMap Name Sort) where
     sorts = context.sorts
 
-instance HasConstants (GenSequent n t q e) (M.Map n (AbsVar n t)) where
+instance HasConstants (GenSequent n t q e) (M.HashMap n (AbsVar n t)) where
     constants = context.constants
 
 predefined :: [InternalName]
@@ -171,7 +171,7 @@ makeSequent :: Pre
             => Context
             -> SyntacticProp
             -> [Expr]
-            -> M.Map Label Expr
+            -> M.HashMap Label Expr
             -> Expr
             -> Sequent
 makeSequent ctx props asms0 asms1 g = checkSequent $ 
@@ -287,7 +287,7 @@ remove_type_vars :: Sequent' -> FOSequent
 remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m asm' hyp' goal'
     where
         (Context ss _ _ dd _) = ctx
-        _ = dd :: M.Map InternalName Def'
+        _ = dd :: M.HashMap InternalName Def'
         asm_types = MM.catMaybes 
                     $ L.map type_strip_generics 
                     $ S.elems $ S.unions 
@@ -307,7 +307,7 @@ remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m
                     (S.toList decl_types ++ const_types)^.partsOf (traverse.foldSorts.filtered (is _RecordSort))
         asm' :: [FOExpr]
         asm' = L.map snd $ foldMap (gen_to_fol seq_types (label "")) asm
-        hyp' :: M.Map Label FOExpr
+        hyp' :: M.HashMap Label FOExpr
         hyp' = M.fromList $ mconcat $ M.elems $ M.mapWithKey (gen_to_fol seq_types) hyp
         goal' :: FOExpr
         goal' = vars_to_sorts ss goal

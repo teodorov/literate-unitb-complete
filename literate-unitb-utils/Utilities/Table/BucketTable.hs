@@ -10,11 +10,11 @@ import Control.Precondition ((!))
 import Data.Default
 import Data.Function
 import Data.Hashable
-import qualified Data.Map as IM
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as IM
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Maybe as My
 import qualified Data.List as L
-import Data.Map.Class
+import Data.HashMap.Lazy.Class
 import Data.Semigroup
 import Data.Serialize hiding (Result)
 import qualified Data.Set as S

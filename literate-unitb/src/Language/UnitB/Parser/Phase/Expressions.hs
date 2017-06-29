@@ -48,8 +48,8 @@ import           Data.Functor.Compose
 import           Data.List as L hiding ( union, insert, inits )
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
-import           Data.Map   as M hiding ( map, (\\), (!) )
-import qualified Data.Map   as M
+import           Data.HashMap.Lazy   as M hiding ( map, (\\), (!) )
+import qualified Data.HashMap.Lazy   as M
 import           Data.Semigroup
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
@@ -81,7 +81,7 @@ run_phase3_exprs = -- withHierarchy $ _ *** expressions >>> _ -- (C.id &&& expre
         err_msg = [st|Multiple expressions with the label %s|] . prettyText
         wrapup :: Hierarchy MachineId
                -> MMap MachineP2 
-               -> Maybe [Map MachineId [(Label, ExprScope)]]
+               -> Maybe [HashMap MachineId [(Label, ExprScope)]]
                -> MM' Input (MMap MachineP3)
         wrapup r_ord p2 es = do
             let es' :: Maybe (MMap [(Label, ExprScope)])
@@ -89,7 +89,7 @@ run_phase3_exprs = -- withHierarchy $ _ *** expressions >>> _ -- (C.id &&& expre
             exprs <- triggerM
                 =<< make_all_tables' err_msg
                 =<< triggerM es'
-            let _ = exprs :: MMap (Map Label ExprScope)
+            let _ = exprs :: MMap (HashMap Label ExprScope)
             T.sequence $ make_phase3 <$> p2 <.> exprs
         expressions = run_phase 
             [ assignment
@@ -119,7 +119,7 @@ run_phase3_exprs = -- withHierarchy $ _ *** expressions >>> _ -- (C.id &&& expre
             , init_witness_decl
             , witness_decl ]
 
-make_phase3 :: MachineP2 -> Map Label ExprScope -> MM' c MachineP3
+make_phase3 :: MachineP2 -> HashMap Label ExprScope -> MM' c MachineP3
 make_phase3 p2 exprs' = triggerLenient $ do
         m <- join $ upgradeM
             newThy newMch
@@ -144,7 +144,7 @@ make_phase3 p2 exprs' = triggerLenient $ do
         liftEvent2 f g = do
             m <- fromListWith (++).L.map (first Right) <$> liftFieldMLenient f p2 exprs
             m' <- fromListWith (++).L.map (first Right) <$> liftFieldMLenient g p2 exprs
-            let _ = m :: Map SkipOrEvent [EventP3Field]
+            let _ = m :: HashMap SkipOrEvent [EventP3Field]
             let ms = M.unionsWith (++) [m', m, M.singleton (Left SkipEvent) [ECoarseSched "default" zfalse]]
             return $ \_ eid e -> return $ makeEventP3 e (findWithDefault [] eid ms)
         liftEvent :: (   Label 
@@ -304,7 +304,7 @@ instance Scope EventExpr where
 checkLocalExpr' :: ( HasInhStatus decl (InhStatus expr)
                   , PrettyPrintable decl
                   , HasLineInfo decl (NonEmptyListSet LineInfo) )
-                => Text -> (expr -> Map Name Var)
+                => Text -> (expr -> HashMap Name Var)
                 -> EventId -> Label -> decl
                 -> Reader MachineP2 [Either Error a]
 checkLocalExpr' expKind free eid lbl sch = do
@@ -319,8 +319,8 @@ checkLocalExpr' expKind free eid lbl sch = do
                         fi = symbKind "index"
                         symbKind :: (HasName s1 Name)
                                  => Text 
-                                 -> Map k1 (s1, d1) 
-                                 -> Map k1 (Text, d1)
+                                 -> HashMap k1 (s1, d1) 
+                                 -> HashMap k1 (Text, d1)
                         symbKind sym = M.map $ first $ [st|deleted %s '%s'|] sym . renderText . view name
                         fvars  = free expr
                         errs   = fv (vs `M.intersection` fvars) `M.union` fi (is `M.intersection` fvars)
@@ -355,7 +355,7 @@ parseEvtExpr' :: ( HasInhStatus decl (EventInhStatus expr)
                  , PrettyPrintable decl
                  , HasDeclSource decl DeclSource)
               => Text 
-              -> (expr -> Map Name Var)
+              -> (expr -> HashMap Name Var)
               -> (Label -> expr -> field)
               -> RefScope
               -> EventId -> Label -> decl
@@ -367,7 +367,7 @@ parseEvtExpr'' :: ( HasInhStatus decl (EventInhStatus expr)
                   , PrettyPrintable decl
                   , HasDeclSource decl DeclSource)
                => Text 
-               -> (expr -> Map Name Var)
+               -> (expr -> HashMap Name Var)
                -> (Label -> NonEmptyListSet LineInfo -> expr -> field)
                -> RefScope
                -> EventId -> Label -> decl
@@ -455,7 +455,7 @@ fine_sch_decl = machineCmd "\\fschedule" $ \(Conc evt, NewLabel lbl, Expr xs) _m
         -------------------------
 
 parseExpr' :: (HasMchExpr b a, Ord label)
-           => Lens' MachineP3 (Map label a) 
+           => Lens' MachineP3 (HashMap label a) 
            -> [(label,b)] 
            -> RWS () [Error] MachineP3 ()
 parseExpr' ln xs = modify $ ln %~ M.union (M.fromList $ map (second $ view mchExpr) xs)
@@ -498,8 +498,8 @@ default_schedule_decl = arr $ \(p2,csch) ->
     where
         --asCell' = asCell :: Prism' ExprScope EventExpr
         addDefSch m evts = m^.pNewEvents.eEventId._Right.to (default_sch evts)
-        evtsWith :: Maybe (Map MachineId [(Label, ExprScope)]) 
-                 -> Map MachineId [(EventId, LineInfo)]
+        evtsWith :: Maybe (HashMap MachineId [(Label, ExprScope)]) 
+                 -> HashMap MachineId [(EventId, LineInfo)]
         evtsWith csch = csch^.traverse & traverse %~ rights.(traverse %~ _1 id).referencedEvents
         referencedEvents :: [(Label, ExprScope)] -> [(InitOrEvent,LineInfo)]
         referencedEvents m = m^.traverse._2._EventExpr'.withKey'.traverse.to (\(eid,s) -> (eid,) <$> s^.lineInfo.to setToList) -- _1.to (:[])
@@ -794,7 +794,7 @@ instance (Applicative f,Applicative g,Applicative h) => Applicative (Compose3 f 
             comp = Compose . Compose
             uncomp = getCompose . getCompose
 
-_EventExpr' :: Prism' ExprScope (Map InitOrEvent EvtExprScope)
+_EventExpr' :: Prism' ExprScope (HashMap InitOrEvent EvtExprScope)
 _EventExpr' = _ExprScope._Cell._EventExpr
 
 
@@ -836,7 +836,7 @@ event_parser p2 ev = (p2 ^. pEvtSynt) ! ev
 schedule_parser :: HasMachineP2 phase => phase -> EventId -> ParserSetting
 schedule_parser p2 ev = (p2 ^. pSchSynt) ! ev
 
-machine_events :: HasMachineP1 phase => phase -> Map Label EventId
+machine_events :: HasMachineP1 phase => phase -> HashMap Label EventId
 machine_events p2 = L.view pEventIds p2
 
 evtScope :: IsEvtExpr a => EventId -> a -> ExprScope

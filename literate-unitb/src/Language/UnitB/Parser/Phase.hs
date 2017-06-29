@@ -42,7 +42,7 @@ import Data.Graph.Bipartite as G hiding (fromList')
 import Data.Hashable
 import Data.List as L
 import Data.List.NonEmpty as NE
-import Data.Map as M hiding ((!))
+import Data.HashMap.Lazy as M hiding ((!))
 import Data.Maybe as MM
 import Data.Semigroup
 import Data.Text (Text)
@@ -120,7 +120,7 @@ cmdFun :: forall a b c d.
               , Ord c )
            => (b -> c -> d -> M a) 
            -> Cmd
-           -> c -> (Map c d) -> MM (Maybe a)
+           -> c -> (HashMap c d) -> MM (Maybe a)
 cmdFun f xs m ctx = case x of
                       Right x -> tell w >> return (Just x)
                       Left es -> tell (w ++ es) >> return Nothing
@@ -149,7 +149,7 @@ envFun :: forall a b c d.
               ( IsTuple LatexArg b, Ord c )
            => (b -> LatexDoc -> c -> d -> M a) 
            -> Env
-           -> c -> (Map c d) -> MM (Maybe a)
+           -> c -> (HashMap c d) -> MM (Maybe a)
 envFun f xs m ctx = case x of
                       Right x -> tell w >> return (Just x)
                       Left es -> tell (w ++ es) >> return Nothing
@@ -190,8 +190,8 @@ contextEnv env f = Pipeline empty_spec c_spec g
         g = collect param (envFun f)
 
 data Collect a b k t = Collect 
-    { getList :: a -> Map k [b] 
-    , getInput :: Input -> Map t a 
+    { getList :: a -> HashMap k [b] 
+    , getInput :: Input -> HashMap t a 
     -- , getContent :: b -> a
     , tag :: k }
 
@@ -199,7 +199,7 @@ collect :: (Ord k, Monoid z, Ord c, Show c)
         => Collect a b k c
         -> (b -> c -> d -> MM (Maybe z)) 
         -> d
-        -> MM (Maybe (Map c z))
+        -> MM (Maybe (HashMap c z))
 collect p f arg = do
             cmp <- ask
             xs <- forM (M.toList $ getInput p cmp) $ \(mname, x) -> do
@@ -213,32 +213,32 @@ collect p f arg = do
     -- we want to encode phases as maps to 
     -- phase records and extract fields
     -- as maps to value
-onMap :: Ord k => Lens' a b -> Lens' (Map k a) (Map k b)
+onMap :: Ord k => Lens' a b -> Lens' (HashMap k a) (HashMap k b)
 onMap ln f ma = M.intersectionWith (flip $ set ln) ma <$> mb' 
     where
         mb  = M.map (view ln) ma 
         mb' = f mb 
 
-onMap' :: forall a b k. Ord k => Getting b a b -> Getter (Map k a) (Map k b)
+onMap' :: forall a b k. Ord k => Getting b a b -> Getter (HashMap k a) (HashMap k b)
 onMap' ln = to $ M.map $ view ln
 
---zoom :: Ord k => Set k -> Lens' (Map k a) (Map k a)
+--zoom :: Ord k => Set k -> Lens' (HashMap k a) (HashMap k a)
 --zoom s f m = M.union m1 <$> f m0
 --    where
 --        (m0,m1) = M.partitionWithKey (const . (`S.member` s)) m
 
 infixl 3 <.>
 
-{-# SPECIALIZE (<.>) :: (Ord a,Default b) => Map a (b -> c) -> Map a b -> Map a c #-}
-{-# SPECIALIZE (<.>) :: (Ord a,Default b) => Map a (b -> c) -> Map a b -> Map a c #-}
+{-# SPECIALIZE (<.>) :: (Ord a,Default b) => HashMap a (b -> c) -> HashMap a b -> HashMap a c #-}
+{-# SPECIALIZE (<.>) :: (Ord a,Default b) => HashMap a (b -> c) -> HashMap a b -> HashMap a c #-}
 (<.>) :: (Default b,Ord a) 
-      => Map a (b -> c) -> Map a b -> Map a c
+      => HashMap a (b -> c) -> HashMap a b -> HashMap a c
 (<.>) mf mx = uncurry ($) <$> differenceWith g ((,def) <$> mf) mx
     where
         g (f,_) x = Just (f,x) 
 
 zipMap :: (Default a, Default b,Ord k) 
-       => Map k a -> Map k b -> Map k (a,b)
+       => HashMap k a -> HashMap k b -> HashMap k (a,b)
 zipMap m0 m1 = M.unionWith f ((,def) <$> m0) ((def,) <$> m1)
     where
         f (x,_) (_,y) = (x,y)
@@ -253,7 +253,7 @@ instance (HasMachineP1 (m a c t), HasTheoryP3 t) => HasTheoryP3 (m a c t) where
     theoryP3 = pContext . theoryP3
 
 pEventIds :: (HasMachineP1 phase) 
-          => Getter phase (Map Label EventId)
+          => Getter phase (HashMap Label EventId)
 pEventIds = pEvents . to (M.mapWithKey const) . from pEventId
 
 getEvent :: (HasMachineP1 phase)
@@ -262,11 +262,11 @@ getEvent :: (HasMachineP1 phase)
 getEvent eid = pEvents . at eid . (\f x -> Just <$> f (fromJust' x))
 
 eventDifference :: (HasMachineP1 phase, AEvtType phase ~ CEvtType phase)
-                => (NonEmpty (Map label a) -> Map label a -> Map label b)
+                => (NonEmpty (HashMap label a) -> HashMap label a -> HashMap label b)
                 -> EventId 
-                -> Getting (Map label a) (AEvtType phase) (Map label a)
-                -- -> Getting (Map label a) event (Map label a)
-                -> Getter phase (Map label b)
+                -> Getting (HashMap label a) (AEvtType phase) (HashMap label a)
+                -- -> Getting (HashMap label a) event (HashMap label a)
+                -> Getter phase (HashMap label b)
 eventDifference f eid field = pEventRef . to f'
     where
         f' g = readGraph g $ do
@@ -275,12 +275,12 @@ eventDifference f eid field = pEventRef . to f'
             f (view field <$> es) <$> (view field <$> rightInfo cevt)
 
 eventDifferenceWithId :: (HasMachineP1 phase,Ord label,AEvtType phase ~ CEvtType phase)
-                      => (   Map label (First a,NonEmpty SkipOrEvent) 
-                          -> Map label (First a,NonEmpty SkipOrEvent) 
-                          -> Map label (First b,c))
+                      => (   HashMap label (First a,NonEmpty SkipOrEvent) 
+                          -> HashMap label (First a,NonEmpty SkipOrEvent) 
+                          -> HashMap label (First b,c))
                       -> EventId 
-                      -> Getting (Map label a) (AEvtType phase) (Map label a)
-                      -> Getter phase (Map label (b,c))
+                      -> Getting (HashMap label a) (AEvtType phase) (HashMap label a)
+                      -> Getter phase (HashMap label (b,c))
 eventDifferenceWithId comp eid field = eventDifference f eid (to $ field' field) . to (M.map $ first getFirst)
     where 
         f old new = M.unionsWith (<>) (NE.toList old) `comp` new
@@ -288,26 +288,26 @@ eventDifferenceWithId comp eid field = eventDifference f eid (to $ field' field)
 
 evtMergeAdded :: (HasMachineP1 phase, Ord label,AEvtType phase ~ CEvtType phase)
               => EventId
-              -> Getting (Map label a) (AEvtType phase) (Map label a)
-              -> Getter phase (Map label a)
+              -> Getting (HashMap label a) (AEvtType phase) (HashMap label a)
+              -> Getter phase (HashMap label a)
 evtMergeAdded = eventDifference $ \old new -> new `M.difference` M.unions (NE.toList old)
 evtMergeDel :: (HasMachineP1 phase, Ord label,AEvtType phase ~ CEvtType phase)
             => EventId
-            -> Getting (Map label a) (AEvtType phase) (Map label a)
-            -- -> Getter phase (Map label (a,NonEmpty SkipOrEvent))
-            -> Getter phase (Map label a)
+            -> Getting (HashMap label a) (AEvtType phase) (HashMap label a)
+            -- -> Getter phase (HashMap label (a,NonEmpty SkipOrEvent))
+            -> Getter phase (HashMap label a)
 evtMergeDel eid ln = eventDifferenceWithId M.difference eid ln . to (fmap fst)
 evtMergeKept :: (HasMachineP1 phase,AEvtType phase ~ CEvtType phase)
              => EventId
-             -> Getting (Map Label a) (AEvtType phase) (Map Label a)
-             -> Getter (phase) (Map Label (a,NonEmpty SkipOrEvent))
+             -> Getting (HashMap Label a) (AEvtType phase) (HashMap Label a)
+             -> Getter (phase) (HashMap Label (a,NonEmpty SkipOrEvent))
 evtMergeKept = eventDifferenceWithId M.intersection
 
 evtSplits :: (HasMachineP1 phase,AEvtType phase ~ CEvtType phase,Pre)
-          => (Map Label a -> Map Label a -> Map Label a)
+          => (HashMap Label a -> HashMap Label a -> HashMap Label a)
           -> EventId 
-          -> Getting (Map Label a) (AEvtType phase) (Map Label a) 
-          -> Getter phase [Map Label a]
+          -> Getting (HashMap Label a) (AEvtType phase) (HashMap Label a) 
+          -> Getter phase [HashMap Label a]
 evtSplits union eid ln = to $ \m -> readGraph (m^.pEventRef) $ do
         rs <- NE.toList <$> (successors =<< leftVertex (Right eid))
         rs <- forM rs $ \v -> do
@@ -319,31 +319,31 @@ evtSplits union eid ln = to $ \m -> readGraph (m^.pEventRef) $ do
 
 evtSplitConcrete :: (HasMachineP1 phase,AEvtType phase ~ CEvtType phase,Pre)
                  => EventId
-                 -> Getting (Map Label a) (AEvtType phase) (Map Label a)
-                 -> Getter phase [Map Label a]
+                 -> Getting (HashMap Label a) (AEvtType phase) (HashMap Label a)
+                 -> Getter phase [HashMap Label a]
 evtSplitConcrete = evtSplits $ flip const
 evtSplitAdded :: (HasMachineP1 phase,AEvtType phase ~ CEvtType phase,Pre)
               => EventId
-              -> Getting (Map Label a) (AEvtType phase) (Map Label a)
-              -> Getter phase [Map Label a]
+              -> Getting (HashMap Label a) (AEvtType phase) (HashMap Label a)
+              -> Getter phase [HashMap Label a]
 evtSplitAdded = evtSplits $ flip M.difference
 evtSplitDel :: (HasMachineP1 phase,AEvtType phase ~ CEvtType phase,Pre)
             => EventId
-            -> Getting (Map Label a) (AEvtType phase) (Map Label a)
-            -> Getter phase [Map Label a]
+            -> Getting (HashMap Label a) (AEvtType phase) (HashMap Label a)
+            -> Getter phase [HashMap Label a]
 evtSplitDel = evtSplits M.difference
 evtSplitKept :: (HasMachineP1 phase,AEvtType phase ~ CEvtType phase,Pre)
              => EventId
-             -> Getting (Map Label a) (AEvtType phase) (Map Label a)
-             -> Getter phase [Map Label a]
+             -> Getting (HashMap Label a) (AEvtType phase) (HashMap Label a)
+             -> Getter phase [HashMap Label a]
 evtSplitKept = evtSplits M.intersection
 
 newDelVars :: HasMachineP2 phase
-           => Getter phase (Map Name Var)
+           => Getter phase (HashMap Name Var)
 newDelVars = to $ \x -> view pAbstractVars x `M.difference` view pStateVars x
 
 pDefVars :: HasTheoryP2 phase
-         => Getter phase (Map Name Var)
+         => Getter phase (HashMap Name Var)
 pDefVars = to $ \x -> M.mapMaybe defToVar $ x^.pDefinitions
 
 defToVar :: Def -> Maybe Var
@@ -351,11 +351,11 @@ defToVar (Def _ n [] t _) = Just (Var n t)
 defToVar (Def _ _ (_:_) _ _) = Nothing
 
 pAllVars :: HasMachineP2' phase
-         => Getter (phase ae ce t) (Map Name Var)
+         => Getter (phase ae ce t) (HashMap Name Var)
 pAllVars = to $ \x -> view pAbstractVars x `M.union` view pStateVars x
 
 pEventSplit' :: (HasMachineP1 phase)
-             => Getter phase (Map EventId (AEvtType phase,[(EventId,CEvtType phase)]))
+             => Getter phase (HashMap EventId (AEvtType phase,[(EventId,CEvtType phase)]))
 pEventSplit' = pEventRef . to f
     where
         f g = readGraph g $ do
@@ -369,15 +369,15 @@ pEventSplit' = pEventRef . to f
                 return $ (k,(e,es))^.distrLeft
 
 pEventSplit :: (HasMachineP1 phase)
-            => Getter phase (Map EventId (AEvtType phase,[EventId]))
+            => Getter phase (HashMap EventId (AEvtType phase,[EventId]))
 pEventSplit = pEventSplit'.to (over (traverse._2.traverse) fst)
 
 pEventMerge :: (HasMachineP1 phase)
-            => Getter phase (Map EventId (CEvtType phase,[EventId]))
+            => Getter phase (HashMap EventId (CEvtType phase,[EventId]))
 pEventMerge = pEventMerge'.to (over (traverse._2.traverse) fst)
 
 pEventMerge' :: (HasMachineP1 phase)
-             => Getter phase (Map EventId (CEvtType phase,[(EventId,AEvtType phase)]))
+             => Getter phase (HashMap EventId (CEvtType phase,[(EventId,AEvtType phase)]))
 pEventMerge' = pEventRef.to f
     where
         f g = readGraph g $ do
@@ -390,7 +390,7 @@ pEventMerge' = pEventRef.to f
                 e  <- rightInfo v
                 return $ (k,(e,es))^.distrLeft
 
-traverseFilter :: Ord k => (a -> Bool) -> Traversal' (Map k a) (Map k a)
+traverseFilter :: Ord k => (a -> Bool) -> Traversal' (HashMap k a) (HashMap k a)
 traverseFilter p f m = M.union <$> f m' <*> pure (m `M.difference` m')
     where
         m' = M.filter p m
@@ -405,23 +405,23 @@ pNewEvents f = (pEventRef.traverseRightWithEdges) g
 
 -- | Concrete events that are inherited from refined machine
 pOldEvents :: (HasMachineP1 phase)
-           => Getter phase (Map EventId (CEvtType phase))
+           => Getter phase (HashMap EventId (CEvtType phase))
 pOldEvents = pEventMerge.to (M.map fst . M.filter (not . L.null . snd))
 
 pEvents :: (HasMachineP1 phase) 
-        => Getter phase (Map EventId (CEvtType phase))
+        => Getter phase (HashMap EventId (CEvtType phase))
 pEvents = pEventRef.to rightMap.to f
     where
         f = M.fromList . MM.mapMaybe (rightToMaybe . (runKleisli $ first $ Kleisli id))
                        . M.toList
 
-pEventId :: Iso' (Map Label event) (Map EventId event)
+pEventId :: Iso' (HashMap Label event) (HashMap EventId event)
 pEventId = iso 
         (M.mapKeys EventId) 
         (M.mapKeys as_label)
 
 pIndices  :: HasMachineP2 mch
-          => Getter mch (Map EventId (Map Name Var))
+          => Getter mch (HashMap EventId (HashMap Name Var))
 pIndices = pEvents . onMap eIndices
 
 get_event :: (HasMachineP1 phase,MonadReader LineInfo m,MonadError [Error] m) 
@@ -459,26 +459,26 @@ get_events p2 ev_lbl = do
                 $ (`M.lookup` evts)
 
 --pParams   :: HasMachineP2 mch
---          => Getter mch (Map EventId (Map Text Var))
+--          => Getter mch (HashMap EventId (HashMap Text Var))
 --pParams = pEvents . onMap eParams
 pSchSynt  :: HasMachineP2 mch 
-          => Getter mch (Map EventId ParserSetting)    
+          => Getter mch (HashMap EventId ParserSetting)    
     -- parsing schedule
 pSchSynt = pEvents . onMap eSchSynt
 pEvtSynt  :: HasMachineP2 mch 
-          => Getter mch (Map EventId ParserSetting)    
+          => Getter mch (HashMap EventId ParserSetting)    
     -- parsing guards and actions
 pEvtSynt = pEvents . onMap eEvtSynt
 
-eIndParams :: HasEventP2 events => Getter events (Map Name Var) 
+eIndParams :: HasEventP2 events => Getter events (HashMap Name Var) 
 eIndParams = to $ \e -> (e^.eParams) `M.union` (e^.eIndices)
 
 pEventRenaming :: HasMachineP1 mch
-               => Getter mch (Map EventId [EventId])
+               => Getter mch (HashMap EventId [EventId])
 pEventRenaming = pEventRef . to (g . f) 
     where
-        g :: Map SkipOrEvent (NonEmpty SkipOrEvent)
-          -> Map EventId [EventId]
+        g :: HashMap SkipOrEvent (NonEmpty SkipOrEvent)
+          -> HashMap EventId [EventId]
         g = asListWith const %~ MM.mapMaybe (\(x,y) -> rightToMaybe $ (,) <$> x <*> y)
                                    . L.map (second $ sequence . NE.toList)
         f g = readGraph g $ do
@@ -559,7 +559,7 @@ inheritWith' :: Ord k
              -> (k -> conc -> abstr)
              -> (conc -> abstr -> conc)
              -> Hierarchy k 
-             -> Map k base -> Map k conc
+             -> HashMap k base -> HashMap k conc
 inheritWith' decl inh (++) (Hierarchy _xs es) m = m2 -- _ $ L.foldl' f (M.map decl m) xs
     where
         m1 = M.map decl m
@@ -573,7 +573,7 @@ inheritWithAlt :: Ord k
              -> (k -> conc -> abstr)
              -> (conc -> abstr -> conc)
              -> Hierarchy k 
-             -> Map k base -> Map k conc
+             -> HashMap k base -> HashMap k conc
 inheritWithAlt decl inh (++) (Hierarchy xs es) m = L.foldl' f (M.map decl m) xs
     where
         f m v = case v `M.lookup` es of 
@@ -586,13 +586,13 @@ inheritWith :: Ord k
             -> (conc -> abstr)
             -> (conc -> abstr -> conc)
             -> Hierarchy k 
-            -> Map k base -> Map k conc
+            -> HashMap k base -> HashMap k conc
 inheritWith decl inh = inheritWith' decl (const inh)
 
 instance (Ord a,Hashable a,Arbitrary a) => Arbitrary (Hierarchy a) where
     arbitrary = do
         xs <- L.nub <$> arbitrary
-        let ms = M.fromList ys :: Map Int a
+        let ms = M.fromList ys :: HashMap Int a
             ys = L.zip [(0 :: Int)..] xs
         zs <- forM ys $ \(i,x) -> do
             j <- QC.elements $ Nothing : L.map Just [0..i-1]
@@ -600,11 +600,11 @@ instance (Ord a,Hashable a,Arbitrary a) => Arbitrary (Hierarchy a) where
         return $ Hierarchy xs $ M.mapMaybe id $ M.fromList zs
 
 topological_order :: Pipeline MM
-                     (Map MachineId (MachineId,LineInfo)) 
+                     (HashMap MachineId (MachineId,LineInfo)) 
                      (Hierarchy MachineId)
 topological_order = Pipeline empty_spec empty_spec $ \es' -> do
         let es = M.map fst es'
-            lis :: Map MachineId LineInfo
+            lis :: HashMap MachineId LineInfo
             lis = M.map snd es'
             cs = cycles $ M.toList es
         vs <- triggerM =<< sequence <$> mapM (cycl_err_msg lis) cs
@@ -613,7 +613,7 @@ topological_order = Pipeline empty_spec empty_spec $ \es' -> do
         struct = "refinement structure" :: Text
         cycle_msg = msg struct
         cycl_err_msg :: MonadWriter [Error] m 
-                     => Map MachineId LineInfo 
+                     => HashMap MachineId LineInfo 
                      -> SCC MachineId -> m (Maybe MachineId)
         cycl_err_msg _ (AcyclicSCC v) = return $ Just v
         cycl_err_msg lis (CyclicSCC vs) = do
@@ -623,10 +623,10 @@ topological_order = Pipeline empty_spec empty_spec $ \es' -> do
             return Nothing -- (error "topological_order")
         msg = [st|A cycle exists in the %s|]
 
-fromList' :: Ord a => [a] -> Map a ()
+fromList' :: Ord a => [a] -> HashMap a ()
 fromList' xs = M.fromList $ L.zip xs $ L.repeat ()
 
-inherit :: Hierarchy MachineId -> Map MachineId [b] -> Map MachineId [b]
+inherit :: Hierarchy MachineId -> HashMap MachineId [b] -> HashMap MachineId [b]
 inherit = inheritWith id id (++)
 
 inherit2 :: (Scope s,HasMachineP1 phase)
@@ -647,8 +647,8 @@ second' :: Monad m => (a -> m b) -> (d, a) -> m (d, b)
 second' = runKleisli . second . Kleisli
 
 inheritEvents :: Hierarchy MachineId
-              -> Map MachineId [(Label, (EventId, [EventId]), t1)]
-              -> Map MachineId [(Label, (EventId, [EventId]), t1)]
+              -> HashMap MachineId [(Label, (EventId, [EventId]), t1)]
+              -> HashMap MachineId [(Label, (EventId, [EventId]), t1)]
 inheritEvents h m = inheritWith 
             id
             (L.map $ over _2 abstract)

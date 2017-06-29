@@ -42,9 +42,9 @@ import Control.Precondition
 import           Data.Either
 import           Data.List as L hiding ( union )
 import           Data.List.Ordered hiding (nub)
-import           Data.Map as M 
+import           Data.HashMap.Lazy as M 
                     hiding ( map, union, unions, (\\) )
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Maybe as MM
 import           Data.Monoid
 import qualified Data.Set as S 
@@ -242,7 +242,7 @@ typ_fun3 f@(Fun _ n _ ts t _) mx my mz  = do
                    ]
         maybe (Left [err_msg]) Right $ check_args [x,y,z] f
 
-unify_aux :: [(Type,Type)] -> Maybe (Map InternalName Type)
+unify_aux :: [(Type,Type)] -> Maybe (HashMap InternalName Type)
 unify_aux ( (GENERIC x, t1) : xs ) 
         | t1 == GENERIC x = unify_aux xs
         | x `S.member` generics t1 = Nothing
@@ -262,7 +262,7 @@ unify_aux ( (Gen x xs, Gen y ys) : zs ) = do
 unify_aux [] = return empty
 unify_aux _  = Nothing
 
-unify :: GenericType -> GenericType -> Maybe (Map InternalName GenericType)
+unify :: GenericType -> GenericType -> Maybe (HashMap InternalName GenericType)
 unify t0 t1 = 
     unify_aux [(suffix_generics "1" t0, suffix_generics "2" t1)]
 
@@ -345,16 +345,16 @@ class Typed a => HasGenerics a where
 class (HasGenerics a, TypeOf a ~ Type, TypeSystem (TypeOf b)) 
         => Generic a b where
     substitute_types'    :: (TypeOf a -> TypeOf b) -> a -> b
-    instantiate' :: Map InternalName (TypeOf b) -> a -> b
-    substitute_type_vars' :: Map InternalName (TypeOf b) -> a -> b
+    instantiate' :: HashMap InternalName (TypeOf b) -> a -> b
+    substitute_type_vars' :: HashMap InternalName (TypeOf b) -> a -> b
 
 substitute_types :: Generic a a => (Type -> Type) -> a -> a
 substitute_types = substitute_types'
 
-instantiate :: Generic a a => Map InternalName Type -> a -> a
+instantiate :: Generic a a => HashMap InternalName Type -> a -> a
 instantiate = instantiate'
 
-substitute_type_vars :: Generic a a => Map InternalName Type -> a -> a
+substitute_type_vars :: Generic a a => HashMap InternalName Type -> a -> a
 substitute_type_vars = substitute_type_vars'
 
 instance HasGenerics GenericType where
@@ -481,25 +481,25 @@ normalize_generics expr = instantiate renaming expr
                 n        = length free_gen
         renaming = fst $ f (empty, map GENERIC gen) expr
 
-instantiate_left :: Map InternalName GenericType -> GenericType -> GenericType
+instantiate_left :: HashMap InternalName GenericType -> GenericType -> GenericType
 instantiate_left m t = instantiate m (suffix_generics "1" t)
 
-_instantiate_right :: Map InternalName GenericType -> GenericType -> GenericType
+_instantiate_right :: HashMap InternalName GenericType -> GenericType -> GenericType
 _instantiate_right m t = instantiate m (suffix_generics "2" t)
 
     -- apply a type substitution to an expression
 specialize :: (IsQuantifier q,IsName n)
-           => Map InternalName GenericType 
+           => HashMap InternalName GenericType 
            -> AbsExpr n Type q -> AbsExpr n Type q
 specialize = instantiate
 
 _specialize_left :: (IsQuantifier q,IsName n)
-                 => Map InternalName GenericType 
+                 => HashMap InternalName GenericType 
                  -> AbsExpr n Type q -> AbsExpr n Type q
 _specialize_left m e  = specialize m (rewrite_types "1" e)
 
 specialize_right :: (IsQuantifier q,IsName n)
-                 => Map InternalName GenericType 
+                 => HashMap InternalName GenericType 
                  -> AbsExpr n Type q -> AbsExpr n Type q
 specialize_right m e = specialize m (rewrite_types "2" e)
 
@@ -557,7 +557,7 @@ to_fol_ctx types (Context s vars funs defs dums) =
                 pat    = patterns fun
                 xs     = L.map (M.map as_generic) 
                             $ match_all pat (S.elems types)
-                inst :: Map InternalName Type -> FOFun
+                inst :: HashMap InternalName Type -> FOFun
                 inst m = mk_error m fun_strip_generics $ substitute_type_vars m fun'
 
                 fun' :: AbsFun n Type
@@ -570,7 +570,7 @@ to_fol_ctx types (Context s vars funs defs dums) =
                 xs     = L.map (M.map as_generic) 
                             $ match_all pat (S.elems types)
                 
-                inst :: Map InternalName Type -> AbsDef InternalName FOType q
+                inst :: HashMap InternalName Type -> AbsDef InternalName FOType q
                 inst m = mk_error m def_strip_generics $ substitute_type_vars m def'
 
                 def' :: AbsDef n Type q               
@@ -579,7 +579,7 @@ to_fol_ctx types (Context s vars funs defs dums) =
                 f t = rewrite f t
         fdm = fromJust' . var_strip_generics
 
-match_all :: [Type] -> [FOType] -> [Map InternalName FOType]
+match_all :: [Type] -> [FOType] -> [HashMap InternalName FOType]
 match_all pat types = 
         foldM (\x p -> do
                 t  <- types'
@@ -596,7 +596,7 @@ match_all pat types =
         f t = rewrite f t
         types' = map as_generic types
 
-match_some :: [Type] -> [FOType] -> [Map InternalName FOType]
+match_some :: [Type] -> [FOType] -> [HashMap InternalName FOType]
 match_some pat types = nubSort $ do -- map (M.map head) ms -- do
         ms <- foldM (\x (_,xs) -> do
                 m <- xs
@@ -616,8 +616,8 @@ match_some pat types = nubSort $ do -- map (M.map head) ms -- do
         types' = map as_generic types
         vars = S.unions $ map generics pat'
         ms' = M.unionsWith (++) ms
---        ms :: [Map String [FOType]]
-        ms :: [Map InternalName [Map InternalName FOType]]
+--        ms :: [HashMap String [FOType]]
+        ms :: [HashMap InternalName [HashMap InternalName FOType]]
         ms = do
             p  <- pat'
             t  <- types'
@@ -635,7 +635,7 @@ mk_error z f x =
             Nothing -> assertFalseMessage $ [s|failed to strip type variables: \n'%s'\n'%s'|] (pretty_print' x) (show z)
 
 consistent :: (Eq b, Ord k) 
-           => Map k b -> Map k b -> Bool
+           => HashMap k b -> HashMap k b -> Bool
 consistent x y = x `M.intersection` y == y `M.intersection` x
 
 maybe_pattern :: Type -> Type
@@ -658,7 +658,7 @@ maybe_pattern t = MM.fromMaybe t $ do
 --     where
 --         gA = GENERIC "a"
 
-type_vars_to_sorts :: Type -> State ([FOType],Map InternalName FOType) FOType
+type_vars_to_sorts :: Type -> State ([FOType],HashMap InternalName FOType) FOType
 type_vars_to_sorts t = 
         case t of
           VARIABLE n -> do
@@ -672,14 +672,14 @@ type_vars_to_sorts t =
           GENERIC _ -> fail "expecting no more generic parameters"
           Gen s ts  -> make_type s <$> mapM type_vars_to_sorts ts
 
-vars_to_sorts_aux :: AbsExpr n Type q  -> State ([FOType],Map InternalName FOType) (AbsExpr n FOType q)
+vars_to_sorts_aux :: AbsExpr n Type q  -> State ([FOType],HashMap InternalName FOType) (AbsExpr n FOType q)
 vars_to_sorts_aux = rewriteExprM type_vars_to_sorts return vars_to_sorts_aux
 
 names :: Pre 
       => Text -> [Name]
 names n = map (makeName . (n <>) . showt) [0 :: Int ..]
 
-vars_to_sorts :: M.Map Name Sort -> AbsExpr n Type q -> AbsExpr n FOType q
+vars_to_sorts :: M.HashMap Name Sort -> AbsExpr n Type q -> AbsExpr n FOType q
 vars_to_sorts sorts e = evalState (vars_to_sorts_aux e) (new_sorts, empty)
     where
         new_sorts = map as_type $ names "G" `minus` keys sorts

@@ -12,8 +12,8 @@ import Logic.Theories.FunctionTheory
 import Language.UnitB.Expr
 
     -- Libraries
-import           Data.Map hiding ( map )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy hiding ( map )
+import qualified Data.HashMap.Lazy as M
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -288,7 +288,7 @@ result3 = T.unlines
 path3 :: FilePath
 path3 = [path|Tests/cubes-t3.tex|]
 
-result4 :: Either [Error] (Map ProgId ProgressProp)
+result4 :: Either [Error] (HashMap ProgId ProgressProp)
 result4 = M.map (fmap (DispExpr "")) <$> either g Right (do
         q0 <- f `mzeq` zlambda [i_decl] 
             (mzle (mzint (0 :: Int)) i `mzand` mzless i bigN) 
@@ -321,14 +321,14 @@ result4 = M.map (fmap (DispExpr "")) <$> either g Right (do
 path4 :: FilePath
 path4 = [path|Tests/cubes-t6.tex|]
 
-case4 :: IO (Either [Error] (Map ProgId ProgressProp))
+case4 :: IO (Either [Error] (HashMap ProgId ProgressProp))
 case4 = runEitherT (do
     ms <- EitherT $ parse path4 :: EitherT [Error] IO [Machine]
     case ms of
         [m] -> right $ m!.props.progress
         _   -> left [Error "a single machine is expected" (LI "" 0 0)])
 
-result5 :: Either [Error] (Map Label SafetyProp)
+result5 :: Either [Error] (HashMap Label SafetyProp)
 result5 = M.map (fmap $ DispExpr "") <$> either g Right (do
         q0  <- bigN `mzeq` n
         p0  <- (k `mzle` n)
@@ -348,14 +348,14 @@ result5 = M.map (fmap $ DispExpr "") <$> either g Right (do
         li         = LI path4 0 0
         g xs = Left $ map (`Error` li) xs
 
-case5 :: IO (Either [Error] (Map Label SafetyProp))
+case5 :: IO (Either [Error] (HashMap Label SafetyProp))
 case5 = runEitherT (do
     ms <- EitherT $ parse path4 :: EitherT [Error] IO [Machine]
     case ms of
         [m] -> right $ m!.props.safety
         _   -> left [Error "a single machine is expected" (LI "" 0 0)])
 
-case6 :: IO (Text, Map Label Sequent)
+case6 :: IO (Text, HashMap Label Sequent)
 case6 = verify path6 0
 
 result6 :: Text
@@ -443,7 +443,7 @@ result6 = T.unlines
 path6 :: FilePath
 path6 = [path|Tests/cubes-t5.tex|]
 
-case7 :: IO (Text, Map Label Sequent)
+case7 :: IO (Text, HashMap Label Sequent)
 case7 = verify path7 0
 
 result7 :: Text
@@ -534,7 +534,7 @@ result7 = T.unlines
 path7 :: FilePath
 path7 = [path|Tests/cubes-t4.tex|]
 
-case8 :: IO (Text, Map Label Sequent)
+case8 :: IO (Text, HashMap Label Sequent)
 case8 = verify path8 0
 
 result8 :: Text

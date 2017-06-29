@@ -17,7 +17,7 @@ import Control.Monad.State
 import Control.Precondition
 
 import Data.List as L
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Set as S
 import Data.Text (Text)
 
@@ -32,7 +32,7 @@ newtype SequentT expr m a = SequentM
         { unSequentM :: RWST
               ()
               (SeqDefinitions expr)
-              (ParserSetting,[Theory],Map Name Var)
+              (ParserSetting,[Theory],HashMap Name Var)
               m a }
     deriving (Functor,Applicative,Monad)
 
@@ -47,7 +47,7 @@ data SequentWithWD' expr = SequentWithWD
 data SeqDefinitions expr = SeqDefinitions
     { _seqDefinitionsSorts :: [Sort]
     , _vars  :: [Var]
-    , _asms  :: Map Label expr
+    , _asms  :: HashMap Label expr
     , _facts :: [expr]
     , _ctxs  :: [Context] }
     deriving Generic

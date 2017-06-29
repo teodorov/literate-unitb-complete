@@ -14,7 +14,7 @@ import Control.Lens
 import Control.Lens.Misc
 
 import qualified Data.List.NonEmpty as NE
-import           Data.Map as M hiding ( map )
+import           Data.HashMap.Lazy as M hiding ( map )
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -88,7 +88,7 @@ result2 = T.unlines
 path2 :: FilePath
 path2 = [path|Tests/small_machine_t2.tex|]
 
-case2 :: IO (Text, Map Label Sequent)
+case2 :: IO (Text, HashMap Label Sequent)
 case2 =  verify path2 0
 
 result3 :: Text
@@ -107,7 +107,7 @@ result3 = T.unlines
 path3 :: FilePath
 path3 = [path|Tests/small_machine.tex|]
 
-case3 :: IO (Text, Map Label Sequent)
+case3 :: IO (Text, HashMap Label Sequent)
 case3 = verify path3 0
 
 result4 :: Text
@@ -200,7 +200,7 @@ result6 = T.unlines
 path6 :: FilePath
 path6 = [path|Tests/small_machine_t3.tex|]
 
-case6 :: IO (Text, Map Label Sequent)
+case6 :: IO (Text, HashMap Label Sequent)
 case6 = verify path6 0
 
 result7 :: Text
@@ -382,7 +382,7 @@ c = ctx $ do
         decls %= insert_symbol var_x
         decls %= insert_symbol var_y
 
-vars :: Map Name Var
+vars :: HashMap Name Var
 vars = symbol_table [var_x,var_y]
 
 inc_event_m0 :: Event

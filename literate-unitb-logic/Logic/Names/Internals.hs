@@ -25,7 +25,7 @@ import Data.List.NonEmpty as NE
 #else
 import Data.List.NonEmpty as NE hiding (unlines)
 #endif
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import Data.Serialize
 import Data.Semigroup hiding (option)
 import           Data.Text      as T
@@ -183,7 +183,7 @@ instance IsName InternalName where
     fromInternal = id
     fromName = asInternal
 
-fresh :: IsBaseName n => n -> M.Map n b -> n
+fresh :: IsBaseName n => n -> M.HashMap n b -> n
 fresh name xs = L.head $ ys `Ord.minus` M.keys xs
     where
         ys = generateNames name

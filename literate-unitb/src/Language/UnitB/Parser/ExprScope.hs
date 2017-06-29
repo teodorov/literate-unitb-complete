@@ -21,7 +21,7 @@ import Control.Monad.Reader
 import Data.Existential
 import Data.Hashable
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.Map
+import Data.HashMap.Lazy
 import Data.Maybe as M
 import Data.Typeable
 import Data.TypeList
@@ -167,7 +167,7 @@ type InitOrEvent = Either InitEventId EventId
 data InitEventId = InitEvent
     deriving (Show,Ord,Eq,Generic)
 
-data EventExpr = EventExpr { _eventExprs :: Map InitOrEvent EvtExprScope }
+data EventExpr = EventExpr { _eventExprs :: HashMap InitOrEvent EvtExprScope }
     deriving (Eq,Ord,Typeable,Show,Generic)
 
 makeLenses ''EventExpr

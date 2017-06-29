@@ -34,7 +34,7 @@ import Control.Monad.Trans.RWS
 import Control.Monad.Trans.Either
 
 import Data.List as L ( map, lookup )
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.String.Utils
 
 import Utilities.Error
@@ -63,9 +63,9 @@ run_phase1_types = proc p0 -> do
 
 type CPipeline ph a = Pipeline MM (CMap ph) (Maybe (CMap a))
 
-make_phase1 :: Map Name Sort
-            -> Map Name Sort
-            -> Map Name Theory
+make_phase1 :: HashMap Name Sort
+            -> HashMap Name Sort
+            -> HashMap Name Theory
             -> [(Name,PostponedDef)] 
             -> TheoryP1
 make_phase1 _pTypes _pAllTypes _pImports _pSetDecl = TheoryP1 { .. }

@@ -44,11 +44,11 @@ import           Data.Existential
 import           Data.Foldable as F
 import           Data.List as L hiding (inits, union,insert)
 import           Data.List.NonEmpty as NE hiding (inits,(!!))
-import           Data.Map as M hiding 
+import           Data.HashMap.Lazy as M hiding 
                     ( map, (!)
                     , delete, filter, null
                     , (\\), mapMaybe )
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.Monoid
 import           Data.Monoid.Monad
 import           Data.Text (Text)
@@ -150,13 +150,13 @@ evt_saf_ctx evt  = Context M.empty (evt^.new.params) M.empty M.empty M.empty
 evt_live_ctx :: HasConcrEvent' event RawExpr => event -> Context
 evt_live_ctx evt = Context M.empty (evt^.new.indices) M.empty M.empty M.empty
 
-primed_vars :: Map Name Var -> POCtx ()
+primed_vars :: HashMap Name Var -> POCtx ()
 primed_vars = POG.variables . primeAll
 
 skipOrLabel :: SkipOrEvent -> Label
 skipOrLabel lbl = fromRight "SKIP" $ as_label <$> lbl
 
-invariants :: RawMachineAST -> Map Label RawExpr
+invariants :: RawMachineAST -> HashMap Label RawExpr
 invariants m = 
                   (_inv p0) 
         `M.union` (_inv_thm p0) 
@@ -166,7 +166,7 @@ invariants m =
         p0 = m!.props
         p1 = m!.inh_props
 
-invariants_only :: RawMachineAST -> Map Label RawExpr
+invariants_only :: RawMachineAST -> HashMap Label RawExpr
 invariants_only m = 
                   (_inv p0) 
         `M.union` (_inv p1)
@@ -174,7 +174,7 @@ invariants_only m =
         p0 = m!.props
         p1 = m!.inh_props
 
-raw_machine_pos' :: HasExpr expr => MachineAST' expr -> (Map Label Sequent)
+raw_machine_pos' :: HasExpr expr => MachineAST' expr -> (HashMap Label Sequent)
 raw_machine_pos' m' = eval_generator $ 
                 with (do
                         prefix_label $ as_label $ _name m
@@ -232,10 +232,10 @@ raw_machine_pos' m' = eval_generator $
         named_f = theory_facts (m!.theory) { _extends = M.empty }
 
 proof_obligation' :: IsExpr expr 
-                  => Map Label Sequent
-                  -> Map Label (ProofBase expr)
+                  => HashMap Label Sequent
+                  -> HashMap Label (ProofBase expr)
                   -> MachineAST' expr 
-                  -> Either [Error] (Map Label Sequent)
+                  -> Either [Error] (HashMap Label Sequent)
 proof_obligation' pos proofs m = do
         forM_ (M.toList proofs) (\(lbl,p) -> do
             let li = line_info p
@@ -277,13 +277,13 @@ ref_po m lbl r =
                 named_hyps $ invariants m) 
             $ refinement_po m r
 
-theory_po :: Theory -> Either [Error] (Map Label Sequent)
+theory_po :: Theory -> Either [Error] (HashMap Label Sequent)
 theory_po th = do
         xs <- mapM (uncurry f) $ M.toList $ M.mapWithKey g thm
         return $ M.fromList $ concat xs
     where
 --        axm = M.filterKeys (not . (`S.member` theorems th)) $ fact th
-        dep :: Map Label (Map Label ())
+        dep :: HashMap Label (HashMap Label ())
         dep       = M.map M.fromList $ M.fromListWith (++) 
                         [ (x,[(y,())]) | (x,y) <- th^.thm_depend ]
         depend x  = thm `M.intersection` findWithDefault M.empty x dep
@@ -352,26 +352,26 @@ init_fis_po m =
 _AssignExpr :: Prism' RawExpr (Var,RawExpr)
 _AssignExpr = prism' (uncurry zeq) (preview [fun| (= $v $e) |]) . swapped . aside _Word . swapped
 
-splitDetInit :: Map Name Var
-             -> Map Label RawExpr
-             -> ( Map Label (Var,RawExpr)
-                , Map Label RawExpr )
+splitDetInit :: HashMap Name Var
+             -> HashMap Label RawExpr
+             -> ( HashMap Label (Var,RawExpr)
+                , HashMap Label RawExpr )
 splitDetInit vs acts = (det' & _Wrapped.traverse %~ distr, M.map zall $ M.unionWith (++) clash' nonDet')
     where
         acts' = conjuncts <$> acts
-        nonDet :: Map Label (NonEmpty RawExpr) 
+        nonDet :: HashMap Label (NonEmpty RawExpr) 
         nonDet' = M.map NE.toList nonDet
-        det :: Map Label (NonEmpty (Var,RawExpr))
+        det :: HashMap Label (NonEmpty (Var,RawExpr))
         (nonDet,det) = M.mapMaybe (nonEmpty.fst) &&& M.mapMaybe (nonEmpty.snd) $ M.map isDet acts'
         distr :: (a,(b,c)) -> (b,(a,c))
         distr (x,(y,z)) = (y,(x,z))
         isDet :: [RawExpr] -> ([RawExpr],[(Var,RawExpr)])
         isDet = partitionEithers . L.map (matching _AssignExpr)
-        clash' :: Map Label [RawExpr]
+        clash' :: HashMap Label [RawExpr]
         clash' = M.fromListWith (++) $ 
                 M.toList clash & \xs -> [ (l,[Word v `zeq` e]) | (v,es) <- xs, (l,e) <- es ]
-        det'  :: Map Var (Label,RawExpr)
-        clash :: Map Var [(Label,RawExpr)]
+        det'  :: HashMap Var (Label,RawExpr)
+        clash :: HashMap Var [(Label,RawExpr)]
         (clash,det') = mapEither onlyOne $ M.fromListWith (++) $ distrList $ M.toList det
         distrList :: [(t1, NonEmpty (t, t2))] -> [(t, [(t1, t2)])]
         distrList xs = [ (v,[(l,e)]) | (l,ne) <- xs, (v,e) <- NE.toList ne ]
@@ -407,7 +407,7 @@ prop_tr m (pname, Tr fv xp' evt_lbl tr_hint) = provided (null inds) $ do
                 following
     where
         TrHint hint' lt_fine = tr_hint
-        hint :: Map Name (Type,RawExpr)
+        hint :: HashMap Name (Type,RawExpr)
         hint = hint' & traverse._2 %~ asExpr
         xp = asExpr xp'
         stuff evt_lbl evt = 
@@ -454,7 +454,7 @@ prop_tr m (pname, Tr fv xp' evt_lbl tr_hint) = provided (null inds) $ do
                         $ M.unions (L.map (view indices) es) `M.difference` hint
         es      = L.map (upward_event m.Right) (NE.toList evt_lbl)
         
-        local_ind :: EventId -> RawEventMerging -> Map Name Var
+        local_ind :: EventId -> RawEventMerging -> HashMap Name Var
         local_ind lbl e = renameAll' (add_suffix suff) $ e^.indices
             where
                 suff = mk_suff $ prettyText lbl
@@ -463,7 +463,7 @@ prop_tr m (pname, Tr fv xp' evt_lbl tr_hint) = provided (null inds) $ do
             where
                 suff = mk_suff $ prettyText lbl
             -- (M.elems ind) 
-        tagged_sched :: EventId -> RawEventMerging -> Map Label RawExpr
+        tagged_sched :: EventId -> RawEventMerging -> HashMap Label RawExpr
         tagged_sched lbl e = M.map (new_ind lbl e) $ e^.new.coarse_sched & traverse %~ asExpr
         all_csch  = concatMap M.elems $ L.zipWith tagged_sched (NE.toList evt_lbl) es
             
@@ -533,7 +533,7 @@ prop_saf' m excp (pname, Unless fv p q) =
             POG.variables $ symbol_table fv
             named_hyps $ invariants m) $ do
         let excps = maybe [] (NE.toList.view concrete_evts.downward_event m.Right) excp
-            inds :: Map SkipOrEvent (Map Name Var)
+            inds :: HashMap SkipOrEvent (HashMap Name Var)
             inds  = M.map (view indices) $ M.fromList excps
         forM_ evts $ \(evt_lbl,evt) -> do
             let grd = evt^.new.guards
@@ -602,7 +602,7 @@ wit_wd_po m (lbl, evt) =
             emit_goal ["WWD"] $ well_definedness $ zall 
                 $ M.elems $ witnessDef <$> evt^.param_witness)
 
-old_indices :: RawEventMerging -> Map Name Var
+old_indices :: RawEventMerging -> HashMap Name Var
 old_indices evt = M.unions $ evt^.partsOf (abstract_evts.traverse._2.old.indices)
 
 wit_fis_po :: Pre => RawMachineAST -> (EventId, RawEventMerging) -> M ()
@@ -730,7 +730,7 @@ replace_csched_po m (lbl,evt') = do
 
 weaken_csched_po :: RawMachineAST -> (EventId,RawEventSplitting) -> M ()
 weaken_csched_po m (lbl,evt) = do
-            let weaken_sch :: NonEmpty (Map Label RawExpr, Map Label RawExpr)
+            let weaken_sch :: NonEmpty (HashMap Label RawExpr, HashMap Label RawExpr)
                 weaken_sch = do
                         e <- evt^.evt_pairs
                         let addRule = M.unions (L.map (view add) $ e^.c_sched_ref)
@@ -824,7 +824,7 @@ replace_fsched_po m (lbl,aevt) = do
                         emit_goal ["eqv"] $ fromRight'$
                             Right (zsome add_f) .=. Right (zsome del_f)
 
-intersections :: Ord k => [Map k a] -> Map k a
+intersections :: Ord k => [HashMap k a] -> HashMap k a
 intersections []  = assertFalse' "intersection of empty list is undefined"
 intersections [x] = x
 intersections (x:xs) = x `intersection` intersections xs                                
@@ -887,19 +887,19 @@ fis_po m (lbl, evt) =
         (det_act,new_act) = splitNonDet $ evt^.new_actions 
         nonDet_vars = frame new_act
 
-splitNonDet :: forall expr. Map Label (Action' expr) 
-            -> ( Map Label (Var,expr)
-               , Map Label (Action' expr) )
+splitNonDet :: forall expr. HashMap Label (Action' expr) 
+            -> ( HashMap Label (Var,expr)
+               , HashMap Label (Action' expr) )
 splitNonDet acts = (det' & _Wrapped.traverse %~ distr, clash' `M.union` nonDet)
     where
         (nonDet,det) = mapEither isDet acts
         distr :: (a,(b,c)) -> (b,(a,c))
         distr (x,(y,z)) = (y,(x,z))
         isDet = matching _Assign
-        clash' :: Map Label (Action' expr)
+        clash' :: HashMap Label (Action' expr)
         clash' = clash & _Wrapped %~ \xs -> [ (l,Assign v e) | (v,es) <- xs, (l,e) <- es ]
-        det'  :: Map Var (Label,expr)
-        clash :: Map Var [(Label,expr)]
+        det'  :: HashMap Var (Label,expr)
+        clash :: HashMap Var [(Label,expr)]
         (clash,det') = mapEither onlyOne $ M.fromListWith (++) $ distrList $ M.toList det
         distrList xs = [ (v,[(l,e)]) | (l,(v,e)) <- xs ]
         onlyOne [x] = Right x
@@ -982,8 +982,8 @@ init_wd_po m =
                     $ well_definedness $ zall $ m!.inits
 
 incremental_wd_po :: Label
-                  -> Map Label RawExpr  -- 
-                  -> Map Label RawExpr  -- 
+                  -> HashMap Label RawExpr  -- 
+                  -> HashMap Label RawExpr  -- 
                   -> M ()
 incremental_wd_po lbl old new = do
     let del  = old `M.difference` new
@@ -1128,7 +1128,7 @@ add_suffix :: Pre
            => Text -> Var -> Var
 add_suffix = fmap1 . setSuffix
 
-new_dummy :: Pre => Map Name Var -> RawExpr -> RawExpr
+new_dummy :: Pre => HashMap Name Var -> RawExpr -> RawExpr
 new_dummy = make_unique "param"
 
 --check :: Calculation -> IO (Either [Error] [(Validity, Int)])
@@ -1138,7 +1138,7 @@ new_dummy = make_unique "param"
 --        let ln = L.filter ((/= Valid) . fst) $ L.zip rs [0..]
 --        return ln
 
-dump :: String -> Map Label Sequent -> IO ()
+dump :: String -> HashMap Label Sequent -> IO ()
 dump name pos = do
         withFile (name ++ ".z") WriteMode (\h -> do
             forM_ (M.toList pos) (\(lbl, po) -> do
@@ -1148,7 +1148,7 @@ dump name pos = do
                 T.hPutStrLn h ("; end of " <> prettyText lbl)
                 ) )
 
-verify_all :: Map Label Sequent -> IO (Map Label Bool)
+verify_all :: HashMap Label Sequent -> IO (HashMap Label Bool)
 verify_all pos' = do
     let xs         = M.toList pos'
         lbls       = L.map fst xs 

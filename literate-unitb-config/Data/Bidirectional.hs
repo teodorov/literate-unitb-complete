@@ -5,7 +5,7 @@ import Control.Monad
 
 import Data.ConfigFile
 import Data.Either.Combinators
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Maybe
 
 import Text.Read hiding (get)
@@ -38,7 +38,7 @@ instance Document ConfigParser where
     makeNode k x c = fromRight' $ set c "DEFAULT" k x
     lookupDoc x m = rightToMaybe $ get m "DEFAULT" x 
 
-instance Document (Map String String) where
+instance Document (HashMap String String) where
     makeNode = M.insert
     lookupDoc = M.lookup
 

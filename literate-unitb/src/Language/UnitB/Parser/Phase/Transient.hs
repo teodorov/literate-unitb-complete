@@ -26,7 +26,7 @@ import Data.Either.Validation
 import qualified Data.Maybe as MM
 import           Data.List as L hiding ( union, insert, inits )
 import qualified Data.List.NonEmpty as NE
-import           Data.Map   as M hiding ( (\\), (!) )
+import           Data.HashMap.Lazy   as M hiding ( (\\), (!) )
 import qualified Data.Text as T
 
 import Text.Printf.TH
@@ -35,7 +35,7 @@ import Utilities.Syntactic
 
 tr_hintV :: HasMachineP2 mch
          => mch
-         -> Map Name Var
+         -> HashMap Name Var
          -> NonEmpty EventId
          -> LatexDoc
          -> Either [Error] TrHint
@@ -49,7 +49,7 @@ nonNullError es = Failure es
 
 tr_hint :: HasMachineP2 mch
         => mch
-        -> Map Name Var
+        -> HashMap Name Var
         -> NonEmpty Label
         -> LatexDoc
         -> M TrHint
@@ -68,7 +68,7 @@ tr_hint p2 vs lbls thint = do
 
 tr_hint' :: HasMachineP2 mch
          => mch
-         -> Map Name Var
+         -> HashMap Name Var
          -> NonEmpty Label
          -> LatexDoc
          -> TrHint

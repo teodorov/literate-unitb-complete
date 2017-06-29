@@ -18,7 +18,7 @@ import Data.DList.Utils as D
 import Data.Foldable as F
 import Data.Function
 import Data.List as L hiding (intercalate)
-import Data.Map  as M
+import Data.HashMap.Lazy  as M
 import Data.Monoid
 import Data.Text (Text,unpack)
 import Data.Tuple
@@ -169,26 +169,26 @@ instance ZoomEq Text where
 z3_escape :: String -> InternalName
 z3_escape = fromString''
 
-insert_symbol :: Ord n => HasName a n => a -> Map n a -> Map n a
+insert_symbol :: Ord n => HasName a n => a -> HashMap n a -> HashMap n a
 insert_symbol x = M.insert (x^.name) x
 
 symbol_table' :: (HasName b n, Foldable f,Ord n) 
-              => (a -> b) -> f a -> Map n a
+              => (a -> b) -> f a -> HashMap n a
 symbol_table' f xs = M.fromList $ L.map (as_pair' f) $ F.toList xs
 
 symbol_table :: (HasName a n, Foldable f,Ord n) 
-             => f a -> Map n a
+             => f a -> HashMap n a
 symbol_table = symbol_table' id
 
-decorated_table :: Named a => [a] -> Map InternalName a
+decorated_table :: Named a => [a] -> HashMap InternalName a
 decorated_table xs = M.fromList $ L.map (\x -> (decorated_name x, x)) xs
 
 renameAll' :: (IsName n1,HasName (SetNameT n1 a) n1)
            => (a -> SetNameT n1 a)
-           -> Map n0 a -> Map n1 (SetNameT n1 a)
+           -> HashMap n0 a -> HashMap n1 (SetNameT n1 a)
 renameAll' f = symbol_table . (traverse %~ f) . M.elems
 
 renameAll :: (HasNames a n0,IsName n1,HasName (SetNameT n1 a) n1)
           => (n0 -> n1)
-          -> Map n0 a -> Map n1 (SetNameT n1 a)
+          -> HashMap n0 a -> HashMap n1 (SetNameT n1 a)
 renameAll f = renameAll' (namesOf %~ f)

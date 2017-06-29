@@ -15,7 +15,7 @@ import Language.UnitB.QuasiQuote
 import Control.Lens
 import Control.Monad.State
 
-import Data.Map
+import Data.HashMap.Lazy
 import           Data.Text (Text)
 import qualified Data.Text as T
 

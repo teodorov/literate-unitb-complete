@@ -31,8 +31,8 @@ import qualified Control.Monad.Trans.Either as E
 import           Control.Monad.Trans.Writer
 
 import           Data.Char
-import           Data.Map hiding ( map )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy hiding ( map )
+import qualified Data.HashMap.Lazy as M
 import           Data.Maybe
 import qualified Data.Set as S
 import qualified Data.Traversable as T 
@@ -44,9 +44,9 @@ import           Utilities.Error
 import           Utilities.Syntactic hiding (line)
 
 data ProofStep = Step 
-       { assertions  :: Map Label (Tactic Expr)    -- assertions
-       , subproofs   :: Map Label (Tactic Proof)   -- proofs of assertions
-       , assumptions :: Map Label (Tactic Expr)    -- assumptions
+       { assertions  :: HashMap Label (Tactic Expr)    -- assertions
+       , subproofs   :: HashMap Label (Tactic Proof)   -- proofs of assertions
+       , assumptions :: HashMap Label (Tactic Expr)    -- assumptions
        , definition  :: [(Name, Tactic Expr)] 
        , theorem_ref :: [Tactic (TheoremRef, LineInfo)]
        , new_goal    :: Maybe (Tactic Expr)        -- new_goal

@@ -10,7 +10,7 @@ import Control.Arrow
 import Control.Lens
 
 import Data.List as L
-import Data.Map  as M
+import Data.HashMap.Lazy  as M
 import           Data.Text (Text)
 import qualified Data.Text as T
 

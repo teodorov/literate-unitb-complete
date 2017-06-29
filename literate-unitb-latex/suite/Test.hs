@@ -15,7 +15,7 @@ import Control.Monad.State
 import Data.Char
 import Data.Either.Combinators
 import qualified Data.List as L
-import qualified Data.Map as M 
+import qualified Data.HashMap.Lazy as M 
 import qualified Data.Maybe as MM
 import Data.Text as T
 import qualified Data.Text.Lazy as Lazy
@@ -70,12 +70,12 @@ sections = [
     "invariant",
     "machine"]
 
-extract_structure :: Lazy.Text -> Either [Error] (M.Map Text [LatexNode])
+extract_structure :: Text -> Either [Error] (M.HashMap Text [LatexNode])
 extract_structure ct = do
     xs <- latex_structure "" ct
     return (find_env sections xs)
 
-find_env :: [Text] -> LatexDoc -> M.Map Text [LatexNode]
+find_env :: [Text] -> LatexDoc -> M.HashMap Text [LatexNode]
 find_env kw xs = M.map L.reverse $ L.foldl' f (M.fromList $ L.zip kw $ repeat []) $ contents' xs
     where
         f m (t@(EnvNode (Env _ name _ _ _)))

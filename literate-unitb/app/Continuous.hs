@@ -27,7 +27,7 @@ import Control.Monad.State
 import Control.Monad.Trans.Either 
 import Control.Precondition
 
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 -- import Data.List
 import Data.Monoid
 import           Data.Text (Text,pack)

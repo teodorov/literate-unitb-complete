@@ -20,9 +20,9 @@ import Logic.Theories.RelationTheory
 import Logic.Theories.SetTheory
 import Logic.Theory
 
-import Data.Map
+import Data.HashMap.Lazy
 
-supportedTheories :: Map Name Theory
+supportedTheories :: HashMap Name Theory
 supportedTheories = symbol_table
     [ set_theory
     , function_theory
@@ -31,7 +31,7 @@ supportedTheories = symbol_table
     , pred_calc
     , interval_theory ]
 
-preludeTheories :: Map Name Theory
+preludeTheories :: HashMap Name Theory
 preludeTheories = symbol_table
     [ arithmetic
     , basic_theory ]

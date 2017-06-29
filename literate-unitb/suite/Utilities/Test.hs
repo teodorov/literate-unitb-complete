@@ -19,7 +19,7 @@ import Control.Lens
 import           Data.Function
 import qualified Data.Graph.Array as Graph
 import           Data.List
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Relation as Rel
 
 import Test.UnitTest hiding (Node)

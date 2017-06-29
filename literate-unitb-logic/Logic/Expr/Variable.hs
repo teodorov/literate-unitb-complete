@@ -16,7 +16,7 @@ import Control.Precondition
 
 import Data.Data
 import Data.Hashable
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Serialize
 import           Data.Text (Text)
 
@@ -75,7 +75,7 @@ instance Traversable1 AbsVar where
 prime :: IsName n => AbsVar n t -> AbsVar n t
 prime (Var n t) = Var (addPrime n) t
 
-primeAll :: IsName n => Map n (AbsVar n t) -> Map n (AbsVar n t)
+primeAll :: IsName n => HashMap n (AbsVar n t) -> HashMap n (AbsVar n t)
 primeAll m = M.mapKeys addPrime $ M.map prime m
 
 z3Var :: Pre

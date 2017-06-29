@@ -21,7 +21,7 @@ import Control.Lens hiding (uncons)
 import Control.Monad.State  hiding (lift)
 
 import Data.List
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Maybe
 import Data.Monoid
 import           Data.Text (Text,unpack,pack)

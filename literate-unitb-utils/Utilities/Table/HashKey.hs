@@ -11,10 +11,10 @@ import Data.Default
 import Data.Function
 import Data.Hashable
 
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.List as L
 import qualified Data.List.Ordered as Ord
-import Data.Map.Class
+import Data.HashMap.Lazy.Class
 import Data.Semigroup
 import Data.Serialize
 import qualified Data.Set as S

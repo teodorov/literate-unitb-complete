@@ -27,7 +27,7 @@ import           Data.DList (DList)
 import qualified Data.DList as D
 import           Data.Hashable
 import           Data.List as L
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.String
 import           Data.Text (Text,pack,unpack)
 import           Data.Tuple.Generics
@@ -52,8 +52,8 @@ instance Monad (MM' a) where
             run (MM x) = x
 
 data DocSpec = DocSpec 
-            { getEnvSpec :: M.Map Text ArgumentSpec 
-            , getCommandSpec :: M.Map Text ArgumentSpec
+            { getEnvSpec :: M.HashMap Text ArgumentSpec 
+            , getCommandSpec :: M.HashMap Text ArgumentSpec
             }
 
 data ArgumentSpec = forall a. IsTuple LatexArg a => ArgumentSpec Int (Proxy a)
@@ -62,8 +62,8 @@ type Input = InputRaw InputMap
 type InputBuilder = InputRaw InputMapBuilder
 
 data InputRaw f = Input 
-    { getMachineInput :: M.Map MachineId (DocBlocksRaw f)
-    , getContextInput :: M.Map ContextId (DocBlocksRaw f)
+    { getMachineInput :: M.HashMap MachineId (DocBlocksRaw f)
+    , getContextInput :: M.HashMap ContextId (DocBlocksRaw f)
     } deriving Show
 
 convertInput :: InputBuilder -> Input
@@ -138,7 +138,7 @@ data Cmd = BlockCmd
 type DocBlocks = DocBlocksRaw InputMap
 type DocBlocksBuilder = DocBlocksRaw InputMapBuilder
 
-newtype InputMap a = InputMap { getInputMap :: M.Map Text [a] }
+newtype InputMap a = InputMap { getInputMap :: M.HashMap Text [a] }
 newtype InputMapBuilder a = InputMapBuilder { getInputMapBuilder :: DList (Text,DList a) }
 
 data DocBlocksRaw f = DocBlocks 
@@ -232,8 +232,8 @@ isBlank (Blank _ _) = True
 isBlank _ = False 
 
 {-# INLINE runPipeline' #-}
-runPipeline' :: M.Map Name [LatexDoc]
-             -> M.Map Text [LatexDoc]
+runPipeline' :: M.HashMap Name [LatexDoc]
+             -> M.HashMap Text [LatexDoc]
              -> a
              -> Pipeline MM a b 
              -> Either [Error] b

@@ -16,7 +16,7 @@ import Control.Lens hiding (Context,rewrite)
 
 import           Data.List as L
 import           Data.Maybe as M 
-import qualified Data.Map as M 
+import qualified Data.HashMap.Lazy as M 
 import           Data.Monoid
 import           Data.Serialize hiding (label)
 import           Data.Set as S 
@@ -43,13 +43,13 @@ type Proof = ProofBase Expr
 data ProofBase expr =  FreeGoal Name Name Type (ProofBase expr) LineInfo
             | ByCases   [(Label, expr, (ProofBase expr))] LineInfo
             | Easy (Maybe Double) LineInfo
-            | Assume (M.Map Label expr) expr (ProofBase expr) LineInfo
+            | Assume (M.HashMap Label expr) expr (ProofBase expr) LineInfo
             | ByParts [(expr,(ProofBase expr))]           LineInfo
                 -- Too complex
-            | Assertion (M.Map Label (expr,(ProofBase expr))) [(Label,Label)] (ProofBase expr) LineInfo
-            | Definition (M.Map Var expr) (ProofBase expr) LineInfo
-            | InstantiateHyp expr (M.Map Var expr) (ProofBase expr) LineInfo
-            | Keep Context [expr] (M.Map Label expr) (ProofBase expr) LineInfo
+            | Assertion (M.HashMap Label (expr,(ProofBase expr))) [(Label,Label)] (ProofBase expr) LineInfo
+            | Definition (M.HashMap Var expr) (ProofBase expr) LineInfo
+            | InstantiateHyp expr (M.HashMap Var expr) (ProofBase expr) LineInfo
+            | Keep Context [expr] (M.HashMap Label expr) (ProofBase expr) LineInfo
             | ByCalc (CalculationBase expr)
     deriving (Eq,Typeable, Generic, Show,Functor,Foldable,Traversable)
 
@@ -192,7 +192,7 @@ instance (Eq expr,IsExpr expr) => ProofRule (ProofBase expr) where
                   & nameless  %~ (defs' ++)
     proof_po (Assertion lemma dep p _) lbl po = do
             let depend = M.map M.fromList $ M.fromListWith (++) $ L.map f dep
-                depend :: M.Map Label (M.Map Label ())
+                depend :: M.HashMap Label (M.HashMap Label ())
                 f (x,y) = (x,[(y,())])
             pos1 <- proof_po p ( composite_label [lbl,label "main goal"] )
                 $ po & nameless %~ (++ L.map fst (M.elems lemma))

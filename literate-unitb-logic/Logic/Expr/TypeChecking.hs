@@ -20,7 +20,7 @@ import Control.Precondition
 
 import           Data.Either
 import           Data.Either.Combinators (mapLeft)
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Set as S
 import           Data.Text (Text,unpack)
 import qualified Data.Text as T
@@ -65,7 +65,7 @@ newContext us c@(Context ss vs fs ds dums) = Context ss (M.union vs' vs) fs ds d
     where
         vs' = newDummies us c
 
-newDummies :: [UntypedVar] -> Context -> M.Map Name Var
+newDummies :: [UntypedVar] -> Context -> M.HashMap Name Var
 newDummies us (Context _ _ _ _ dums) = vs'
         -- Context ss vs' fs ds dums
     where

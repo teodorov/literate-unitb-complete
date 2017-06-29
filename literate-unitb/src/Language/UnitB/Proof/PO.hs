@@ -14,7 +14,7 @@ import Control.Monad
 
 import Data.List as L
 import Data.List.NonEmpty as NE
-import Data.Map as M hiding ((\\))
+import Data.HashMap.Lazy as M hiding ((\\))
 import Data.Maybe
 import Data.Typeable
 

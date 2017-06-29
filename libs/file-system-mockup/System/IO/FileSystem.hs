@@ -27,7 +27,7 @@ import Control.Monad.State
 import Control.Precondition
 
 import Data.Default
-import Data.Map as M hiding ((!))
+import Data.HashMap.Lazy as M hiding ((!))
 import           Data.Text (Text)
 import qualified Data.Text.IO as T
 
@@ -121,7 +121,7 @@ newtype MockFileSystem a = MockFileSystem
     deriving (Functor,Applicative,Monad)
 
 newtype MockFileSystemState' = MockFileSystemState 
-        { _files :: Map FilePath (Maybe Text) }
+        { _files :: HashMap FilePath (Maybe Text) }
     deriving (Show)
 
 type MockFileSystemState = Checked MockFileSystemState'
@@ -130,7 +130,7 @@ makeLenses ''MockFileSystemState'
 
 instance HasInvariant MockFileSystemState' where
     invariant m = do        
-        "inv0" ## foldMapWithKey 
+        "inv0" ## ifoldMap 
             (\f _ -> f ## takeDirectory f `M.lookup` (m^.files) === Just Nothing) 
             (m^.files)
         "has current directory" ## "." `M.lookup` (m^.files) === Just Nothing

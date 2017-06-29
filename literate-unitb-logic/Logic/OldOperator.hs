@@ -5,7 +5,7 @@ import Logic.Operator
     -- Libraries
 import Data.Array
 import Data.List
-import Data.Map
+import Data.HashMap.Lazy
 import Data.Typeable
 
 data XUnaryOperator = Negation
@@ -55,7 +55,7 @@ bin_op_range = (x,y)
         x = toEnum 0
         y = last $ enumFrom x
 
-pairs :: Map (XBinOperator, XBinOperator) Assoc
+pairs :: HashMap (XBinOperator, XBinOperator) Assoc
 pairs = fromList (concat (do
             ((x,_),xs) <- zip a $ tail $ tails a
             (y,_)      <- xs

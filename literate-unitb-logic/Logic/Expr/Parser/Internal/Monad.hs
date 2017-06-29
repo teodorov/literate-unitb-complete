@@ -18,8 +18,8 @@ import           Control.Monad.Trans.Maybe
 import qualified Control.Monad.Trans.Reader as R
 
 import           Data.List as L
-import           Data.Map as M hiding ( map )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy as M hiding ( map )
+import qualified Data.HashMap.Lazy as M
 import           Data.Monoid
 import           Data.Text as T (Text,unpack)
 
@@ -28,7 +28,7 @@ import Utilities.Syntactic
 data Param = Param 
     { context   :: Context
     , notation  :: Notation
-    , variables :: Map Name UntypedExpr
+    , variables :: HashMap Name UntypedExpr
     }
 
 data Parser a = Parser { fromParser :: MaybeT (R.ReaderT Param (Scanner ExprToken)) a }
@@ -158,7 +158,7 @@ runParser' p = runParserWith $ Param
         defs = ctx^.definitions
             
 runParser :: Context -> Notation 
-          -> Map Name UntypedExpr
+          -> HashMap Name UntypedExpr
           -> Parser a 
           -> Scanner ExprToken a
 runParser x y w m = runParserWith (Param x y w) m

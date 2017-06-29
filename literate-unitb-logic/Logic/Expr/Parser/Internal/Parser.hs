@@ -34,8 +34,8 @@ import           Data.Either
 import           Data.Either.Validation
 import           Data.List as L
 import           Data.List.NonEmpty as NE 
-import           Data.Map as M hiding ( map )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy as M hiding ( map )
+import qualified Data.HashMap.Lazy as M
 import           Data.Semigroup hiding (option)
 import qualified Data.Set as S
 import           Data.Text (Text,unpack)
@@ -55,7 +55,7 @@ get_notation = notation `liftM` get_params
 get_table :: Parser (Matrix Operator Assoc)
 get_table = (view struct . notation) <$> get_params
 
-get_vars :: Parser (Map Name UntypedExpr)
+get_vars :: Parser (HashMap Name UntypedExpr)
 get_vars = variables `liftM` get_params
 
 with_vars :: [(Name, UntypedVar)] -> Parser b -> Parser b
@@ -159,7 +159,7 @@ vars = do
         t  <- type_t
         return (L.map (\x -> (x,t)) vs)     
 
-get_variables' :: Map Name Sort
+get_variables' :: HashMap Name Sort
                -> LatexDoc
                -> LineInfo
                -> Either [Error] [(Name, Var)]
@@ -234,7 +234,7 @@ apply_fun_op :: Command -> UntypedExpr -> Parser Term
 apply_fun_op (Command _ _ _ fop) x = do
         return $ UE $ fun1 fop x
 
-suggestion :: Name -> Map Name Text -> [Text]
+suggestion :: Name -> HashMap Name Text -> [Text]
 suggestion xs m = L.map (\(x,y) -> renderText x <> " (" <> y <> ")") $ toAscList ws
   where
     xs' = T.map toLower $ renderText xs
@@ -312,7 +312,7 @@ term = do
                         ts :: [(Name, UntypedVar)]
                         ts = L.zip ns vs
                         _f = (`S.filter` _vars) . (. view name) . (==)
-                    let ts' :: Map Name UntypedExpr
+                    let ts' :: HashMap Name UntypedExpr
                         ts' = M.map Word $ M.fromList ts
                         r' :: UntypedExpr
                         t' :: UntypedExpr
@@ -377,7 +377,7 @@ recordSetOrLit = do
                  return xs
             ]
 
-validateFields :: [(Field, (expr,LineInfo))] -> Parser (Map Field expr)
+validateFields :: [(Field, (expr,LineInfo))] -> Parser (HashMap Field expr)
 validateFields xs = raiseErrors $ traverseWithKey f xs'
     where
         xs' = fromListWith (<>) $ xs & mapped._2 %~ pure
@@ -401,7 +401,7 @@ recordType = do
             ]
         record_type <$> validateFields xs
 
-recordFields :: Parser (Field,(a,LineInfo)) -> Parser (Map Field a)
+recordFields :: Parser (Field,(a,LineInfo)) -> Parser (HashMap Field a)
 recordFields field = do
         _  <- attempt open_square
         xs <- choose_la 
@@ -441,7 +441,7 @@ open_curly = read_listP [Open QuotedCurly]
 close_curly :: Parser [ExprToken]
 close_curly = read_listP [Close QuotedCurly]
 
-applyRecUpdate :: [Map Field UntypedExpr] -> Term -> Parser Term
+applyRecUpdate :: [HashMap Field UntypedExpr] -> Term -> Parser Term
 applyRecUpdate rUpd (UE ue) = return $ UE $ L.foldl (fmap (`Record` ()) . RecUpdate) ue rUpd
 applyRecUpdate xs e@(Cmd op)
         | L.null xs = return e

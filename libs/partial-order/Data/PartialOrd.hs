@@ -6,7 +6,7 @@ import Control.Lens
 import Data.Function
 import Data.List 
 import Data.List.Ordered
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import Data.Proxy.TH
 import Data.Tuple.Generics
 
@@ -118,7 +118,7 @@ instance Ord a => PreOrd (Unordered a) where
 instance PreOrd Int where
     partCompare = fmap Comp . compare
 
-instance (Ord k,Eq a) => PreOrd (M.Map k a) where
+instance (Ord k,Eq a) => PreOrd (M.HashMap k a) where
     partCompare x y = case compare nX nY of
                         GT 
                             | M.isSubmapOf y x -> Comp GT
@@ -133,7 +133,7 @@ instance (Ord k,Eq a) => PreOrd (M.Map k a) where
             nX = M.size x
             nY = M.size y
 
-instance (Ord k,Eq a) => PartialOrd (M.Map k a) where
+instance (Ord k,Eq a) => PartialOrd (M.HashMap k a) where
 
 instance Eq a => PreOrd (Quotient a) where
     partCompare x y

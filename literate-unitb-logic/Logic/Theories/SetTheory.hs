@@ -19,7 +19,7 @@ import Control.Precondition
 
 import Data.Default
 import Data.List as L
-import Data.Map as M
+import Data.HashMap.Lazy as M
 import Data.Monoid
 import Data.Text (Text)
 
@@ -45,7 +45,7 @@ finite_fun = mk_fun [gA] (z3Name "finite") [set_type gA] bool
 zfinite :: Expr -> Expr
 zfinite e = fromRight' (mzfinite $ Right e)
 
-set_theory' :: Map Name Theory
+set_theory' :: HashMap Name Theory
 set_theory' = singleton (makeName "sets") set_theory
 
 set_theory :: Theory 
@@ -105,7 +105,7 @@ set_theory = Theory { .. }
                 , mk_fun [gT] (z3Name "mk-set") [gT] $ set_type gT 
                 , mk_fun [gT] (z3Name "finite") [set_type gT] $ bool
                 ]
-        _fact :: Map Label Expr
+        _fact :: HashMap Label Expr
         _fact = "set" `axioms` do
                 -- elem and mk-set
             axiom $  (x `zelem` zmk_set y) .==.  x .=. y
@@ -224,7 +224,7 @@ mk_zrecord_set = zrecord_set . runMap'
 --              -> ExprP
 -- zrecord_set' = zrecord_set . runMap'
 
-zrecord_set :: Map Field ExprP
+zrecord_set :: HashMap Field ExprP
             -> ExprP
 zrecord_set m = do
         let msg e = [st|Expecting a set type for: %s\n  of type: %s|] 
@@ -235,7 +235,7 @@ zrecord_set m = do
         let range = mzall $ mapWithKey (\field e -> zfield r field `zelem` e) m
         zcomprehension [r_decl] range r
 
-zrecord_set' :: Map Field UntypedExpr -> UntypedExpr
+zrecord_set' :: HashMap Field UntypedExpr -> UntypedExpr
 zrecord_set' m = zcomprehension' [r_decl] range r
     where
         r_decl = Var [smt|r|] ()

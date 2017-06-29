@@ -28,7 +28,7 @@ import Control.Precondition
 
 import           Data.List ( sort )
 import qualified Data.List.NonEmpty as NE
-import           Data.Map  as M hiding (map)
+import           Data.HashMap.Lazy  as M hiding (map)
 import           Data.Text (Text)
 import qualified Data.Text as T
 

@@ -33,7 +33,7 @@ import Control.Monad.Trans.Either
 import Data.Either.Combinators
 import Data.List as L hiding (lookup)
 import qualified Data.List.NonEmpty as NE
-import Data.Map as M hiding (lookup,(!))
+import Data.HashMap.Lazy as M hiding (lookup,(!))
 import Data.Monoid
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
@@ -50,14 +50,14 @@ import Text.Printf.TH
 
 import Utilities.Syntactic
 
-type POResult = (Text,Map Label Sequent)
-type POS sid a = Either [Error] (Map sid (a, Map Label Sequent))
+type POResult = (Text,HashMap Label Sequent)
+type POS sid a = Either [Error] (HashMap sid (a, HashMap Label Sequent))
 
 hide_error_path :: Bool
 hide_error_path = True
 
-pos :: MVar (Map (NonEmpty FilePath) 
-                 ((POS MachineId Machine,POS String Theory), Map FilePath UTCTime))
+pos :: MVar (HashMap (NonEmpty FilePath) 
+                 ((POS MachineId Machine,POS String Theory), HashMap FilePath UTCTime))
 pos = unsafePerformIO $ newMVar M.empty
 
 list_file_obligations' :: FilePath -> IO (POS MachineId Machine,POS String Theory)
@@ -132,7 +132,7 @@ verifyFilesOnlyWith opt keep files i = makeReport' empty $ do
         let fs = L.map snd $ NE.filter (not.fst) $ NE.zip b files
         return ([st|The following files do not exist: %s|] $ intercalate "," fs,empty)
 
-all_proof_obligations' :: FilePath -> EitherT Text IO [Map Label Text]
+all_proof_obligations' :: FilePath -> EitherT Text IO [HashMap Label Text]
 all_proof_obligations' path = do
     exists <- liftIO $ doesFileExist path
     if exists then do
@@ -143,7 +143,7 @@ all_proof_obligations' path = do
         return cmd
     else left $ [st|file does not exist: %s|] path
 
-all_proof_obligations :: FilePath -> IO (Either Text [Map Label Text])
+all_proof_obligations :: FilePath -> IO (Either Text [HashMap Label Text])
 all_proof_obligations = runEitherT . all_proof_obligations'
 
 withLI :: Pre => Either Text a -> Either [Error] a
@@ -178,7 +178,7 @@ proof_obligation_stripped = proof_obligation_with stripAnnotation
 proof_obligation :: FilePath -> Text -> Int -> IO Text
 proof_obligation = proof_obligation_with id
 
-lookupSequent :: Label -> Map Label Sequent -> Either Text Sequent
+lookupSequent :: Label -> HashMap Label Sequent -> Either Text Sequent
 lookupSequent lbl pos = case pos^?ix lbl of
                 Just po -> 
                     Right po
@@ -187,7 +187,7 @@ lookupSequent lbl pos = case pos^?ix lbl of
                         T.unlines $ L.map prettyText $ keys pos
 
 lookupSequent' :: Monad m 
-               => Label -> Map Label Sequent 
+               => Label -> HashMap Label Sequent 
                -> EitherT Text m Sequent
 lookupSequent' lbl m = hoistEither $ lookupSequent lbl m
 

@@ -14,17 +14,17 @@ import Data.Semigroup
 import GHC.Generics.Instances
 
 import Control.Lens hiding ( Context )
-import           Data.Map hiding ( map )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy hiding ( map )
+import qualified Data.HashMap.Lazy as M
 import           Control.Monad.State as ST ( State, execState )
 
 data ParserSetting = PSetting 
     { _language :: Notation
     , _is_step  :: Bool
-    , _parserSettingSorts    :: Map Name Sort
-    , _decls    :: Map Name Var
-    , _dum_ctx  :: Map Name Var
-    , _primed_vars   :: Map Name Var
+    , _parserSettingSorts    :: HashMap Name Sort
+    , _decls    :: HashMap Name Var
+    , _dum_ctx  :: HashMap Name Var
+    , _primed_vars   :: HashMap Name Var
     , _free_dummies  :: Bool
     , _expected_type :: Maybe Type
     }
@@ -72,14 +72,14 @@ setting_from_context notation ctx' = makeSetting notation $ do
     where
         ctx = defsAsVars ctx'
 
-with_vars :: ParserSetting -> Map Name Var -> ParserSetting
+with_vars :: ParserSetting -> HashMap Name Var -> ParserSetting
 with_vars setting vs = setting & decls %~ (vs `union`)
 
 mkSetting :: Notation 
-          -> Map Name Sort    -- Types
-          -> Map Name Var     -- Plain variables
-          -> Map Name Var     -- Primed variables
-          -> Map Name Var     -- Dummy variables
+          -> HashMap Name Sort    -- Types
+          -> HashMap Name Var     -- Plain variables
+          -> HashMap Name Var     -- Primed variables
+          -> HashMap Name Var     -- Dummy variables
           -> ParserSetting
 mkSetting notat sorts plVar prVar dumVar = (default_setting notat)
         { _parserSettingSorts = sorts
@@ -90,6 +90,6 @@ mkSetting notat sorts plVar prVar dumVar = (default_setting notat)
 theory_setting :: Theory -> ParserSetting
 theory_setting th = (setting_from_context (th_notation th) (theory_ctx th))
 
-theory_setting' :: Map Name Theory -> ParserSetting
+theory_setting' :: HashMap Name Theory -> ParserSetting
 theory_setting' theories = theory_setting $ (empty_theory' "empty")
     { _extends = theories }

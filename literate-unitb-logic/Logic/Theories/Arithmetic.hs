@@ -18,7 +18,7 @@ import Control.Lens
 import Control.Lens.Misc
 
 import Data.List as L
-import Data.Map
+import Data.HashMap.Lazy
 
     -- arithmetic
 power            :: BinOperator

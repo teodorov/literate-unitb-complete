@@ -28,7 +28,7 @@ import Control.Precondition
 
 import Data.List as L hiding (inits)
 import Data.List.Ordered as OL
-import Data.Map  as M hiding ((!))
+import Data.HashMap.Lazy  as M hiding ((!))
 import           Data.Monoid
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -102,9 +102,9 @@ make_multiprogram m (Partition xs) = MultiProgram $ L.map prog xs
 data Termination = Infinite | Variant Variant EventId
     deriving (Show)
 
-data Concurrency = Concurrent (Map Name ()) | Sequential
+data Concurrency = Concurrent (HashMap Name ()) | Sequential
 
-shared_vars :: Concurrency -> Map Name ()
+shared_vars :: Concurrency -> HashMap Name ()
 shared_vars (Concurrent s) = s
 shared_vars Sequential     = M.empty
 
@@ -178,7 +178,7 @@ certainly (Sequence xs)     = concatMap certainly xs
 certainly (Conditional _ lb rb) = L.foldl' isect (nubSort $ certainly rb) $ L.map nubSort (L.map (certainly . snd) lb)
 certainly (Loop _ _ _ _)    = []
 
-safety :: RawMachineAST -> [EventId] -> [Expr] -> Program -> Either [Text] (Map Label Sequent)
+safety :: RawMachineAST -> [EventId] -> [Expr] -> Program -> Either [Text] (HashMap Label Sequent)
 safety m others post cfg 
         | L.null es = Right r
         | otherwise = Left es
@@ -344,10 +344,10 @@ type_code t =
                     | s == fun_sort -> do
                         c0 <- type_code t0
                         c1 <- type_code t1
-                        return $ [Printf.st|M.Map (%s) (%s)|] c0 c1
+                        return $ [Printf.st|M.HashMap (%s) (%s)|] c0 c1
                 _ -> Left $ [st|unrecognized type: %s|] (prettyText t)
                     
-binops_code :: Map Name (Text -> Text -> Text)
+binops_code :: HashMap Name (Text -> Text -> Text)
 binops_code = M.fromList 
     [ (z3Name "=", [st|(%s == %s)|])
     , (z3Name "+", [st|(%s + %s)|])
@@ -356,11 +356,11 @@ binops_code = M.fromList
     , (z3Name "mk-fun", [st|(M.singleton %s %s)|])
     ]
 
-unops_code :: Map Name (Text -> Text)
+unops_code :: HashMap Name (Text -> Text)
 unops_code = M.fromList
     [ (z3Name "not", [st|(not %s)|])]
 
-nullops_code :: Map Name Text
+nullops_code :: HashMap Name Text
 nullops_code = M.fromList
     [ (z3Name "empty-fun", "M.empty") 
     , (z3Name "empty-set", "S.empty")]
@@ -375,7 +375,7 @@ instance Evaluator (Either Text) where
     read_var _ = return ()
     is_shared _ = return False
 
-type ConcurrentEval = RWST (Map Name ()) [Name] () (Either Text)
+type ConcurrentEval = RWST (HashMap Name ()) [Name] () (Either Text)
 
 instance Evaluator ConcurrentEval where
     is_shared v = do
@@ -421,7 +421,7 @@ eval_expr m e =
 struct :: RawMachineAST -> M ()
 struct m = do
         sv <- asks (shared_vars . snd)
-        let attr :: (Map Name Var -> Map Name () -> Map Name Var)
+        let attr :: (HashMap Name Var -> HashMap Name () -> HashMap Name Var)
                  -> Text -> (Text -> Text)
                  -> Either Text Text
             attr comb pre typef = do 
@@ -627,7 +627,7 @@ source_file' shared name m exit =
         run' c $ do
             emitAll $
                 [ "{-# LANGUAGE RecordWildCards #-}"
-                , "import Data.Map as M"
+                , "import Data.HashMap.Lazy as M"
                 , "import Data.Set as S" ] ++
                 imp ++
                 [ "import Control.Monad"

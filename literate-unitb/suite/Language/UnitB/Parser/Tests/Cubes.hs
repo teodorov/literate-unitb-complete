@@ -15,7 +15,7 @@ import Language.UnitB.Expr
 import Control.Lens
 import Control.Precondition
 
-import Data.Map hiding ( map )
+import Data.HashMap.Lazy hiding ( map )
 import Data.Monoid
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
@@ -151,7 +151,7 @@ result7 = T.unlines
     , "passed 31 / 31"
     ]
 
-case7 :: IO (Text, Map Label Sequent)
+case7 :: IO (Text, HashMap Label Sequent)
 case7 = do
     verify path6 0
 

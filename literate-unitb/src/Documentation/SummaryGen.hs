@@ -21,8 +21,8 @@ import Control.Precondition
 import Data.Default
 import qualified Data.List as L
 import           Data.List.NonEmpty as NE hiding ((!!))
-import           Data.Map as M hiding (map)
-import qualified Data.Map as M
+import           Data.HashMap.Lazy as M hiding (map)
+import qualified Data.HashMap.Lazy as M
 import           Data.Maybe as MM
 import           Data.Text (Text)
 import qualified Data.Text as T

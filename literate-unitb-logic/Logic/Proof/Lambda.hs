@@ -19,7 +19,7 @@ import Control.Precondition
 
 import           Data.Default
 import           Data.List as L hiding (union)
-import           Data.Map  as M hiding (filter)
+import           Data.HashMap.Lazy  as M hiding (filter)
 import qualified Data.Set as S
 import           Data.Tuple
 import qualified Data.Traversable as T
@@ -57,7 +57,7 @@ can_local_vars _ = L.map (reserved "lv") [0..]
 data CanonicalRewriter = CR 
         {  local_gen :: [InternalName]            -- locals
         ,  free_gen  :: [InternalName]            -- bound var names
-        ,  renaming :: M.Map InternalName InternalName      -- rewrites
+        ,  renaming :: M.HashMap InternalName InternalName      -- rewrites
         ,  exprs  :: [(Expr', Var')]
         }
 
@@ -132,7 +132,7 @@ findFreeVars ls e
             _               ->
                 rewriteM (findFreeVars ls) e
 
-type TermStore = Map CanonicalLambda (AbsFun InternalName Type)
+type TermStore = HashMap CanonicalLambda (AbsFun InternalName Type)
 
 get_lambda_term :: Monad m => CanonicalLambda -> StateT TermStore m InternalFun
 get_lambda_term t@(CL vs us e t') = do
@@ -200,7 +200,7 @@ delambdify po = -- (Sequent ctx asm hyps goal) =
                  `merge_ctx` decl :: Context') 
                 (po^.syntacticThm)
                 (asm' ++ defs :: [Expr'])
-                (hyps' :: M.Map Label Expr')
+                (hyps' :: M.HashMap Label Expr')
                 (goal' :: Expr')
             ) empty
 

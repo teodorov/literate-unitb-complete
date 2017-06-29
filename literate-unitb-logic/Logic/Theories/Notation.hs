@@ -13,7 +13,7 @@ import Control.Lens
 
 import qualified Data.Array as A
 import           Data.List as L ( map, foldl' )
-import           Data.Map as M hiding ( foldl' )
+import           Data.HashMap.Lazy as M hiding ( foldl' )
 import           Data.IORef
 
 import System.IO.Unsafe
@@ -40,7 +40,7 @@ binds x y = unsafePerformIO $ do
     r <- readIORef assoc_table' 
     return $ r G.! (Left x,Right y)
 
-assoc0 :: Map (Operator, Operator) Assoc
+assoc0 :: HashMap (Operator, Operator) Assoc
 assoc0 = fromList (zip (L.map xbin_to_bin xs) $ L.map (pairs M.!) xs)
     where
         rs    = double bin_op_range

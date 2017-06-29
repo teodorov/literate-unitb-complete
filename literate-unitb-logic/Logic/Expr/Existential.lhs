@@ -32,7 +32,7 @@ import           Data.IntMap
             , IntMap, fromList, Key 
             , mapMaybe )
 import           Data.List.NonEmpty (NonEmpty,nonEmpty)
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Set as S
 
 get_partition :: [Var] -> [Expr] -> ([(Key, Int)], [(Var, Int)], [(Expr, Int)])

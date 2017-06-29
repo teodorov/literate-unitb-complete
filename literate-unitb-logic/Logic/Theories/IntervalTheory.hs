@@ -14,7 +14,7 @@ import Logic.Theories.SetTheory
 import Control.Lens
 import Control.Precondition
 
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 
     -- arithmetic
 

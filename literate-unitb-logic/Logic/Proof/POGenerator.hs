@@ -34,8 +34,8 @@ import Control.Monad.State
 import           Data.DList as D
 import           Data.List  as L
 import           Data.List.NonEmpty as NE
-import           Data.Map as M hiding ( map )
-import qualified Data.Map as M
+import           Data.HashMap.Lazy as M hiding ( map )
+import qualified Data.HashMap.Lazy as M
 import           Data.Semigroup
 import           Data.Text (Text)
 
@@ -50,7 +50,7 @@ data POParam lbl = POP
     , tag :: DList lbl
     , _pOParamTimeout  :: Maybe Float
     , _pOParamNameless :: DList Expr
-    , _pOParamNamed :: M.Map Label Expr
+    , _pOParamNamed :: M.HashMap Label Expr
     , _pOParamSynProp  :: SyntacticProp
     } deriving (Generic)
 
@@ -92,7 +92,7 @@ emit_exist_goal' mkLbl lbl vars es = with
                     (zexists vs ztrue $ zall es)
     where
         clauses = partition_expr vars $ L.map getExpr es
-        clauses' = M.toList $ (M.fromListWith (<>) clauses :: Map [Var] (NonEmpty Expr))
+        clauses' = M.toList $ (M.fromListWith (<>) clauses :: HashMap [Var] (NonEmpty Expr))
 
 existential :: (Monad m) 
             => [Var] 
@@ -156,11 +156,11 @@ _context :: Context -> POCtx' lbl ()
 _context new_ctx = POCtx $ do
     S.context %= (new_ctx `merge_ctx`)
 
-functions :: M.Map Name Fun -> POCtx' lbl ()
+functions :: M.HashMap Name Fun -> POCtx' lbl ()
 functions new_funs = do
     _context $ Context M.empty M.empty new_funs M.empty M.empty
 
-definitions :: M.Map Name Def -> POCtx' lbl ()
+definitions :: M.HashMap Name Def -> POCtx' lbl ()
 definitions new_defs = POCtx $ do
     S.context.E.definitions .= new_defs
 
@@ -178,7 +178,7 @@ prefix_label lbl = POCtx $ do
 prefix :: Text -> POCtx ()
 prefix lbl = prefix_label $ label lbl
 
-named_hyps :: HasExpr expr => M.Map Label expr -> POCtx' lbl ()
+named_hyps :: HasExpr expr => M.HashMap Label expr -> POCtx' lbl ()
 named_hyps hyps = POCtx $ do
         named %= M.union (M.map getExpr hyps)
 
@@ -186,13 +186,13 @@ nameless_hyps :: HasExpr expr => [expr] -> POCtx' lbl ()
 nameless_hyps hyps = POCtx $ do
         nameless <>= D.fromList (L.map getExpr hyps)
 
-variables :: M.Map Name Var -> POCtx' lbl ()
+variables :: M.HashMap Name Var -> POCtx' lbl ()
 variables vars = POCtx $ do
         S.context.constants %= (vars `merge`)
 
 eval_generator :: (Ord lbl,Show lbl)
                => POGen' lbl () 
-               -> M.Map lbl Sequent
+               -> M.HashMap lbl Sequent
 eval_generator cmd = runIdentity $ eval_generatorT cmd
 
 tracePOG :: (Monad m,Show lbl) => POGenT' lbl m () -> POGenT' lbl m ()
@@ -202,7 +202,7 @@ tracePOG (POGen cmd) = POGen $ do
 
 eval_generatorT :: (Monad m,Ord lbl,Show lbl) 
                 => POGenT' lbl m () 
-                -> m (M.Map lbl Sequent)
+                -> m (M.HashMap lbl Sequent)
 eval_generatorT cmd = 
             liftM (fromListWithKey combine . D.toList . snd) 
                 $ evalRWST (runPOGen cmd) empty_param ()

@@ -33,7 +33,7 @@ import Control.Precondition
 import           Data.Data
 import           Data.Hashable
 import           Data.List as L
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.Serialize
 import qualified Data.Set as S
 import           Data.Text (Text)
@@ -74,7 +74,7 @@ data GenExpr n t a q =
         | Cast !CastType !(GenExpr n t a q) !a
         | Lift !(GenExpr n t a q) !a
     deriving (Eq,Ord,Typeable,Data,Generic,Show,Functor,Foldable,Traversable)
-type RecFields expr = M.Map Field expr
+type RecFields expr = M.HashMap Field expr
 
 data RecordExpr expr =
         RecLit !(RecFields expr)
@@ -135,7 +135,7 @@ arbitraryRecord mkExpr arb = oneof
         execStateT (replicateM n updateOnce) =<< recLit
 
 arbitraryFields :: (Arbitrary k,Ord k)
-                => Gen a -> Gen (M.Map k a)
+                => Gen a -> Gen (M.HashMap k a)
 arbitraryFields arb = M.fromList <$> fields
     where
       fields = do
@@ -210,7 +210,7 @@ instance (IsName n) => Translatable
 
 make_unique :: (IsGenExpr expr, Name ~ NameT expr)
             => Text                 -- suffix to be added to the name of variables
-            -> M.Map Name var       -- set of variables that must renamed
+            -> M.HashMap Name var       -- set of variables that must renamed
             -> expr                 -- expression to rewrite
             -> expr
 make_unique suf vs = freeVarsOf.namesOf %~ newName
@@ -343,12 +343,12 @@ typeOfRecord (RecUpdate x m) = recordTypeOfFields $
               M.map type_of m `M.union` fromJust' (type_of x^?fieldTypes) 
 typeOfRecord (FieldLookup x field) = fromJust' (type_of x^?fieldTypes.ix field)
 
-fieldTypes :: TypeSystem t => Prism' t (M.Map Field t)
+fieldTypes :: TypeSystem t => Prism' t (M.HashMap Field t)
 fieldTypes =  _FromSort.swapped.below _RecordSort
             . iso (\(ts,m) -> m & unsafePartsOf traverse .~ ts) 
                   (\m -> (M.elems m,() <$ m))
 
-recordTypeOfFields :: (Typed e, t ~ TypeOf e,TypeSystem t) => M.Map Field e -> t
+recordTypeOfFields :: (Typed e, t ~ TypeOf e,TypeSystem t) => M.HashMap Field e -> t
 recordTypeOfFields m = make_type (RecordSort $ () <$ m) $ type_of <$> M.elems m
 
 ztuple_type :: TypeSystem t => [t] -> t
@@ -378,8 +378,8 @@ freeVarsOf :: IsGenExpr expr
 freeVarsOf f = freeVarsOf'' (const f) M.empty
 
 freeVarsOf'' :: (IsGenExpr expr, n ~ NameT expr,Applicative f) 
-             => (M.Map n (VarT expr) -> VarT expr -> f (VarT expr))
-             -> M.Map n (VarT expr)
+             => (M.HashMap n (VarT expr) -> VarT expr -> f (VarT expr))
+             -> M.HashMap n (VarT expr)
              -> expr -> f expr
 freeVarsOf'' f vs (Word v) | (v^.name) `M.member` vs = pure (Word v)
                            | otherwise       = Word <$> f vs v
@@ -466,7 +466,7 @@ z3Def ts n = makeDef ts (z3Name n)
 lookupFields :: ( IsName n,TypeSystem t,TypeSystem a
                 , Pre
                 , TypeAnnotationPair t a,IsQuantifier q) 
-             => GenExpr n t a q -> M.Map Field (GenExpr n t a q)
+             => GenExpr n t a q -> M.HashMap Field (GenExpr n t a q)
 lookupFields e = fromJust' $ type_of e^?fieldTypes >>= fieldLookupMap
     where
       fieldLookupMap = itraverse $ \f _ -> mkRecord $ FieldLookup e f
@@ -620,7 +620,7 @@ instance TypeSystem t => Typed (AbsDef n t q) where
     type TypeOf (AbsDef n t q) = t
     type_of (Def _ _ _ t _) = t
 
-dataConstrs :: Sort -> M.Map Name Fun
+dataConstrs :: Sort -> M.HashMap Name Fun
 dataConstrs (Sort _ _ _) = M.empty
 dataConstrs (DefSort _ _ _ _) = M.empty
 dataConstrs BoolSort   = M.empty
@@ -646,7 +646,7 @@ instance HasScope Expr where
         areVisible [vars,constants] free e
 
 merge :: (Ord k, Eq a, Show k, Show a)
-          => M.Map k a -> M.Map k a -> M.Map k a
+          => M.HashMap k a -> M.HashMap k a -> M.HashMap k a
 merge m0 m1 = M.unionWithKey f m0 m1
     where
         f k x y
@@ -655,7 +655,7 @@ merge m0 m1 = M.unionWithKey f m0 m1
                             (show k) (show x) (show y)
 
 merge_all :: (Ord k, Eq a, Show k, Show a)
-          => [M.Map k a] -> M.Map k a
+          => [M.HashMap k a] -> M.HashMap k a
 merge_all ms = foldl' (M.unionWithKey f) M.empty ms
     where
         f k x y
@@ -664,7 +664,7 @@ merge_all ms = foldl' (M.unionWithKey f) M.empty ms
                             (show k) (show x) (show y)
 
 substitute :: (TypeSystem t, IsQuantifier q, IsName n)
-           => M.Map n (AbsExpr n t q) 
+           => M.HashMap n (AbsExpr n t q) 
            -> (AbsExpr n t q) -> (AbsExpr n t q)
 substitute m e = f e
     where
@@ -674,7 +674,7 @@ substitute m e = f e
         subst vs = m M.\\ symbol_table vs
 
 substitute' :: (TypeSystem t, TypeSystem a, IsQuantifier q, IsName n, TypeAnnotationPair t a)
-           => M.Map n (GenExpr n t a q)
+           => M.HashMap n (GenExpr n t a q)
            -> (GenExpr n t a q) -> (GenExpr n t a q)
 substitute' m e = f e
     where
@@ -691,7 +691,7 @@ used_var (Word v) = S.singleton v
 used_var (Binder _ vs r expr _) = (used_var expr `S.union` used_var r) `S.difference` S.fromList vs
 used_var expr = visit (\x y -> S.union x (used_var y)) S.empty expr
 
-used_var' :: HasGenExpr expr => expr -> M.Map (NameT (ExprT expr)) (VarT (ExprT expr))
+used_var' :: HasGenExpr expr => expr -> M.HashMap (NameT (ExprT expr)) (VarT (ExprT expr))
 used_var' = symbol_table . S.toList . used_var . asExpr
 
 used_fun :: (TypeSystem t, IsQuantifier q, IsName n) 
@@ -704,7 +704,7 @@ used_fun e = visit f s e
                 _          -> S.empty
 
 free_vars' :: HasExpr expr
-           => M.Map Name Var -> expr -> M.Map Name Var
+           => M.HashMap Name Var -> expr -> M.HashMap Name Var
 free_vars' ds e = vs `M.intersection` ds
     where
         vs = used_var' (getExpr e)
@@ -741,7 +741,7 @@ rename x y e@(Binder q vs r xp t)
         | otherwise             = Binder q vs (rename x y r) (rename x y xp) t
 rename x y e = rewrite (rename x y) e 
 
-primeOnly :: M.Map Name var -> Expr -> Expr
+primeOnly :: M.HashMap Name var -> Expr -> Expr
 primeOnly vs = freeVarsOf %~ pr
     where
         pr v | (v^.name) `M.member` vs = prime v

@@ -37,10 +37,10 @@ import Control.Precondition
 
 import           Data.Char
 import           Data.List.NonEmpty (NonEmpty(..))
-import           Data.Map as M 
+import           Data.HashMap.Lazy as M 
                     ( insert, keys
                     , toList, unions )
-import qualified Data.Map as M 
+import qualified Data.HashMap.Lazy as M 
 import           Data.Monoid ((<>))
 import           Data.Text (Text,pack,unpack)
 import qualified Data.Text as T
@@ -70,7 +70,7 @@ data Shared = Shared
         { working    :: Observable Int
         , system     :: Observable System
         , error_list :: Observable [Error]
-        , pr_obl     :: Observable (M.Map Key (Seq,Maybe Bool))
+        , pr_obl     :: Observable (M.HashMap Key (Seq,Maybe Bool))
         , fname      :: FilePath
         , exit_code  :: MVar ()
         , parser_state :: Observable ParserState
@@ -82,7 +82,7 @@ data Shared = Shared
 data ParserState = Idle Double | Parsing
     deriving Eq
 
-type Params = Params' (M.Map Label (M.Map Label (Bool,Seq)))
+type Params = Params' (M.HashMap Label (M.HashMap Label (Bool,Seq)))
 
 data Params' pos = Params
         { path :: FilePath
@@ -140,7 +140,7 @@ parser (Shared { .. })  = return $ do
                     liftIO $ evaluate (ms, cs, s)
                 case xs of
                     Right (ms,cs,s) -> do
-                        let new_pos = unions (cs : map (M.mapKeys $ over _1 as_label) ms) :: M.Map Key Seq
+                        let new_pos = unions (cs : map (M.mapKeys $ over _1 as_label) ms) :: M.HashMap Key Seq
                             f (s0,b0) (s1,b1)
                                 | s0 == s1  = (s0,b0)
                                 | otherwise = (s1,b1)
@@ -190,14 +190,14 @@ prover (Shared { .. }) = do
             modify_obs pr_obl $ return . insert k (po,Just $ r == Valid)
 
 proof_report :: Maybe Text
-             -> M.Map Key (Seq,Maybe Bool) 
+             -> M.HashMap Key (Seq,Maybe Bool) 
              -> [Error] -> Bool 
              -> [Text]
 proof_report = proof_report' False
 
 proof_report' :: Bool
               -> Maybe Text
-              -> M.Map Key (Seq,Maybe Bool) 
+              -> M.HashMap Key (Seq,Maybe Bool) 
               -> [Error] -> Bool 
               -> [Text]
 proof_report' showSuccess pattern outs es isWorking = 

@@ -12,7 +12,7 @@ import Logic.Proof
 import Z3.Z3 ( z3_code )
 
     -- Libraries
-import Data.Map as M hiding (split, map)
+import Data.HashMap.Lazy as M hiding (split, map)
 
 import Control.Monad.Trans.Either
 
@@ -50,7 +50,7 @@ path2 = [path|Tests/indirect-equality-t2.tex|]
 path3 :: FilePath
 path3 = [path|Tests/indirect-equality-t3.tex|]
 
-case0 :: IO (String, Map Label Sequent)
+case0 :: IO (String, HashMap Label Sequent)
 case0 = verify path0 0
 
 result0 :: String
@@ -78,7 +78,7 @@ result0 = unlines
     , "passed 18 / 20"
     ]
     
-case1 :: IO (String, Map Label Sequent)
+case1 :: IO (String, HashMap Label Sequent)
 case1 = verify_thy path0 "ctx0"
 
 result1 :: String
@@ -104,7 +104,7 @@ result1 = unlines
     , "  o  THM/thm1/part 2/step (177,2)"
     ]
 
-case2 :: IO (String, Map Label Sequent)
+case2 :: IO (String, HashMap Label Sequent)
 case2 = verify_thy path0 "ctx1"
 
 result2 :: String
@@ -189,7 +189,7 @@ result2 = unlines
     , "  o  THM/ctx1:thm9/new assumption (393,1)"
     ]
 
-case3 :: IO (String, Map Label Sequent)
+case3 :: IO (String, HashMap Label Sequent)
 case3 = verify_thy path1 "ctx2"
 
 result3 :: String
@@ -598,7 +598,7 @@ case5 = find_errors path2
 result5 :: String
 result5 = "Error \"A cycle exists in the proofs of ctx1: thm3, thm5\" (1,1)\n"
 
-case6 :: IO (String, Map Label Sequent)
+case6 :: IO (String, HashMap Label Sequent)
 case6 = verify_thy path3 "ctx1"
 
 result6 :: String

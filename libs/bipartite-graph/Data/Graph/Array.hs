@@ -25,7 +25,7 @@ import Data.Graph (SCC(..))
 import Data.List
 import Data.STRef
 import qualified Data.List.Ordered as OL
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Set as S
 import qualified Data.Tuple as T
 
@@ -36,10 +36,10 @@ import Test.QuickCheck.Report as QC
 data Color = White | Grey | Black
     deriving (Eq)
 
-closure :: forall v. Ord v => [v] -> [(v,v)] -> M.Map v [v]
+closure :: forall v. Ord v => [v] -> [(v,v)] -> M.HashMap v [v]
 closure vs es = closure' (graph vs es)
 
-closure' :: forall v. Ord v => GraphImp v -> M.Map v [v]
+closure' :: forall v. Ord v => GraphImp v -> M.HashMap v [v]
 closure' g = runST $ do
         ar <- newArray_ (V 0,V $ nn-1)
                 :: ST s (STArray s Vertex (S.Set Vertex))
@@ -187,9 +187,9 @@ data GraphImp v = GraphImp
     , edges :: [(v,v)]
     , int2e :: Array Vertex [Vertex]
     , int2v :: Array Vertex v
-    , v2int :: M.Map v Vertex
-    , forward  :: M.Map v [v]
-    , backward :: M.Map v [v]
+    , v2int :: M.HashMap v Vertex
+    , forward  :: M.HashMap v [v]
+    , backward :: M.HashMap v [v]
     , rel     :: v -> v -> Bool
     , reli    :: Vertex -> Vertex -> Bool
     , vcount  :: Int
@@ -198,11 +198,11 @@ data GraphImp v = GraphImp
 
 deriving instance Show v => Show (SCC v)
 
-from_map :: forall v. Ord v => [v] -> (M.Map v [v]) -> GraphImp v
+from_map :: forall v. Ord v => [v] -> (M.HashMap v [v]) -> GraphImp v
 from_map vs es = GraphImp vs es' i2e i2v v2i fwd bwd f f' nn mm
     where
         g = graph vs es'
-        f x y = y `elem` M.findWithDefault [] x es
+        f x y = y `elem` M.lookupDefault [] x es
         f' i j = f (int2v g ! i) (int2v g ! j)
         es' = [ (u,v) | (u,vs) <- M.toList es, v <- vs ]
         vs'  = OL.nubSort vs
@@ -288,7 +288,7 @@ merge part@(Partition ar) i j = do
             then writeArray ar pJ pI
             else writeArray ar pI pJ
 
-getSets :: forall s v. (Enum v, Ix v) => Partition s v -> ST s (M.Map v [v])
+getSets :: forall s v. (Enum v, Ix v) => Partition s v -> ST s (M.HashMap v [v])
 getSets part@(Partition ar) = do
             (_,n) <- getBounds ar
             res <- newArray (toEnum 0,n) []

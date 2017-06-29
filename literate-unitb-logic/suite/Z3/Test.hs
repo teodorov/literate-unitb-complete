@@ -19,7 +19,7 @@ import Control.Lens hiding (Context,traverse1)
 import Control.Precondition
 
 import           Data.Default
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import qualified Data.Maybe as M
 import qualified Data.Set as S
 
@@ -253,7 +253,7 @@ case6b = do
 case7 :: IO (Maybe (GenContext InternalName FOType HOQuantifier))
 case7 = return $ Just $ to_fol_ctx S.empty ctx
     where
-        fun :: M.Map Name Fun
+        fun :: M.HashMap Name Fun
         fun = M.map (instantiate m . substitute_type_vars m) $ set_theory^.funs
         ctx = Context M.empty M.empty fun M.empty M.empty
         t = Gen (Sort (fromString'' "G0") (fromString'' "G0") 0) []
@@ -263,7 +263,7 @@ result7 :: Maybe (GenContext InternalName FOType HOQuantifier)
 result7 = ctx_strip_generics $ Context M.empty M.empty fun' M.empty M.empty
     where 
         fun' = fun & traverse.namesOf %~ asInternal
-        fun :: M.Map InternalName Fun
+        fun :: M.HashMap InternalName Fun
         fun = decorated_table $ M.elems $ M.map f $ set_theory^.funs
         f :: AbsFun n Type -> AbsFun n Type
         f = instantiate m . substitute_type_vars m
@@ -272,7 +272,7 @@ result7 = ctx_strip_generics $ Context M.empty M.empty fun' M.empty M.empty
 
 fun :: Fun
 pat :: [Type]
-xs  :: [M.Map InternalName GenericType]
+xs  :: [M.HashMap InternalName GenericType]
 ts  :: S.Set FOType
 
 fun = head $ M.elems (set_theory^.funs)
@@ -316,7 +316,7 @@ result8 = ctx_strip_generics ctx & traverse.functions %~ M.delete pow
         m1  = M.fromList $ [ ("a",t1), ("b",t0), ("t",t0) ] & traverse._1 %~ fromString''
         ms  = [m0,m1] ++ [ M.fromList [ (tj,ti) | tj <- map fromString'' ["a","b","t"] ] | ti <- [t0, t1] ]
 
-case9 :: IO [ M.Map InternalName FOType ]
+case9 :: IO [ M.HashMap InternalName FOType ]
 case9 = return $ match_some pat types
     where
         types = [set_type int, set_type $ set_type int, fun_type int int]
@@ -326,7 +326,7 @@ case9 = return $ match_some pat types
         pat   = [fun_type var1 var0, set_type var2, var1]
 --        pat   = [var0, set_type var1]
 
-result9 :: [ M.Map InternalName FOType ]
+result9 :: [ M.HashMap InternalName FOType ]
 result9 = 
         [ M.fromList $ [ ("a", int), ("b", int), ("c", int) ] & traverse._1 %~ fromString''
         , M.fromList $ [ ("a", int), ("b", int), ("c", set_type int) ] & traverse._1 %~ fromString''

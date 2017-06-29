@@ -26,7 +26,7 @@ import Control.Precondition
 import           Data.Either
 import           Data.Either.Combinators hiding (fromRight')
 import           Data.List as L
-import           Data.Map as M
+import           Data.HashMap.Lazy as M
 import qualified Data.Set as S
 import           Data.Text as T (Text)
 import qualified Data.Text as T 
@@ -254,7 +254,7 @@ sort_def n f = do
 param_to_var :: Expr -> Expr
 param_to_var e = evalState (param_to_varE e) (0,variables e,M.empty)
 
-type RewriteST = State (Int,S.Set InternalName,Map InternalName InternalName)
+type RewriteST = State (Int,S.Set InternalName,HashMap InternalName InternalName)
 
 param_to_varE :: Expr -> RewriteST Expr
 param_to_varE e = do
@@ -297,7 +297,7 @@ newtype M a = M (RWS () [Expr] (Int,Theory) a)
     deriving (Applicative,Functor,Monad)
 
 clash :: (PrettyPrintable a, Ord a)
-      => (thy -> Map a b) -> [thy] -> Map a b
+      => (thy -> HashMap a b) -> [thy] -> HashMap a b
 clash f xs 
         | L.null es = M.unions $ L.map f xs
         | otherwise = error $ [s|Name clash with: %s|] $ intercalate "," (L.map pretty es)
@@ -360,7 +360,7 @@ withForall mx = do
     let vs = S.toList $ used_var x
     param_to_var <$> mzforall vs mztrue (Right x)
 
-axioms :: Text -> Writer [ExprP] () -> M.Map Label Expr
+axioms :: Text -> Writer [ExprP] () -> M.HashMap Label Expr
 axioms name cmd
         | L.null ls = fromList $ L.map (first $ label . [st|@%s@@_%s|] name) $ zip ns rs
         | otherwise = assertFalse' $ T.unpack $ T.unlines $ mconcat ls

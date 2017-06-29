@@ -19,7 +19,7 @@ import Control.Precondition
 import           Data.Data
 import           Data.Hashable
 import           Data.List
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.Monoid
 import qualified Data.Set as S
 import           Data.Serialize
@@ -49,7 +49,7 @@ data FOType      = FOT !Sort ![FOType]
 
 data Sort =
         BoolSort | IntSort | RealSort 
-        | RecordSort !(M.Map Field ())
+        | RecordSort !(M.HashMap Field ())
         | DefSort 
             !Name            -- Latex name
             !InternalName    -- Type name
@@ -195,7 +195,7 @@ instance PrettyPrintable GenericType where
     pretty (Gen ss []) = render $ ss^.name
     pretty (Gen t ts) = [s|%s %s|] (render $ t^.name) (show $ map Pretty ts)
 
-recordName :: M.Map Field a -> Name
+recordName :: M.HashMap Field a -> Name
 recordName m = makeZ3Name $ "Record-" <> T.intercalate "-" (map fieldName $ M.keys m)
 
 accessor :: Field -> Text
@@ -298,10 +298,10 @@ set_sort = make DefSort "\\set" "set" [[smt|a|]] (array gA bool)
 set_type :: TypeSystem t => t -> t
 set_type t = make_type set_sort [t]
 
-record_sort :: M.Map Field t -> Sort
+record_sort :: M.HashMap Field t -> Sort
 record_sort fields = RecordSort $ () <$ fields
 
-record_type :: TypeSystem t => M.Map Field t -> t
+record_type :: TypeSystem t => M.HashMap Field t -> t
 record_type fields = make_type (record_sort fields) (M.elems fields)
 
 _ElementType :: TypeSystem t => Prism' t t
@@ -377,7 +377,7 @@ instance ZoomEq Sort where
 instance ZoomEq GenericType where
 
 #if !(MIN_VERSION_QuickCheck(2,8,2))
-instance (Arbitrary k,Arbitrary a,Ord k) => Arbitrary (M.Map k a) where
+instance (Arbitrary k,Arbitrary a,Ord k) => Arbitrary (M.HashMap k a) where
     arbitrary = M.fromList <$> arbitrary
     shrink = fmap M.fromList . shrink . M.toList
 #endif

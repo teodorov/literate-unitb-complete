@@ -17,7 +17,7 @@ import Control.Monad.Reader
 import Control.Precondition
 
 import           Data.Graph.Array
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.Monoid
 import           Data.Typeable
 
@@ -154,7 +154,7 @@ instance (IsName n,Ord t,IsQuantifier q,TypeSystem t)
 sortDefs :: ( IsName n,Ord t,Ord q
             , IsQuantifier q 
             , TypeSystem t )
-         => M.Map n (AbsDef n t q) 
+         => M.HashMap n (AbsDef n t q) 
          -> [AbsDef n t q]
 sortDefs defs = M.elems defA
                     ++ (acyclic <$> top_sort (M.elems defB) es)

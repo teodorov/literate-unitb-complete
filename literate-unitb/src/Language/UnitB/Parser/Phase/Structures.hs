@@ -32,8 +32,8 @@ import           Control.Monad.Reader.Class
 
 import qualified Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, insert, inits )
-import           Data.Map   as M hiding ( map, (\\) )
-import qualified Data.Map   as M
+import           Data.HashMap.Lazy   as M hiding ( map, (\\) )
+import qualified Data.HashMap.Lazy   as M
 import           Data.Text (Text)
 
 import Text.Printf.TH
@@ -60,7 +60,7 @@ run_phase1_types = proc p0 -> do
     it <- import_theory -< p0
     refs <- triggerP <<< liftP' (make_all_tables refClash) -< r
     verifSet' <- triggerP <<< liftP' (make_all_tables verifClash) -< verifSet
-    let _ = refs :: MMap (Map () (MachineId,LineInfo))
+    let _ = refs :: MMap (HashMap () (MachineId,LineInfo))
     r_ord <- topological_order -< mapMaybe (M.lookup ()) refs
     let t = M.map fst <$> ts
         s = M.map snd <$> ts
@@ -109,12 +109,12 @@ run_phase1_types = proc p0 -> do
     verifClash _ = "Multiple verification timeouts" :: Text
 
 make_phase1 :: MachineP0
-            -> Map Name Theory
-            -> Map Name Sort
-            -> Map Name Sort
-            -> Map () Float
+            -> HashMap Name Theory
+            -> HashMap Name Sort
+            -> HashMap Name Sort
+            -> HashMap () Float
             -> [(Name, PostponedDef)]
-            -> G.BiGraph SkipOrEvent () () -- Map Label (EventId, [EventId])
+            -> G.BiGraph SkipOrEvent () () -- HashMap Label (EventId, [EventId])
             -> MachineP1
 make_phase1 _p0 _pImports _pTypes _pAllTypes  
         timeout _pSetDecl evts = MachineP1 { .. }

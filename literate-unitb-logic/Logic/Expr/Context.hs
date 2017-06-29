@@ -19,7 +19,7 @@ import Control.Lens.Misc
 
 import           Data.Data
 import           Data.Default
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import           Data.PartialOrd
 import           Data.Semigroup
 import           Data.Serialize
@@ -45,11 +45,11 @@ type FOContext = GenContext InternalName FOType FOQuantifier
 type AbsContext = GenContext Name
 
 data GenContext name t q = Context
-        { _genContextSorts :: M.Map Name Sort
-        , _genContextConstants :: M.Map name (AbsVar name t)
-        , _functions :: M.Map name (AbsFun name t)
-        , _definitions :: M.Map name (AbsDef name t q)
-        , _genContextDummies :: M.Map name (AbsVar name t)
+        { _genContextSorts :: M.HashMap Name Sort
+        , _genContextConstants :: M.HashMap name (AbsVar name t)
+        , _functions :: M.HashMap name (AbsFun name t)
+        , _definitions :: M.HashMap name (AbsDef name t q)
+        , _genContextDummies :: M.HashMap name (AbsVar name t)
         }
     deriving (Show,Eq,Generic,Typeable,Functor,Foldable,Traversable)
 
@@ -66,7 +66,7 @@ defsAsVars = execState $ do
         constants %= M.union defs
 
 class HasSymbols a b n | a -> b n where
-    symbols :: a -> M.Map n b
+    symbols :: a -> M.HashMap n b
 
 instance (PrettyPrintable n,PrettyPrintable t,PrettyPrintable q
          , IsName n, IsQuantifier q, TypeSystem t) 
@@ -162,7 +162,7 @@ empty_ctx = def
 --    where
 --        ctx' = mconcat $ CtxWith def <$> cs
 
-free_vars :: Context -> Expr -> M.Map Name Var
+free_vars :: Context -> Expr -> M.HashMap Name Var
 free_vars (Context _ _ _ _ dum) e = M.fromList $ runReader (f e) dum
     where
         f (Word v) = do

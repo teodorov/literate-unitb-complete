@@ -13,7 +13,7 @@ import Data.List hiding (union,transpose,null)
 import qualified Data.List.Ordered as LO
 import Data.Monoid
 import Data.Tuple
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 import Data.Maybe
 import qualified Data.Set as S
 
@@ -31,7 +31,7 @@ infixl 7 |>
 infixl 7 |>>
 infix <->
 
-newtype Relation a b = Rel (M.Map a (M.Map b ()))
+newtype Relation a b = Rel (M.HashMap a (M.HashMap b ()))
     deriving (Eq,Default,Generic)
 
 type (<->) a b = Relation a b
@@ -50,7 +50,7 @@ toList (Rel m) = [ (x,y) | (x,xs) <- M.toList m, (y,()) <- M.toList xs ]
 fromList :: (Ord a, Ord b) => [(a,b)] -> Relation a b
 fromList xs = Rel $ M.map M.fromList $ M.fromListWith (++) [ (x,[(y,())]) | (x,y) <- xs ]
 
-fromListMap :: (Ord a,Ord b) => M.Map a [b] -> Relation a b
+fromListMap :: (Ord a,Ord b) => M.HashMap a [b] -> Relation a b
 fromListMap m = Rel $ M.map (M.fromList . map pair) m
     where
         pair x = (x,())
@@ -62,7 +62,7 @@ compose :: (Ord a,Ord b,Ord c)
         => Relation a b -> Relation b c -> Relation a c
 compose (Rel r0) (Rel r1) = Rel $ cleanup $ M.map (M.unions . M.elems . (r1 `M.intersection`)) r0
 
-cleanup :: M.Map k0 (M.Map k1 a) -> M.Map k0 (M.Map k1 a)
+cleanup :: M.HashMap k0 (M.HashMap k1 a) -> M.HashMap k0 (M.HashMap k1 a)
 cleanup = M.filter (not . M.null)
 
 union :: (Ord a, Ord b) => Relation a b -> Relation a b -> Relation a b

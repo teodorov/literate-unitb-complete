@@ -25,7 +25,7 @@ import           Data.Existential
 import           Data.Hashable
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
-import           Data.Map as M
+import           Data.HashMap.Lazy as M
 import           Data.Typeable
 
 import GHC.Generics.Instances
@@ -104,7 +104,7 @@ data MachineDef = MchDef
             , _machineDefLineInfo :: LineInfo }
     deriving (Eq,Ord,Show,Typeable,Generic)
 
-data EvtDecls = Evt (Map EventOrDummy EventDecl)
+data EvtDecls = Evt (HashMap EventOrDummy EventDecl)
     deriving (Eq,Ord,Show,Typeable,Generic)
     --         -- in Evt, 'Nothing' stands for a dummy
 

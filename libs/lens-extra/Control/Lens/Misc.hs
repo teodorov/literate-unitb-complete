@@ -6,16 +6,17 @@ import Control.Monad.State
 import Data.Default
 import Data.Either.Validation
 import Data.Foldable as F
-import Data.Map as M
+import Data.Hashable
+import Data.HashMap.Lazy as M
 import Data.Semigroup
 
 
 {-# INLINE withKey #-}
-withKey :: Iso (Map a b) (Map c d) (Map a (a,b)) (Map c d)
+withKey :: Iso (HashMap a b) (HashMap c d) (HashMap a (a,b)) (HashMap c d)
 withKey = iso (M.mapWithKey (,)) id
 
 {-# INLINE withKey' #-}
-withKey' :: Getter (Map a b) (Map a (a,b))
+withKey' :: Getter (HashMap a b) (HashMap a (a,b))
 withKey' = to (M.mapWithKey (,))
 
 create :: Default a => State a b -> a
@@ -58,23 +59,23 @@ unzipped = iso unzip (uncurry zip)
 zipped :: Iso ([a],[b]) ([c],[d]) [(a,b)] [(c,d)]
 zipped = from unzipped
 
-asListWith :: Ord k'
+asListWith :: (Hashable k',Eq k')
            => (a' -> a' -> a')
-           -> Iso (Map k a) (Map k' a')
+           -> Iso (HashMap k a) (HashMap k' a')
                   [(k,a)] [(k',a')]
 asListWith f = iso M.toList (M.fromListWith f)
 
-uncurryMap :: (Ord a,Ord b)
-           => Map a (Map b c)
-           -> Map (a,b) c
+uncurryMap :: (Hashable a,Hashable b,Eq a,Eq b)
+           => HashMap a (HashMap b c)
+           -> HashMap (a,b) c
 uncurryMap m = fromList [ ((x,y),k) | (x,xs) <- M.toList m, (y,k) <- M.toList xs ]
 
-curryMap :: (Ord a,Ord b)
-         => Map (a,b) c
-         -> Map a (Map b c)
+curryMap :: (Hashable a,Hashable b,Eq a,Eq b)
+         => HashMap (a,b) c
+         -> HashMap a (HashMap b c)
 curryMap m = fromList <$> fromListWith (++) [ (x,[(y,k)]) | ((x,y),k) <- M.toList m ]
 
-curriedMap :: (Ord a,Ord b,Ord x,Ord y)
-           => Iso (Map (a,b) c) (Map (x,y) z) 
-                  (Map a (Map b c)) (Map x (Map y z))
+curriedMap :: (Hashable a,Hashable b,Hashable x,Hashable y,Eq a,Eq x,Eq b,Eq y)
+           => Iso (HashMap (a,b) c) (HashMap (x,y) z) 
+                  (HashMap a (HashMap b c)) (HashMap x (HashMap y z))
 curriedMap = iso curryMap uncurryMap

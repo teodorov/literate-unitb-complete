@@ -13,7 +13,7 @@ import Data.Char
 import Data.Either
 import Data.List as L
 import Data.HashMap.Strict (HashMap)
-import Data.Map as M (Map,fromList,union)
+import Data.HashMap.Lazy as M (HashMap,fromList,union)
 
 import GHC.Generics hiding (from,to)
 import GHC.Generics.Lens
@@ -56,7 +56,7 @@ makeRecordConstrAs makeName' n = do
                     r <- constructor' t & (traverse._1) expandTySyn
                     return $ case r of
                         Just (n,[t,t'])
-                            | n == ''Map -> Right (field,(t, t'),n)
+                            | n == ''HashMap -> Right (field,(t, t'),n)
                             | n == ''HashMap -> Right (field,(t, t'),n)
                         _ -> Left (field,t)
         typeName  = mkName $ nameBase n ++ "Field"
@@ -132,7 +132,7 @@ instance (Show k,Show b) => GAllMaps HashMap (K1 a (HashMap k b)) where
     gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
     gAllMaps _ Nothing (K1 x) = K1 <$> pure x
 
-instance (Show k,Show b) => GAllMaps Map (K1 a (Map k b)) where
+instance (Show k,Show b) => GAllMaps HashMap (K1 a (HashMap k b)) where
     gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
     gAllMaps _ Nothing (K1 x) = K1 <$> pure x
 

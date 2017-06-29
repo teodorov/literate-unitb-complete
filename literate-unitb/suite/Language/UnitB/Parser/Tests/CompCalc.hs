@@ -8,7 +8,7 @@ import Logic.Proof
 
 
     -- Libraries
-import Data.Map as M hiding (split, map)
+import Data.HashMap.Lazy as M hiding (split, map)
 
 
 import Test.UnitTest

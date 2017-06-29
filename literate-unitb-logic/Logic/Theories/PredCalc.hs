@@ -12,7 +12,7 @@ import Control.Lens
 import Control.Lens.Misc
 import Control.Precondition
 
-import qualified Data.Map as M
+import qualified Data.HashMap.Lazy as M
 
 import Prelude hiding ( pred )
 

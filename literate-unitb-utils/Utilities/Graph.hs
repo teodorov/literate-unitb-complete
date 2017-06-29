@@ -27,10 +27,10 @@ import           Data.Graph hiding ( vertices )
 import           Data.List as L hiding ( union, (\\), transpose, map )
 import qualified Data.List as L
 import qualified Data.List.Ordered as OL
-import           Data.Map  as M 
-    ( Map, fromList, fromListWith
+import           Data.HashMap.Lazy  as M 
+    ( HashMap, fromList, fromListWith
     , toList )
-import qualified Data.Map  as M 
+import qualified Data.HashMap.Lazy  as M 
 import           Data.Maybe
 import           Data.Tuple
 
@@ -44,7 +44,7 @@ import Test.QuickCheck.Report
 
 --type Array a b = 
 
-data Matrix a b = Matrix (Map a (Map a b)) [a] b
+data Matrix a b = Matrix (HashMap a (HashMap a b)) [a] b
     deriving (Eq, Show, Generic)
 
 empty :: b -> Matrix a b
@@ -77,7 +77,7 @@ mapKeys f (Matrix m xs x) = Matrix result (nub ys) x
                 let (x',y') = f (x,y)
                 [x',y']
 
-as_map :: Ord t => Matrix t a -> Map (t,t) a
+as_map :: Ord t => Matrix t a -> HashMap (t,t) a
 as_map g@(Matrix m _ x) = M.union result other
     where
         other = M.fromList $ zip (keys g) $ repeat x
@@ -121,10 +121,10 @@ times (Matrix m0 xs x) (Matrix m1 ys y) = Matrix m2 zs z
         f x y = (m0 P.! x) P.! y
         -- g :: a -> a -> b
         g x y = m1 P.! x P.! y
-        -- m2 :: Map a (Map a b)
+        -- m2 :: HashMap a (HashMap a b)
         m2 = fromList $ do
                 x <- xs
-                let -- m :: Map a b
+                let -- m :: HashMap a b
                     m = fromList $ do
                             y <- ys
                             let xs' = L.map (x `f`) zs
@@ -284,11 +284,11 @@ as_matrix_with vs es = Matrix (M.map fromList $ fromListWith (++) zs) vs False
 --        cs = [ (x,y) | x <- rs, y <- rs ]
         zs = [ (x,[(y,True)]) | (x,y) <- es ]
 
-matrix_of :: (Ord a) => [(a,a)] -> (Map a Int, Array Int a, Array (Int,Int) Bool)
+matrix_of :: (Ord a) => [(a,a)] -> (HashMap a Int, Array Int a, Array (Int,Int) Bool)
 matrix_of xs = matrix_of_with [] xs
 
     -- replace the maps with arrays
-matrix_of_with :: (Ord a) => [a] -> [(a,a)] -> (Map a Int, Array Int a, Array (Int,Int) Bool)
+matrix_of_with :: (Ord a) => [a] -> [(a,a)] -> (HashMap a Int, Array Int a, Array (Int,Int) Bool)
 matrix_of_with rs xs = (m0,m1,ar)
     where
         vs = sort $ nub (L.map fst xs ++ L.map snd xs ++ rs)

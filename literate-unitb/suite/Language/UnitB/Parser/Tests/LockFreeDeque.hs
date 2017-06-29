@@ -18,7 +18,7 @@ import Control.Precondition ((!))
 
 import Data.Graph.Bipartite
 import Data.List as L
-import Data.Map as M hiding ((!))
+import Data.HashMap.Lazy as M hiding ((!))
 import Data.Set  as S
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -175,13 +175,13 @@ path11 = [path|Tests/lock-free deque/main6-err1.tex|]
 path12 :: FilePath
 path12 = [path|Tests/lock-free deque/main7-err0.tex|]
 
-case12 :: IO (Text, Map Label Sequent)
+case12 :: IO (Text, HashMap Label Sequent)
 case12 = verify path12 0
 
 path13 :: FilePath
 path13 = [path|Tests/lock-free deque/main7.tex|]
 
-case13 :: IO (Text, Map Label Sequent)
+case13 :: IO (Text, HashMap Label Sequent)
 case13 = verify path13 0
 
 case14 :: IO (Either Text ([SkipOrEvent],[SkipOrEvent],[SkipOrEvent]))
@@ -249,14 +249,14 @@ path20 = [path|Tests/lock-free deque/main9.tex|]
 case20 :: IO POResult
 case20 = verify path20 0
 
-result21 :: Either [Error] (Map Name Witness)
+result21 :: Either [Error] (HashMap Name Witness)
 result21 = Right $ symbol_table' witVar [(WitSuch b $ c [expr| b = ch |])]
     where
         b = z3Var "b" bool
         c = ctx $ do
             [var| b,ch : \Bool |]
 
-case21 :: IO (Either [Error] (Map Name Witness))
+case21 :: IO (Either [Error] (HashMap Name Witness))
 case21 = runEitherT $ do
     m <- parse_machine' path20 1
     view ind_witness <$> S.lookup "handle" (m!.events.to leftMap)
@@ -331,17 +331,17 @@ case35 = verifyOnly path35 "m1/hdl:popL:more/C_SCH/delay/0/prog/m1:prog0/rhs/m1:
 path36 :: FilePath
 path36 = [path|Tests/pop-left-t2.tex|]
 
-case36 :: IO (Either [Error] [[Map Name Var]])
+case36 :: IO (Either [Error] [[HashMap Name Var]])
 case36 = runEitherT $ do 
     rs <- parse' path36
     let getIndices :: (HasEvent' event Expr)
                    => Machine 
-                   -> (BiGraph' SkipOrEvent AbstrEvent SkipOrEvent ConcrEvent () -> Map SkipOrEvent event)
-                   -> [Map Name Var]
+                   -> (BiGraph' SkipOrEvent AbstrEvent SkipOrEvent ConcrEvent () -> HashMap SkipOrEvent event)
+                   -> [HashMap Name Var]
         getIndices r get = r!.partsOf (events.to get.ix (Right "hdl:popL:one").event'.indices)
     return $ concat [ [getIndices r leftMap,getIndices r rightMap] | r <- rs ]
 
-result36 :: Either [Error] [[Map Name Var]]
+result36 :: Either [Error] [[HashMap Name Var]]
 result36 = Right [[],[v],[v],[M.empty]]
     where
         v = symbol_table [Var [smt|v|] int]

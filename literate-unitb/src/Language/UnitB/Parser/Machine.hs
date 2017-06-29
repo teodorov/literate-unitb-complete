@@ -36,8 +36,8 @@ import Control.Lens.Misc
 import qualified Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, insert, inits )
 import qualified Data.List.NonEmpty as NE
-import           Data.Map   as M hiding ( map, (\\) )
-import qualified Data.Map   as M
+import           Data.HashMap.Lazy   as M hiding ( map, (\\) )
+import qualified Data.HashMap.Lazy   as M
 import qualified Data.Maybe as MM
 import           Data.Semigroup
 
@@ -51,7 +51,7 @@ make_machine (MId m) p4 = mch'
     where
         types   = p4^.pTypes
         imp_th  = p4^.pImports
-        ref_prog :: Map ProgId Rule
+        ref_prog :: HashMap ProgId Rule
         ref_prog = p4^.pLiveRule
         proofs   = p4^.pProofs
         ctx = (empty_theory m)
@@ -135,7 +135,7 @@ make_machine (MId m) p4 = mch'
             oldAction <- itraverseValidation collapseActions
                         $ M.unionsWith (<>) . NE.toList 
                         $ olds & mapped %~ fmap pure . uncurry (fmap . (,)) . (_2 %~ view eActions)
-            let _ = oldAction :: Map Label Action
+            let _ = oldAction :: HashMap Label Action
             Right $ CEvent
                 { _new = g evt
                 , _witness   = evt^.eWitness
@@ -156,13 +156,13 @@ make_machine (MId m) p4 = mch'
                 , _fine_sched = evt^.eFineSched
                 } & coarse_sched .~ evt^.eCoarseSched
 
-uncurryMap :: (Ord a,Ord b) => Map a (Map b c) -> Map (a,b) c
+uncurryMap :: (Ord a,Ord b) => HashMap a (HashMap b c) -> HashMap (a,b) c
 uncurryMap m = fromList $ do
         (x,ys) <- toList m
         (y,z)  <- toList ys
         return ((x,y),z)
 
-flipMap :: (Ord a, Ord b) => Map a (Map b c) -> Map b (Map a c)
+flipMap :: (Ord a, Ord b) => HashMap a (HashMap b c) -> HashMap b (HashMap a c)
 flipMap m = M.map fromList $ fromListWith (++) $ do
     (x,xs) <- toList $ M.map toList m
     (y,z)  <- xs
@@ -171,7 +171,7 @@ flipMap m = M.map fromList $ fromListWith (++) $ do
     -- Todo: detect when the same variable is declared twice
     -- in the same declaration block.
 
-progress_props :: MachineP3 -> Map ProgId ProgressProp
+progress_props :: MachineP3 -> HashMap ProgId ProgressProp
 progress_props p3 = p3^.pProgress
 
 type OneOrTwo a = Either (a,a) a
@@ -187,8 +187,8 @@ fieldB f (Right x) = (Left . (x,)) <$> f x
 parseEvtExprChoice :: ( HasInhStatus decl (InhStatus expr)
                       , HasDeclSource decl DeclSource 
                       , Ord label)
-              => Lens' MachineP3 (Map EventId (Map label expr))
-              -> Lens' MachineP3 (Map EventId (Map label expr))
+              => Lens' MachineP3 (HashMap EventId (HashMap label expr))
+              -> Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]
               -> RWS () [Error] MachineP3 ()
@@ -197,9 +197,9 @@ parseEvtExprChoice oldLn newLn f = parseEvtExprChoice' oldLn newLn newLn f
 parseEvtExprChoice' :: ( HasInhStatus decl (InhStatus expr)
                       , HasDeclSource decl DeclSource 
                       , Ord label)
-              => Lens' MachineP3 (Map EventId (Map label expr))
-              -> Lens' MachineP3 (Map EventId (Map label expr))
-              -> Lens' MachineP3 (Map EventId (Map label expr))
+              => Lens' MachineP3 (HashMap EventId (HashMap label expr))
+              -> Lens' MachineP3 (HashMap EventId (HashMap label expr))
+              -> Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]
               -> RWS () [Error] MachineP3 ()
@@ -211,9 +211,9 @@ parseEvtExprChoice' oldLn delLn newLn = parseEvtExprChoiceImp
 parseEvtExprChoiceImp :: ( HasInhStatus decl (InhStatus expr)
                          , HasDeclSource decl DeclSource 
                          , Ord label)
-              => Maybe (ReifiedLens' MachineP3 (Map EventId (Map label expr)))
-              -> Maybe (ReifiedLens' MachineP3 (Map EventId (Map label expr)))
-              -> Maybe (ReifiedLens' MachineP3 (Map EventId (Map label expr)))
+              => Maybe (ReifiedLens' MachineP3 (HashMap EventId (HashMap label expr)))
+              -> Maybe (ReifiedLens' MachineP3 (HashMap EventId (HashMap label expr)))
+              -> Maybe (ReifiedLens' MachineP3 (HashMap EventId (HashMap label expr)))
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]
               -> RWS () [Error] MachineP3 ()
@@ -236,13 +236,13 @@ parseEvtExprChoiceImp oldLn delLn newLn f xs = do
 
 doubleUnion :: (Ord k0,Ord k1)
             => [(k0,[(k1,a)])]
-            -> Map k0 (Map k1 a)
-            -> Map k0 (Map k1 a)
+            -> HashMap k0 (HashMap k1 a)
+            -> HashMap k0 (HashMap k1 a)
 doubleUnion xs = M.unionWith M.union (M.map M.fromList $ M.fromListWith (++) xs)
 
 
 parseEvtExprDefault :: (HasEvtExpr decl expr, Ord label)
-              => Lens' MachineP3 (Map EventId (Map label expr))
+              => Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]
               -> RWS () [Error] MachineP3 ()
@@ -253,7 +253,7 @@ parseEvtExprDefault ln f xs = do
     ln %= flip (M.unionWith M.union) xs''
 
 parseInitExpr :: (HasEvtExpr decl expr, Ord label)
-              => Lens' MachineP3 (Map label expr)
+              => Lens' MachineP3 (HashMap label expr)
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]
               -> RWS () [Error] MachineP3 ()
@@ -269,7 +269,7 @@ mapA (Kleisli m) = Kleisli $ mapM m
 modifyProps :: ( HasMchExpr b a, HasDeclSource b DeclSource
                , Scope b
                , Show a)
-            => Lens' PropertySet (Map Label a)
+            => Lens' PropertySet (HashMap Label a)
             -> [(Label,b)]
             -> RWS () [Error] MachineP3 ()
 modifyProps ln xs = do

@@ -26,7 +26,7 @@ import Data.Hashable
 import Data.List as L
 import Data.List.NonEmpty as NE hiding (take)
 import Data.MakeTable
-import Data.Map  as M hiding (fold)
+import Data.HashMap.Lazy  as M hiding (fold)
 import Data.Semigroup
 import Data.Serialize hiding (label)
 import Data.String
@@ -52,7 +52,7 @@ data Constraint' expr =
 type TrHint = TrHint' Expr
 type RawTrHint = TrHint' RawExpr
 
-data TrHint' expr = TrHint (Map Name (Type,expr)) (Maybe ProgId)
+data TrHint' expr = TrHint (HashMap Name (Type,expr)) (Maybe ProgId)
     deriving (Eq,Ord,Show,Functor,Foldable,Traversable
              ,Generic,Generic1)
 
@@ -65,7 +65,7 @@ type RawTransient = Transient' RawExpr
 
 data Transient' expr = 
         Tr 
-            (Map Name Var)     -- Free variables
+            (HashMap Name Var)     -- Free variables
             expr                 -- Predicate
             (NonEmpty EventId)   -- Event, Schedule 
             (TrHint' expr)       -- Hints for instantiation
@@ -116,12 +116,12 @@ type PropertySet = PropertySet' Expr
 type RawPropertySet = PropertySet' RawExpr
 
 data PropertySet' expr = PS
-        { _transient    :: Map Label (Transient' expr)
-        , _constraint   :: Map Label (Constraint' expr)
-        , _inv          :: Map Label expr       -- inv
-        , _inv_thm      :: Map Label expr       -- inv thm
-        , _progress     :: Map ProgId (ProgressProp' expr)
-        , _safety       :: Map Label (SafetyProp' expr)
+        { _transient    :: HashMap Label (Transient' expr)
+        , _constraint   :: HashMap Label (Constraint' expr)
+        , _inv          :: HashMap Label expr       -- inv
+        , _inv_thm      :: HashMap Label expr       -- inv thm
+        , _progress     :: HashMap ProgId (ProgressProp' expr)
+        , _safety       :: HashMap Label (SafetyProp' expr)
         }
     deriving (Eq,Functor,Foldable,Traversable
              ,Generic,Generic1,Show)

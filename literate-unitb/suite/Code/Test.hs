@@ -20,7 +20,7 @@ import Control.Precondition
 
 import Data.Either.Combinators hiding (fromRight')
 import Data.List as L
-import Data.Map hiding ((!))
+import Data.HashMap.Lazy hiding ((!))
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -149,7 +149,7 @@ case3 = do let x = do
 result4 :: Text
 result4 = T.unlines
         [ "{-# LANGUAGE RecordWildCards #-}"
-        , "import Data.Map as M"
+        , "import Data.HashMap.Lazy as M"
         , "import Data.Set as S"
         , "import Control.Monad"
         , "import Control.Monad.Fix"
@@ -210,7 +210,7 @@ case4 = do let x = do
 result7 :: Text
 result7 = T.unlines
         [ "{-# LANGUAGE RecordWildCards #-}"
-        , "import Data.Map as M"
+        , "import Data.HashMap.Lazy as M"
         , "import Data.Set as S"
         , "import Control.Concurrent.STM"
         , "import Control.Monad"

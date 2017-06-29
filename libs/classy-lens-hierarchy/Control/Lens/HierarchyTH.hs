@@ -16,7 +16,7 @@ import Data.Graph
 import Data.Graph.Array
 import Data.List as L
 import Data.List.Ordered
-import Data.Map as M hiding ((!))
+import Data.HashMap.Lazy as M hiding ((!))
 import Data.Tuple
 import Data.Typeable.Lens
 
