@@ -213,6 +213,7 @@ _myTimeout cmd = do
 printUnitBVersion :: IO ()
 printUnitBVersion = do
         let v = showVersion version
+            h :: String
             h = take 12 $gitHash
         printf "Literate Unit-B \nVersion %s, hashcode %s\n" v h
 
