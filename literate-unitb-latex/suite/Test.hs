@@ -41,7 +41,7 @@ path2 = [path|Tests/sample.tex|]
 
 result2 :: String
 result2 = 
-     "Right (fromList [(\"align\",[]),(\"calculation\",[Env{calculation} (59),Env{calculation} (29)]),(\"equation\",[]),(\"invariant\",[]),(\"lemma\",[]),(\"machine\",[]),(\"theorem\",[])])"
+     "Right (fromList [(\"align\",[]),(\"calculation\",[Env{calculation} (68),Env{calculation} (29)]),(\"equation\",[]),(\"invariant\",[]),(\"lemma\",[]),(\"machine\",[]),(\"theorem\",[])])"
     
 
 path3 :: FilePath
@@ -83,7 +83,7 @@ find_env kw xs = M.map L.reverse $ L.foldl' f (M.fromList $ L.zip kw $ repeat []
 
 test1 :: FilePath -> IO String
 test1 path = do
-        let f (EnvNode (Env _ n _ doc _))   = Verbatim $ [s|Env{%s} (%s)|] n (L.unlines $ L.map show $ contents' doc)
+        let f (EnvNode (Env _ n _ doc _))   = Verbatim $ [s|Env{%s} (%d)|] n (L.length $ contents' doc)
             f (BracketNode (Bracket _ _ doc _)) = Verbatim $ [s|Bracket (%d)|] (L.length $ contents' doc)
             f (Text _)            = Verbatim "Text {..}"
         ct <- T.readFile path
