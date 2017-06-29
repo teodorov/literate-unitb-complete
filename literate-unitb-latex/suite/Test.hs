@@ -83,13 +83,10 @@ find_env kw xs = M.map L.reverse $ L.foldl' f (M.fromList $ L.zip kw $ repeat []
 
 test1 :: FilePath -> IO String
 test1 path = do
-        let f (EnvNode (Env _ n _ doc _))   = Verbatim $ [s|Env{%s} (%d)|] n (L.length $ contents' doc)
+        let f (EnvNode (Env _ n _ doc _))   = Verbatim $ [s|Env{%s} (%s)|] n (L.unlines $ L.map show $ contents' doc)
             f (BracketNode (Bracket _ _ doc _)) = Verbatim $ [s|Bracket (%d)|] (L.length $ contents' doc)
             f (Text _)            = Verbatim "Text {..}"
         ct <- T.readFile path
-        print path2
-        x <- mapM print $ fromRight' $ scan_latex "" ct
-        print $ L.length x
         return $ show $ M.map (L.map f) <$> extract_structure ct
 
 test2 :: FilePath -> IO Text
@@ -251,8 +248,11 @@ prop_non_empty_parse_error (MutatedTokens toks) = isLeft xs ==> L.all (not . T.n
     where 
         xs = latex_structure "foo.txt" (flatten toks)
 
-prop_non_empty_scan_error :: Text -> Bool
-prop_non_empty_scan_error str = isRight $ scan_latex "foo.txt" str
+satisfies :: Show a => (a -> Bool) -> a -> Property
+satisfies p x = counterexample (show x) (p x)
+
+prop_non_empty_scan_error :: Text -> Property
+prop_non_empty_scan_error str = satisfies isRight $ scan_latex "foo.txt" str
 
 --prop_counter_example0 :: Bool
 --prop_counter_example0 = Right counter0 === counter0'
