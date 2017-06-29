@@ -17,7 +17,7 @@ import Data.Semigroup
 import Data.Serialize hiding (get)
 import Data.Text as T
 import Data.Typeable
--- import qualified Data.String.Lines as L
+import qualified Data.String.Lines as L
 
 import GHC.Generics.Instances
 import GHC.Read
@@ -92,9 +92,9 @@ class Token t where
     lexemeLength :: t -> LineInfo -> LineInfo
     lexemeLength x
             | L.length xs <= 1 = column %~ (+ T.length t)
-            | otherwise      = (line %~ (+ (L.length xs - 1))).(column .~ (T.length (L.last xs) + 1))
+            | otherwise      = (line %~ (+ (L.length xs - 1))).(column .~ (L.length (L.last xs) + 1))
         where 
-            xs = T.lines t
+            xs = NE.toList $ L.lines' $ unpack t
             t  = lexeme x
 
 instance Token Char where
