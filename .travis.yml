@@ -264,6 +264,7 @@ before_install:
 install:
 - if [ -f configure.ac ]; then autoreconf -i; fi
 - travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-logic literate-unitb --only-dependencies --test
+- travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-config
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 # - |
 #   set -ex

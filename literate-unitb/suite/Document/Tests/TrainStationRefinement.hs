@@ -10,7 +10,7 @@ import Document.Tests.Suite
 #if MIN_VERSION_semigroups(0,18,0)
 import Data.List.NonEmpty as NE
 #else
-import Data.List.NonEmpty as NE hiding (T.unlines)
+import Data.List.NonEmpty as NE hiding (unlines)
 #endif
 import           Data.Text (Text)
 import qualified Data.Text as T
