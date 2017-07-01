@@ -61,7 +61,12 @@ cache:
 jobs:
   include:
   - stage: Prepare cache
-    env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
+    env: BUILD=stack ARGS=""
+    compiler: ": #stack default"
+    addons: {apt: {packages: [libgmp-dev]}}
+    script: True
+
+  - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: True
