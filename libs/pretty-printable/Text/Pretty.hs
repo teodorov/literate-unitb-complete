@@ -64,6 +64,9 @@ instance (PrettyPrintable a,PrettyPrintable b)
         => PrettyPrintable (Either a b) where
     pretty = show . mapBoth Pretty Pretty
 
+instance PrettyPrintable Int where
+    pretty = show
+
 instance PrettyPrintable Char where
     pretty = pure
 

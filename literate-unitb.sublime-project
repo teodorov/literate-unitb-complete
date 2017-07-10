@@ -254,6 +254,17 @@
 			],
 			"folder_exclude_patterns":
 			[	"dist",".stack-work" ],
+			"path": "literate-unitb-scripts"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
 			"path": "syntax-error"
 		},
 		{

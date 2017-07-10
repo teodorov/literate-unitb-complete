@@ -34,6 +34,8 @@ import Test.QuickCheck.Lens
 
 import Utilities.TimeIt
 import Test.QuickCheck.ZoomEq
+import Text.Pretty
+import Z3.Version
 
 selected_test_case :: TestCase
 selected_test_case = test_cases 
@@ -101,7 +103,6 @@ parseSelection =
 trashTestFiles :: IO ()
 trashTestFiles = do
     -- xs <- getDirectoryContents "."
-    setNumCapabilities 8
     void $ system "rm actual* expected* po-* log*.z3"
 
 main :: IO ()
@@ -112,6 +113,8 @@ main = timeIt $ do
          <> header "test - the Literate Unit-B test suite" )
     T.writeFile "syntax.txt" $ T.unlines syntaxSummary
     trashTestFiles
+    setNumCapabilities 8
+    putStrLn $ pretty z3_config
     -- b <- run_quickCheck_suite_with Main.test_case $ argMaxSuccess .= 1000
     -- b <- run_poTestSuite Main.test_case
     b <- join $ execParser opts

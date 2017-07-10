@@ -21,6 +21,7 @@ import System.FilePath
 import System.Process
 import System.IO.Unsafe
 
+import Text.Pretty
 import Text.Printf.TH
 
 import Utilities.Config
@@ -35,6 +36,9 @@ data Z3Config = Z3Config
 makeLenses ''Z3Config
 
 instance NFData Z3Config where
+instance PrettyRecord Z3Config where
+instance PrettyPrintable Z3Config where
+    pretty = prettyRecord
 
 check_z3_bin :: IO Bool
 check_z3_bin = do
