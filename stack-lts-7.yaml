@@ -73,7 +73,6 @@ extra-deps:
 - portable-template-haskell-lens-0.1.0.0
 - zlib-0.6.1.0
 - quickcheck-text-0.1.2.1
-- process-listlike-0.6.2
 
 # Override default flag values for local packages and extra-deps
 flags: {}

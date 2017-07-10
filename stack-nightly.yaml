@@ -70,7 +70,6 @@ extra-deps:
 - th-printf-0.3.1
 - directory-1.2.7.1
 - unfoldable-0.1.0.0
-- process-listlike-0.6.2
 
 # Override default flag values for local packages and extra-deps
 flags: {}
