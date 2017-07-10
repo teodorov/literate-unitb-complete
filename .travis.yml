@@ -219,42 +219,42 @@ jobs:
     compiler: ": #stack default"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - unitb-option --capacity 8 --hard-timeout 40 --default-timeout 6000
+      - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
 
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - unitb-option --capacity 8 --hard-timeout 40 --default-timeout 6000
+      - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - unitb-option --capacity 8 --hard-timeout 40 --default-timeout 6000
+      - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - unitb-option --capacity 8 --hard-timeout 40 --default-timeout 6000
+      - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - unitb-option --capacity 8 --hard-timeout 40 --default-timeout 6000
+      - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
     
   - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - unitb-option --capacity 8 --hard-timeout 40 --default-timeout 6000
+      - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
       - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
 
   allow_failures:
