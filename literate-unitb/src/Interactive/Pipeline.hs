@@ -6,8 +6,6 @@ where
     -- Modules
 --import Browser
     
-import Document.Document
-
 import Documentation.SummaryGen
 
 import Utilities.Config hiding ( wait )
@@ -16,7 +14,8 @@ import Interactive.Serialize
 
 import Logic.Expr
 
-import UnitB.UnitB
+import Language.UnitB
+import Language.UnitB.Parser
 
 import Z3.Z3 
         ( discharge

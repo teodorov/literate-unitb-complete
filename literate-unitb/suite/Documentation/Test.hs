@@ -4,7 +4,7 @@ module Documentation.Test where
     -- 
     -- Modules
     --
-import Document.Tests.Suite as S
+import Language.UnitB.Parser.Tests.Suite as S
 
 import Documentation.SummaryGen
 

@@ -12,11 +12,11 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
-import Document.Document hiding (system)
-import Document.Tests.SmallMachine as SM
-import qualified UnitB.Test as UB
+import Language.UnitB.Parser hiding (system)
+import Language.UnitB.Parser.Tests.SmallMachine as SM
+import qualified Language.UnitB.Test as UB
 import Logic.UnitTest 
-import qualified Document.Test as DOC
+import qualified Language.UnitB.Parser.Test as DOC
 import qualified Utilities.Test as UT
 import qualified Code.Test as Code
 import qualified Documentation.Test as Sum

@@ -6,16 +6,15 @@ where
     -- Modules
 import Interactive.Pipeline
 
-import Document.Document
-
 import Documentation.SummaryGen
 
 import Logic.Expr
 
 import Paths_literate_unitb
 
-import UnitB.PO
-import UnitB.UnitB hiding (timeout)
+import Language.UnitB hiding (timeout)
+import Language.UnitB.PO
+import Language.UnitB.Parser
 
 import Z3.Version
 

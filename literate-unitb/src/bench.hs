@@ -6,11 +6,11 @@ import Control.Monad
 import Data.List
 import Data.Time
 
-import Document.Document
-import qualified UnitB.Test as UB
+import Language.UnitB.Parser
+import qualified Language.UnitB.Test as UB
 import qualified Latex.Test as LT
 import qualified Z3.Test as ZT
-import qualified Document.Test as DOC
+import qualified Language.UnitB.Parser.Test as DOC
 import qualified Utilities.Test as UT
 import qualified Code.Test as Code
 import qualified Documentation.Test as Sum

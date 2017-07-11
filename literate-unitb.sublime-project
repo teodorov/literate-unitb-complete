@@ -18,8 +18,7 @@
 				"--ghc-options", "-fno-warn-name-shadowing",
 				// "--ghc-options", "-fno-warn-type-defaults",
 				"--no-run-tests",
-				"--resolver",
-				"lts-3"
+				"--stack-yaml", "stack-lts-3.yaml"
 			],
 			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
 			"name": "Haskell / stack lts-3",
@@ -35,8 +34,7 @@
 				"--ghc-options", "-fno-warn-name-shadowing",
 				// "--ghc-options", "-fno-warn-type-defaults",
 				"--no-run-tests",
-				"--resolver",
-				"lts-6"
+				"--stack-yaml", "stack-lts-6.yaml"
 			],
 			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
 			"name": "Haskell / stack lts-6",
@@ -52,8 +50,7 @@
 				"--ghc-options", "-fno-warn-name-shadowing",
 				// "--ghc-options", "-fno-warn-type-defaults",
 				"--no-run-tests",
-				"--resolver",
-				"lts-7"
+				"--stack-yaml", "stack-lts-7.yaml"
 			],
 			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
 			"name": "Haskell / stack lts-7",
@@ -71,9 +68,7 @@
 				// "--ghc-options", "-fno-warn-type-defaults",
 				"--no-run-tests",
 				"--pedantic",
-				"--stack-yaml", "stack-nightly.yaml",
-				"--resolver",
-				"lts-8"
+				"--stack-yaml", "stack-lts-8.yaml"
 			],
 			"file_regex": "^ {0,4}([^\\s=:\\(\\)][^\\n:\\(\\)]+?hs):([0-9]*):?([0-9]*)",
 			"name": "Haskell / stack lts-8",

@@ -6,8 +6,8 @@ import Logic.Expr
 import Logic.Proof
 import qualified Logic.Proof.POGenerator as PG
 
-import           UnitB.PO 
-import           UnitB.Syntax as UB hiding (Event)
+import           Language.UnitB.PO 
+import           Language.UnitB.Syntax as UB hiding (Event)
 
     -- Libraries
 import Control.Arrow (first, (***))

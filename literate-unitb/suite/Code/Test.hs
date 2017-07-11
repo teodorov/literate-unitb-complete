@@ -3,12 +3,11 @@ module Code.Test where
 
 import Code.Synthesis hiding (M)
 
-import Document.Document
-
 import Logic.Expr.Const (var)
 
-import UnitB.Expr
-import UnitB.UnitB hiding (safety)
+import Language.UnitB hiding (safety)
+import Language.UnitB.Expr
+import Language.UnitB.Parser
 
 import Z3.Z3
 

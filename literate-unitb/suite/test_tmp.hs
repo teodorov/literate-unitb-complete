@@ -1,36 +1,36 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Document.Document as Doc ( syntaxSummary )
-import Document.Phase.Expressions as PExp
-import Document.MachineSpec as MSpec
-import Document.Tests.Cubes   as Cubes
-import Document.Tests.Definitions  as Def
-import Document.Tests.GarbageCollector  as GC
-import Document.Tests.Lambdas as Lam
-import Document.Tests.LockFreeDeque as Deq
-import Document.Tests.Parser  as Parser
-import Document.Tests.Phase   as Sync
-import Document.Tests.Puzzle  as Puzz
-import Document.Tests.SmallMachine  as SM
-import Document.Tests.Suite hiding (proof_obligation)
-import Document.Tests.TerminationDetection  as Term
-import Document.Tests.TrainStation     as TS
-import Document.Tests.TrainStationRefinement  as TSRef
-import Document.Tests.TrainStationSets as TSS
+import Language.UnitB.Parser as Doc ( syntaxSummary )
+import Language.UnitB.Parser.Phase.Expressions as PExp
+import Language.UnitB.Parser.MachineSpec as MSpec
+import Language.UnitB.Parser.Tests.Cubes   as Cubes
+import Language.UnitB.Parser.Tests.Definitions  as Def
+import Language.UnitB.Parser.Tests.GarbageCollector  as GC
+import Language.UnitB.Parser.Tests.Lambdas as Lam
+import Language.UnitB.Parser.Tests.LockFreeDeque as Deq
+import Language.UnitB.Parser.Tests.Parser  as Parser
+import Language.UnitB.Parser.Tests.Phase   as Sync
+import Language.UnitB.Parser.Tests.Puzzle  as Puzz
+import Language.UnitB.Parser.Tests.SmallMachine  as SM
+import Language.UnitB.Parser.Tests.Suite hiding (proof_obligation)
+import Language.UnitB.Parser.Tests.TerminationDetection  as Term
+import Language.UnitB.Parser.Tests.TrainStation     as TS
+import Language.UnitB.Parser.Tests.TrainStationRefinement  as TSRef
+import Language.UnitB.Parser.Tests.TrainStationSets as TSS
 import Logic.Expr
-import Document.Phase.Test as Ph
-import Document.Test as Doc
+import Language.UnitB.Parser.Phase.Test as Ph
+import Language.UnitB.Parser.Test as Doc
 import Utilities.Test as Ut
-import UnitB.Test as UB
--- import UnitB.UnitB as UB hiding (raw_proof_obligation)
+import Language.UnitB.Test as UB
+-- import Language.UnitB as UB hiding (raw_proof_obligation)
 -- import Logic.Expr.PrettyPrint
 -- import Logic.Names
 import Logic.Names.Packaged ()
 -- import Logic.Proof
--- import UnitB.Test as UB
+-- import Language.UnitB.Test as UB
 --import Latex.Parser
--- import qualified Document.Test as DOC
+-- import qualified Language.UnitB.Parser.Test as DOC
 import qualified Utilities.Test as UT
 import qualified Code.Test as Code
 import qualified Documentation.Test as Sum
@@ -59,7 +59,7 @@ import Test.QuickCheck.Report
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
-import Document.ExprScope as EScope
+import Language.UnitB.Parser.ExprScope as EScope
 
 main :: IO ()
 main = timeIt $ void $ do

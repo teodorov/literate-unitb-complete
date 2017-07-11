@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-module UnitB.Test where 
+module Language.UnitB.Test where 
 
     -- Modules
-import Document.Tests.Suite (lookupSequent)
+import Language.UnitB.Parser.Tests.Suite (lookupSequent)
 
 import           Logic.Expr
 import qualified Logic.Expr.Const as Exp
@@ -14,9 +14,9 @@ import           Logic.UnitTest
 
 import Logic.Theories.FunctionTheory
 
-import UnitB.PO (prop_saf')
-import UnitB.QuasiQuote
-import UnitB.UnitB
+import Language.UnitB.PO (prop_saf')
+import Language.UnitB.QuasiQuote
+import Language.UnitB
 
 import Z3.Z3
 

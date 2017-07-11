@@ -4,8 +4,8 @@
 module Documentation.SummaryGen where
 
     -- Modules
-import UnitB.Expr   hiding ((</>))
-import UnitB.UnitB as UB
+import Language.UnitB as UB
+import Language.UnitB.Expr   hiding ((</>))
 
     -- Libraries
 import Control.Applicative

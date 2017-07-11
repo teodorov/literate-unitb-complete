@@ -5,9 +5,8 @@ module Interactive.Serialize where
 import Logic.Expr
 import Logic.Proof
 
-import UnitB.PO
-import UnitB.Syntax as AST 
-import UnitB.UnitB 
+import Language.UnitB 
+import Language.UnitB.PO
 
     -- Libraries
 import Control.Applicative hiding (empty)
