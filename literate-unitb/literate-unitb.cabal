@@ -224,7 +224,7 @@ test-suite tests
                         optparse-applicative,
                         control-invariants,
                         process,
-                        text, process-listlike,
+                        text, process-extras,
                         containers, either,
                         mtl, syntax-error,
                         bipartite-graph,
