@@ -44,7 +44,7 @@ import           Data.IORef
 import           Data.List as L
 import qualified Data.List.NonEmpty as NE
 import           Data.String.Indentation
-import           Data.String.Lines hiding (lines,unlines)
+import           Data.Text.Lines 
 import           Data.Text as Text (unpack,Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -143,8 +143,8 @@ instance IsTestCase TestCase where
                             , _criterion = id
                             }
     makeCase cs (LineSetCase x y z) = makeCase cs $ textCase x 
-                                ((asLinesText %~ NE.sort) <$> y) 
-                                (z & asLinesText %~ NE.sort)
+                                ((asLines %~ NE.sort) <$> y) 
+                                (z & asLines %~ NE.sort)
     makeCase cs (QuickCheckProps n prop) = do
             args <- ask
             let formatResult x = (x & _1.traverse %~ T.pack ,logNothing)

@@ -51,7 +51,12 @@ source-repository head
 
 library
   -- Modules exported by the library.
-  exposed-modules:     Data.String.Brackets, Data.String.Indentation, Data.String.Lines
+  exposed-modules:     
+      Data.String.Brackets, 
+      Data.String.Indentation, 
+      Data.String.Lines,
+      Data.Text.Lines,
+      Data.Text.Lines.Lazy
   
   -- Modules included in this library but not exported.
   -- other-modules:       

@@ -17,7 +17,6 @@ import Data.Semigroup hiding (option)
 import Data.Serialize
 import Data.String
 import Data.Text as T
-import Data.Text.Arbitrary as T ()
 import Data.Text.Encoding as T
 
 import GHC.Generics
@@ -28,6 +27,7 @@ import Language.Haskell.TH.Syntax
 import qualified Text.Parsec as P
 
 import Test.QuickCheck as QC
+import Test.QuickCheck.Instances as QC ()
 
 newtype Language a = Language { _language :: forall m. IsLanguage m => m a}
     deriving (Functor)

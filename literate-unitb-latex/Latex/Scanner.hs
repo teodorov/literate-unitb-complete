@@ -15,7 +15,8 @@ import Data.Maybe
 import qualified Data.List.NonEmpty as NE
 import Data.List as L
 import Data.String.Lines as L
-import Data.Text as T
+import           Data.Text as T
+import qualified Data.Text.Lazy as Lazy
 
 import Utilities.Syntactic
 
@@ -73,12 +74,12 @@ read_if p left right = do
             else
                 right
 
-line_number :: FilePath -> Text -> [(Char, LineInfo)]
+line_number :: FilePath -> Lazy.Text -> [(Char, LineInfo)]
 line_number fn xs     = L.concatMap f ys
     where
         f (n, xs)  = L.map (g n) xs
         g n (i, x) = (x, LI fn n i)
-        ys         = L.zip [1..] $ L.map (L.zip [1..]) $ NE.toList $ L.lines' $ unpack xs
+        ys         = L.zip [1..] $ L.map (L.zip [1..]) $ NE.toList $ L.lines' $ Lazy.unpack xs
         --addEOL = maybe [] (uncurry (++) . (second (:[]))) . unconsR
         --ys         = zip [1..] $ map (zip [1..] . (++ "\n")) $ lines xs
 
@@ -140,7 +141,7 @@ match_first ((p,f):xs) x = do
             Nothing -> match_first xs x
 
 read_lines :: Scanner Char a 
-           -> FilePath -> Text
+           -> FilePath -> Lazy.Text
            -> Either [Error] a 
 read_lines s fn xs = read_tokens s (line_number fn xs) $ LI fn 1 1
 

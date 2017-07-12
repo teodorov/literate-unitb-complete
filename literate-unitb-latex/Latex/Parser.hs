@@ -20,9 +20,10 @@ import qualified Data.List as L
 import Data.Monoid
 import Data.Semigroup hiding ( (<>) )
 import qualified Data.Semigroup as S 
-import Data.String.Lines as LN (linesText')
-import Data.Text as T
-import Data.Text.Lens as T hiding (Text,_Text)
+import           Data.Text.Lines.Lazy as LN (lines')
+import           Data.Text as T
+import qualified Data.Text.Lazy as Lazy
+import           Data.Text.Lens as T hiding (Text,_Text)
 import Data.Typeable
 
 import GHC.Generics (Generic)
@@ -341,7 +342,7 @@ is_space xs = do
         guard (1 <= n)
         Just n
 
-scan_latex :: FilePath -> Text -> Either [Error] [(LatexToken,LineInfo)]
+scan_latex :: FilePath -> Lazy.Text -> Either [Error] [(LatexToken,LineInfo)]
 scan_latex fn xs = -- trace ([s|input: %s\nuncomment: %s\n|] xs cs) $ 
         -- mapLeft toErr $ P.parse tex_tokens fn $ uncomment xs
         read_lines tex_tokens fn (uncomment xs)
@@ -605,7 +606,7 @@ skip_blank = do
 --             do_while cmd
 --         else return ()
 
-latex_structure :: FilePath -> Text -> Either [Error] LatexDoc
+latex_structure :: FilePath -> Lazy.Text -> Either [Error] LatexDoc
 latex_structure fn xs = do
         ys <- scan_latex fn xs
         latex_content fn ys (1,1)
@@ -613,10 +614,12 @@ latex_structure fn xs = do
 is_prefix :: Eq a => [a] -> [a] -> Bool
 is_prefix xs ys = xs == L.take (L.length xs) ys
 
-uncomment :: Text -> Text
-uncomment xs = F.fold $ fmap removeComment $ linesText' xs
+uncomment :: Lazy.Text -> Lazy.Text
+uncomment xs = F.fold $ fmap removeComment $ lines' xs
     where
-        removeComment = uncurry (<>) . second (T.dropWhile (`notElem` ['\n','\r'])) . T.span ('%' /=)
+
+removeComment :: Lazy.Text -> Lazy.Text
+removeComment = uncurry (<>) . second (Lazy.dropWhile (`notElem` ['\n','\r'])) . Lazy.span ('%' /=)
 
 -- with_print :: Show a => a -> a
 -- with_print x = unsafePerformIO (do putStrLn $ show x ; return x)

@@ -25,7 +25,7 @@ import Data.Maybe  as MM hiding (fromJust)
 import Data.PartialOrd
 import qualified Data.Set  as S
 import Data.Serialize hiding (label,Partial)
-import Data.String.Lines
+import Data.Text.Lines
 import Data.Typeable
 import Data.Text as T
 import Data.Word
@@ -257,8 +257,8 @@ empty_sequent = (Sequent 3000 1 empty_ctx empty_monotonicity [] M.empty ztrue)
 instance (TypeSystem t, IsQuantifier q) => PrettyPrintable (AbsSequent t q) where
     prettyText s = T.unlines $ asms ++ ["|----",goal'] 
         where
-            indent n = over traverseLinesText (T.replicate n " " <>)
-            indentAfter n = partsOf traverseLinesText %~ L.zipWith (<>) ("" : repeat (T.replicate n " "))
+            indent n = over traverseLines (T.replicate n " " <>)
+            indentAfter n = partsOf traverseLines %~ L.zipWith (<>) ("" : repeat (T.replicate n " "))
             asms   = L.map (indent 1) $ 
                     ["sort: " <> T.intercalate ", " (L.filter (not.T.null) $ MM.mapMaybe f $ toList ss)]
                     ++ L.map prettyText (elems fs)

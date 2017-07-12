@@ -5,14 +5,11 @@ import Control.Applicative
 import Control.Arrow
 import Control.Lens hiding (elements,(<|))
 
-import Data.Foldable as F (concat,fold)
+import Data.Foldable as F (concat)
 import Data.List.NonEmpty (NonEmpty(..),fromList,toList,(<|))
 import qualified Data.List.NonEmpty as NE
 import qualified Data.List as L
 import Data.Maybe (mapMaybe)
-import           Data.Text (Text)
-import           Data.Text.Lens
-import qualified Data.Text as T
 
 import Prelude hiding (lines,unlines)
 
@@ -31,12 +28,6 @@ asLines = iso lines' F.concat
 traverseLines :: Traversal' String String
 traverseLines = asLines . traverse
 
-asLinesText :: Iso' T.Text (NonEmpty T.Text)
-asLinesText = iso linesText' fold
-
-traverseLinesText :: Traversal' T.Text T.Text
-traverseLinesText = asLinesText . traverse
-
 spanIso :: (a -> Bool) -> Iso [a] [b] ([a],[a]) ([b],[b])
 spanIso p = iso (span p) (uncurry (++))
 
@@ -47,9 +38,6 @@ lines xs = fromList $ f ys
         f [] = []
         f [x] = [init x]
         f (x0:x1:xs) = x0 : f (x1:xs)
-
-linesText' :: Text -> NonEmpty Text
-linesText' = unpacked lines'
 
 -- breakNewlineText :: Text -> ([Char], Text, Bool)
 -- -- breakNewlineText []       = ([], [], False)
