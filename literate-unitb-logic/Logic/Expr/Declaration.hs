@@ -146,10 +146,10 @@ instance IsName n => Symbol (AbsDef n t q) t q where
 instance (IsName n,Ord t,IsQuantifier q,TypeSystem t) 
         => Symbol (GenContext n t q) t q where
     decl (Context sorts cons fun defs _) = -- dums) = 
-                concatMap decl (M.elems sorts)
+                concatMap (decl.snd) (M.toAscList sorts)
 --            ++  concatMap decl (elems (cons `merge` dums)) 
-            ++  concatMap decl (M.elems cons) 
-            ++  concatMap decl (M.elems fun) 
+            ++  concatMap (decl.snd) (M.toAscList cons) 
+            ++  concatMap (decl.snd) (M.toAscList fun) 
             ++  concatMap decl (sortDefs defs)
 
 sortDefs :: ( IsName n,Ord t,Ord q
@@ -157,8 +157,8 @@ sortDefs :: ( IsName n,Ord t,Ord q
             , TypeSystem t )
          => M.HashMap n (AbsDef n t q) 
          -> [AbsDef n t q]
-sortDefs defs = M.elems defA
-                    ++ (acyclic <$> top_sort (M.elems defB) es)
+sortDefs defs = (snd <$> M.toAscList defA)
+                    ++ (acyclic <$> top_sort (snd <$> M.toAscList defB) es)
                             
         where
             edges d v = d `M.intersection` used_var' (v^.defExpr)

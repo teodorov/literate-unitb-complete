@@ -21,10 +21,11 @@ import Data.Default
 import Data.List as L
 import Data.List.Ordered as L
 import Data.HashMap.Lazy    as M hiding ( map )
-import Data.HashMap.Lazy.Extras (Key)
+import Data.HashMap.Lazy.Extras as M (Key,toAscList)
 import Data.Maybe  as MM hiding (fromJust)
 import Data.PartialOrd
 import qualified Data.HashSet  as S
+-- import qualified Data.HashSet.Extras  as S
 import Data.Serialize hiding (label,Partial)
 import Data.Text.Lines
 import Data.Typeable
@@ -261,7 +262,7 @@ instance (TypeSystem t, IsQuantifier q) => PrettyPrintable (AbsSequent t q) wher
             indent n = over traverseLines (T.replicate n " " <>)
             indentAfter n = partsOf traverseLines %~ L.zipWith (<>) ("" : repeat (T.replicate n " "))
             asms   = L.map (indent 1) $ 
-                    ["sort: " <> T.intercalate ", " (L.filter (not.T.null) $ MM.mapMaybe f $ toList ss)]
+                    ["sort: " <> T.intercalate ", " (L.filter (not.T.null) $ MM.mapMaybe f $ toAscList ss)]
                     ++ L.map prettyText (elems fs)
                     ++ L.map prettyText (sortDefs ds)
                     ++ L.map prettyText (elems vs)
@@ -270,7 +271,7 @@ instance (TypeSystem t, IsQuantifier q) => PrettyPrintable (AbsSequent t q) wher
             goal' = indent 1 $ pretty_print' g
             Context ss vs fs ds _ = s^.context
             -- hs :: TypeSystem t => [(Text,GenExpr Name t t q)]
-            hs  = L.map (_1 %~ (<> ":  ") . prettyText) $ M.toList (s^.named)
+            hs  = L.map (_1 %~ (<> ":  ") . prettyText) $ M.toAscList (s^.named)
             hs' = s^.nameless
             margin = L.maximum (0:L.map (T.length.fst) hs)
             showWithLabel (lbl,x) = T.take margin (lbl <> T.replicate margin " ") <> indentAfter margin (pretty_print' x)
@@ -287,6 +288,7 @@ instance (TypeSystem t, IsQuantifier q) => PrettyPrintable (AbsSequent t q) wher
 remove_type_vars :: Sequent' -> FOSequent
 remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m asm' hyp' goal'
     where
+        _ = asm :: [Expr']
         (Context ss _ _ dd _) = ctx
         _ = dd :: M.HashMap InternalName Def'
         asm_types = MM.catMaybes 
@@ -297,8 +299,8 @@ remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m
         -- seq_types = S.unions $ L.map referenced_types $ asm_types ++ S.toList (used_types goal')
 
         const_types :: [FOType]
-        const_types = foldMap (universe.type_of) 
-                        $ M.elems $ ctx'^.constants 
+        const_types = foldMap (universe.type_of.snd) 
+                        $ M.toAscList $ ctx'^.constants 
         decl_types :: S.HashSet FOType
         decl_types = S.unions $ L.map used_types $ goal' : asm' ++ M.elems hyp'
         ctx' :: FOContext
@@ -482,7 +484,7 @@ entailment s0 s1 = (po0,po1)
         po0 = empty_sequent & context .~ ctx
                             & goal    .~ xp0 `zimplies` xp1 
         po1 = s1 & context .~ ctx
-                 & goal    .~ zall (s0^.nameless ++ elems (s0^.named))
+                 & goal    .~ zall (s0^.nameless ++ L.map snd (toAscList $ s0^.named))
 
 instance (NFData n,NFData t,NFData q,NFData expr) 
     => NFData (GenSequent n t q expr)

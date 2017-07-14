@@ -47,6 +47,7 @@ import           Data.HashMap.Lazy as M
 import qualified Data.HashMap.Lazy as M
 import qualified Data.HashMap.Lazy.Extras as M
 import qualified Data.HashSet as S 
+import qualified Data.HashSet.Extras as S 
 import qualified Data.Maybe as MM
 import           Data.Monoid
 import           Data.Text as T (Text,unlines,intercalate)
@@ -513,7 +514,7 @@ patterns :: Generic a a => a -> [Type]
 patterns ts = map maybe_pattern pat
     where
         pat  = L.filter hg types
-        types = L.map gen $ S.toList $ types_of ts
+        types = L.map gen $ S.toAscList $ types_of ts
         hg x = not $ S.null $ generics x
             -- has generics
         -- gen = M.fromSet GENERIC $ S.unions $ L.map variables types
@@ -535,7 +536,7 @@ gen_to_fol types lbl e = map (f &&& inst) xs
         inst m = mk_error ("gen_to_fol" :: String, (types_of $ e' m,e))
                     strip_generics $ e' m
         e' m   = substitute_type_vars (M.map as_generic m) e
-        xs     = match_all pat (S.toList types)
+        xs     = match_all pat (S.toAscList types)
         f xs   = composite_label [lbl, label $ foldMap z3_decoration $ M.elems xs]
         pat    = patterns e
 

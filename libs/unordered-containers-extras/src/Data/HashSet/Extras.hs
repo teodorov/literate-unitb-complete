@@ -2,6 +2,7 @@ module Data.HashSet.Extras where
 
 import Data.HashMap.Lazy.Extras hiding ((\\))
 import Data.HashSet as S
+import Data.List (sort)
 
 notMember :: (Key a)
           => a -> HashSet a -> Bool
@@ -18,3 +19,6 @@ isSubsetOf :: (Key a)
            -> HashSet a 
            -> Bool
 isSubsetOf s0 s1 = S.null $ s0 \\ s1
+
+toAscList :: Ord a => HashSet a -> [a]
+toAscList = sort . toList
