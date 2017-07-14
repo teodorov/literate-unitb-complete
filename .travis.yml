@@ -29,7 +29,10 @@ cache:
   - $HOME/build/unitb/literate-unitb-complete/literate-unitb-logic/.stack-work/ 
   - $HOME/build/unitb/literate-unitb-complete/literate-unitb-scripts/.stack-work/ 
   - $HOME/build/unitb/literate-unitb-complete/literate-unitb-utils/.stack-work/ 
-  - $HOME/build/unitb/literate-unitb-complete/literate-unitb/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-verifier/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-cli/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-docs/.stack-work/ 
+  - $HOME/build/unitb/literate-unitb-complete/literate-unitb-synthesis/.stack-work/ 
   - $HOME/build/unitb/literate-unitb-complete/syntax-error/.stack-work/
   - $HOME/build/unitb/literate-unitb-complete/unitb-testing/.stack-work/
   - $HOME/build/unitb/literate-unitb-complete/libs/bipartite-graph/.stack-work/
@@ -182,37 +185,37 @@ jobs:
     compiler: ": #stack default"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - travis_long stack --no-terminal $ARGS build literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS build literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
 
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - travis_long stack --no-terminal $ARGS build literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS build literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - travis_long stack --no-terminal $ARGS build literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS build literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - travis_long stack --no-terminal $ARGS build literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS build literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - travis_long stack --no-terminal $ARGS build literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS build literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
     
   - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
-      - travis_long stack --no-terminal $ARGS build literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS build literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
 
   - stage: Test Literate Unit-B
     env: BUILD=stack ARGS=""
@@ -220,47 +223,65 @@ jobs:
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
-      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-verifier --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-docs --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-synthesis --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-cli --bench --no-run-benchmarks
 
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-3.yaml"
     compiler: ": #stack 7.10.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
-      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-verifier --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-docs --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-synthesis --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-cli --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-6.yaml"
     compiler: ": #stack 7.10.3"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
-      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-verifier --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-docs --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-synthesis --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-cli --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-7.yaml"
     compiler: ": #stack 8.0.1"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
-      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-verifier --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-docs --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-synthesis --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-cli --bench --no-run-benchmarks
   
   - env: BUILD=stack ARGS="--stack-yaml stack-lts-8.yaml"
     compiler: ": #stack 8.0.2"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
-      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-verifier --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-docs --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-synthesis --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-cli --bench --no-run-benchmarks
     
   - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
     compiler: ": #stack nightly"
     addons: {apt: {packages: [libgmp-dev]}}
     script: 
       - unitb-option --capacity $Z3_CAPACITY --hard-timeout $Z3_HARD_TIMEOUT --default-timeout $Z3_DEFAULT_TIMEOUT
-      - travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-verifier --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-docs --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-synthesis --bench --no-run-benchmarks
+      - travis_long stack --no-terminal $ARGS test literate-unitb-cli --bench --no-run-benchmarks
 
   allow_failures:
   - env: BUILD=cabal GHCVER=7.10.3 CABALVER=1.22 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
   # - env: BUILD=cabal GHCVER=head  CABALVER=head HAPPYVER=1.19.5 ALEXVER=3.1.7
-  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml"
+  - env: BUILD=stack ARGS="--stack-yaml stack-nightly.yaml --resolver nightly"
   # - env: BUILD=stack ARGS="--resolver lts-8 --stack-yaml stack-nightly.yaml"
   # - env: BUILD=cabal GHCVER=8.0.1 CABALVER=1.24 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS=""
   # - env: BUILD=cabal GHCVER=8.0.2 CABALVER=1.24 HAPPYVER=1.19.5 ALEXVER=3.1.7 STACKARGS="--stack-yaml stack-nightly.yaml"

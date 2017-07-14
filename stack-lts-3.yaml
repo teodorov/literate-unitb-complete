@@ -19,7 +19,10 @@ resolver: lts-3.22
 
 # Local packages, usually specified by relative directory name
 packages:
-- literate-unitb/
+- literate-unitb-cli/
+- literate-unitb-synthesis/
+- literate-unitb-docs/
+- literate-unitb-verifier/
 - literate-unitb-logic/
 - literate-unitb-config/
 - literate-unitb-scripts/

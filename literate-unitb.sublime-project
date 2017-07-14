@@ -99,7 +99,7 @@
 			[
 				"stack",
 				"test",
-				"literate-unitb",
+				"literate-unitb-verifier",
 				"--test-arguments",
 				"--selected-case"
 			],
@@ -193,7 +193,7 @@
 			],
 			"folder_exclude_patterns":
 			[	"dist",".stack-work" ],
-			"path": "literate-unitb/src"
+			"path": "literate-unitb-verifier/src"
 		},
 		{
 			"file_include_patterns":
@@ -205,6 +205,39 @@
 			"folder_exclude_patterns":
 			[	"dist",".stack-work" ],
 			"path": "literate-unitb-logic"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
+			"path": "literate-unitb-synthesis"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
+			"path": "literate-unitb-docs"
+		},
+		{
+			"file_include_patterns":
+			[
+				"*hs",
+				"*.cabal",
+				"*.md"
+			],
+			"folder_exclude_patterns":
+			[	"dist",".stack-work" ],
+			"path": "literate-unitb-cli"
 		},
 		{
 			"file_include_patterns":
@@ -290,7 +323,7 @@
 				"*hs",
 				"*.md"
 			],
-			"path": "literate-unitb/suite"
+			"path": "literate-unitb-verifier/suite"
 		},
 		{
 			"file_include_patterns":
@@ -298,7 +331,7 @@
 				"*hs",
 				"*.md"
 			],
-			"path": "literate-unitb/script"
+			"path": "literate-unitb-verifier/script"
 		},
 		{
 			"file_include_patterns":
@@ -306,7 +339,7 @@
 				"*hs",
 				"*.md"
 			],
-			"path": "literate-unitb/app"
+			"path": "literate-unitb-verifier/app"
 		},
 		{
 			"file_include_patterns":
@@ -314,7 +347,7 @@
 				"*tex",
 				"*sty"
 			],
-			"path": "literate-unitb/Tests"
+			"path": "literate-unitb-verifier/Tests"
 		}
 	],
 	"settings":
