@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, CPP
+{-# LANGUAGE LambdaCase
         , TypeFamilies
         , TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
