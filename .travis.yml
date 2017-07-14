@@ -350,7 +350,7 @@ before_install:
 
 install:
 - if [ -f configure.ac ]; then autoreconf -i; fi
-- travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-logic literate-unitb --only-dependencies --test
+- travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-logic literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --only-dependencies --test
 - travis_long stack --no-terminal --install-ghc $ARGS install literate-unitb-config
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 # - |
@@ -412,7 +412,7 @@ install:
 #   esac
 #   set +ex
 
-script: travis_long stack --no-terminal $ARGS test literate-unitb --bench --no-run-benchmarks
+script: travis_long stack --no-terminal $ARGS test literate-unitb-verifier literate-unitb-docs literate-unitb-synthesis literate-unitb-cli --bench --no-run-benchmarks
 
 before_deploy:
   - travis_long stack --no-terminal $ARGS install
