@@ -23,7 +23,7 @@ library
         Interactive.Serialize
         Paths_literate_unitb_cli
         Continuous
-  build-depends:       base >=4.9 && <4.10,
+  build-depends:       base >=4.8 && <5,
                        file-system-mockup,
                        directory,
                        generic-instances,

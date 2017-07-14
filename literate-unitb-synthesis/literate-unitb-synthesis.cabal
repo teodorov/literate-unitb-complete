@@ -21,7 +21,7 @@ library
         Code.Synthesis
   -- other-modules:       
   -- other-extensions:    
-  build-depends:       base >=4.9 && <4.10,
+  build-depends:       base >=4.8 && <5,
                        th-printf,
                        text-show,
                        text,
@@ -48,7 +48,7 @@ test-suite tests
    type: exitcode-stdio-1.0
    hs-source-dirs: suite
    default-language:    Haskell2010
-   build-depends:       base >=4.9 && <4.10,
+   build-depends:       base >=4.8 && <5,
                         literate-unitb-synthesis,
                         literate-unitb-logic,
                         literate-unitb-verifier,
