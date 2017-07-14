@@ -16,7 +16,8 @@ import Control.Precondition ((!))
 
 import Data.List as L
 import Data.HashMap.Lazy hiding ((!))
-import Data.Set  as S (Set,fromList)
+import Data.HashMap.Lazy.Extras
+import Data.HashSet  as S (HashSet,fromList)
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -983,27 +984,27 @@ result11 = T.unlines
     [ "passed 0 / 0"
     ]
 
-case12 :: IO (Either [Error] (Set Name,Set Name,Set Name))
+case12 :: IO (Either [Error] (HashSet Name,HashSet Name,HashSet Name))
 case12 = runEitherT $ do
     m <- EitherT $ parse_machine path0 3
     return ( keysSet $ m!.abs_vars
            , keysSet $ m!.del_vars
            , keysSet $ m!.variables)
 
-result12 :: Either [Error] (Set Name,Set Name,Set Name)
+result12 :: Either [Error] (HashSet Name,HashSet Name,HashSet Name)
 result12 = Right $ ( ["b","cs","ts","vs"]
                    , ["cs","ts"]
                    , ["b","vs","n","c","fs"])
                  & each %~ (S.fromList . L.map fromString'')
 
-case13 :: IO (Either [Error] (Set Name,Set Name,Set Name))
+case13 :: IO (Either [Error] (HashSet Name,HashSet Name,HashSet Name))
 case13 = runEitherT $ do
     m <- EitherT $ parse_machine path0 4
     return ( keysSet $ m!.abs_vars
            , keysSet $ m!.del_vars
            , keysSet $ m!.variables)
 
-result13 :: Either [Error] (Set Name,Set Name,Set Name)
+result13 :: Either [Error] (HashSet Name,HashSet Name,HashSet Name)
 result13 = Right $ ( ["b","vs","n","c","fs"]
                    , ["cs","ts"]
                    , ["b","vs","n","c","fs"])
@@ -1083,7 +1084,7 @@ result15 = T.unlines
     , ""
     ]
 
-case16 :: IO (Either [Error] (Set Label,Set Label,Set Label))
+case16 :: IO (Either [Error] (HashSet Label,HashSet Label,HashSet Label))
 case16 = runEitherT $ do
     m <- EitherT $ parse_machine path0 3
     let evt = all_upwards m ! "count"
@@ -1091,12 +1092,12 @@ case16 = runEitherT $ do
            , keysSet $ evt^.evt_pairs.traverse.deleted.actions
            , keysSet $ evt^.new.actions)
 
-result16 :: Either [Error] (Set Label,Set Label,Set Label)
+result16 :: Either [Error] (HashSet Label,HashSet Label,HashSet Label)
 result16 = Right ( S.fromList ["act0","act1"]
                  , S.fromList ["act0","act1"]
                  , S.fromList ["m3:act0","m3:act1"])
 
-case17 :: IO (Either [Error] (Set Label,Set Label,Set Label))
+case17 :: IO (Either [Error] (HashSet Label,HashSet Label,HashSet Label))
 case17 = runEitherT $ do
     m <- EitherT $ parse_machine path0 4
     let evt = all_upwards m ! "count"
@@ -1104,7 +1105,7 @@ case17 = runEitherT $ do
            , keysSet $ evt^.evt_pairs.traverse.deleted.actions
            , keysSet $ evt^.new.actions)
 
-result17 :: Either [Error] (Set Label,Set Label,Set Label)
+result17 :: Either [Error] (HashSet Label,HashSet Label,HashSet Label)
 result17 = Right ( S.fromList ["m3:act0","m3:act1"]
                  , S.fromList []
                  , S.fromList ["m3:act0","m3:act1"])
@@ -1869,13 +1870,13 @@ result23 = T.unlines
     [ "error 227:2:\n    deleted variable \'xyz\' does not exist"
     ]
 
-case24 :: IO (Either [Error] (Set Label,Set Label))
+case24 :: IO (Either [Error] (HashSet Label,HashSet Label))
 case24 = runEitherT $ do
     m <- EitherT $ parse_machine path0 4
     return ( keysSet $ m!.inh_props.inv
            , keysSet $ m!.props.inv)
 
-result24 :: Either [Error] (Set Label,Set Label)
+result24 :: Either [Error] (HashSet Label,HashSet Label)
 result24 = Right ( S.fromList ["inv0","inv1","inv2","m3:inv0","m3:inv1"
                               ,"m3:inv2","m3:inv5","m3:inv6"
                               ,"m3:inv7"]
@@ -1930,14 +1931,14 @@ result25 = T.unlines
     , ""
     ]
 
-case27 :: IO (Either [Error] (Set Label,Set Label))
+case27 :: IO (Either [Error] (HashSet Label,HashSet Label))
 case27 = runEitherT $ do
     m <- EitherT $ parse_machine path0 3
     let evt = nonSkipUpwards m ! "flick"
     return ( keysSet $ evt^.evt_pairs.traverse.old.guards
            , keysSet $ evt^.new.guards)
 
-result27 :: Either [Error] (Set Label,Set Label)
+result27 :: Either [Error] (HashSet Label,HashSet Label)
 result27 = Right ( S.fromList ["grd0","grd1","sch0","sch1","sch2"]
                  , S.fromList ["grd1","m3:grd1","m3:grd2","m3:csch1","m3:csch2","sch2"])
 

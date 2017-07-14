@@ -63,8 +63,10 @@ import Data.Functor.Classes
 import Data.Functor.Compose
 import Data.Hashable
 import Data.DList (DList)
-import Data.HashMap.Lazy (HashMap)
+import           Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M 
+-- import qualified Data.HashMap.Lazy.Extras as M
 import Data.Maybe
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Proxy
@@ -171,7 +173,7 @@ instance Monoid1 f => Monoid (OnFunctor f a) where
 
 instance Monoid1 [] where
 instance Monoid1 DList where
-instance Ord k => Monoid1 (HashMap k) where
+instance (Key k) => Monoid1 (HashMap k) where
 
 genericSemigroupMAppend :: (Generic a, GSemigroupWith (Rep a)) => a -> a -> a
 genericSemigroupMAppend x y = gSemiMAppend (x^.generic) (y^.generic)^.from generic
@@ -194,7 +196,7 @@ instance Applicative Intersection where
     pure = Intersection
     Intersection f <*> Intersection x = Intersection $ f x
 
-instance Ord k => Semigroup (Intersection (HashMap k a)) where
+instance (Key k) => Semigroup (Intersection (HashMap k a)) where
     Intersection x <> Intersection y = Intersection $ x `M.intersection` y
 
 instance Ord k => Semigroup (Intersection (Set k)) where
@@ -440,8 +442,8 @@ instance (Serialize a,Serialize1 f) => Serialize (OnFunctor f a) where
     put = put1 . getFunctor
     get = OnFunctor <$> get1
 
-instance (Hashable k,Hashable a) => Hashable (HashMap k a) where
-    hashWithSalt salt = hashWithSalt salt . M.toList
+-- instance (Hashable k,Hashable a) => Hashable (HashMap k a) where
+--     hashWithSalt salt = hashWithSalt salt . M.toList
 
 instance Hashable a => Hashable (Set a) where
     hashWithSalt salt = hashWithSalt salt . S.toList
@@ -560,16 +562,16 @@ genericLiftReadsPrec :: (Generic1 f, F.Read1 (Rep1 f))
 genericLiftReadsPrec f g n = withR to1 $ liftReadsPrec f g n
 
 
-instance Ord k => F.Eq1 (HashMap k) where
-    liftEq f m0 m1 = M.null $ M.mergeWithKey (\_ x y -> guard $ not $ f x y) (() <$) (() <$) m0 m1
-instance Ord k => F.Ord1 (HashMap k) where
+-- instance Ord k => F.Eq1 (HashMap k) where
+--     liftEq f m0 m1 = M.null $ M.mergeWithKey (\_ x y -> guard $ not $ f x y) (() <$) (() <$) m0 m1
+instance (Key k) => F.Ord1 (HashMap k) where
     liftCompare f m0 m1 = foldMap id $ M.mergeWithKey (\_ x y -> Just $ f x y) (GT <$) (LT <$) m0 m1
 
-instance Show k => F.Show1 (HashMap k) where
-    -- liftShowsPrec showA showAs n = liftShowsPrec 
-    --             (liftShowsPrec showA showAs) 
-    --             (liftShowList showA showAs) n 
-    --         . M.toList
-    liftShowsPrec _ _ _ _ = id
+-- instance Show k => F.Show1 (HashMap k) where
+--     -- liftShowsPrec showA showAs n = liftShowsPrec 
+--     --             (liftShowsPrec showA showAs) 
+--     --             (liftShowList showA showAs) n 
+--     --         . M.toList
+--     liftShowsPrec _ _ _ _ = id
 
 #endif

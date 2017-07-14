@@ -27,7 +27,8 @@ import           Data.Either
 import           Data.Either.Combinators hiding (fromRight')
 import           Data.List as L
 import           Data.HashMap.Lazy as M
-import qualified Data.Set as S
+import           Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet as S
 import           Data.Text as T (Text)
 import qualified Data.Text as T 
 import           Data.Typeable
@@ -254,7 +255,7 @@ sort_def n f = do
 param_to_var :: Expr -> Expr
 param_to_var e = evalState (param_to_varE e) (0,variables e,M.empty)
 
-type RewriteST = State (Int,S.Set InternalName,HashMap InternalName InternalName)
+type RewriteST = State (Int,S.HashSet InternalName,HashMap InternalName InternalName)
 
 param_to_varE :: Expr -> RewriteST Expr
 param_to_varE e = do
@@ -296,7 +297,7 @@ param_to_varT t = rewriteM param_to_varT t
 newtype M a = M (RWS () [Expr] (Int,Theory) a)
     deriving (Applicative,Functor,Monad)
 
-clash :: (PrettyPrintable a, Ord a)
+clash :: (PrettyPrintable a, Key a)
       => (thy -> HashMap a b) -> [thy] -> HashMap a b
 clash f xs 
         | L.null es = M.unions $ L.map f xs

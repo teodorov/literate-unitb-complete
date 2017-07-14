@@ -33,7 +33,8 @@ import           Data.Existential
 import           Data.List as L
 import           Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NE
-import           Data.HashMap.Lazy as M hiding ( map, (\\), (!) )
+import           Data.HashMap.Lazy as M hiding ( map, (!) )
+import           Data.HashMap.Lazy.Extras as M hiding ( (\\) )
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -71,10 +72,10 @@ getTransient :: RuleParserParameter -> HashMap Label Transient
 getTransient = view pTransient . getMachine
 
 getProgress :: RuleParserParameter -> HashMap Label ProgressProp
-getProgress = mapKeysMonotonic as_label . view pProgress . getMachine
+getProgress = M.mapKeysMonotonic as_label . view pProgress . getMachine
 
 getNewProgress :: RuleParserParameter -> HashMap Label ProgressProp
-getNewProgress = mapKeysMonotonic as_label . view (pNewPropSet.progress) . getMachine
+getNewProgress = M.mapKeysMonotonic as_label . view (pNewPropSet.progress) . getMachine
 
 getSafety :: RuleParserParameter -> HashMap Label SafetyProp
 getSafety = view pSafety . getMachine
@@ -217,7 +218,7 @@ instance RuleParser Induction where
             parser = m^.pMchSynt
             syntax = "Syntax: \\var{expr}{dir}{bound}"
         li <- ask
-        dum <- case fv1 \\ fv0 of
+        dum <- case fv1 L.\\ fv0 of
             [v] -> return v
             _   -> raise $ Error ( "inductive formula should have one free "
                                 <> "variable to record the variant") li 
@@ -349,7 +350,7 @@ parse_induction param = do
             ]
         let (LeadsTo fv0 _ _) = getExpr <$> (prog ! goal_lbl)
             (LeadsTo fv1 _ _) = getExpr <$> (prog ! h0)
-        dum <- case fv1 \\ fv0 of
+        dum <- case fv1 L.\\ fv0 of
             [v] -> return v
             _   -> raise $ Error ( "inductive formula should have one free "
                                 <> "variable to record the variant") li 

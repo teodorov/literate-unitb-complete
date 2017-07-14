@@ -18,6 +18,7 @@ import Control.Precondition
 
 import           Data.Graph.Array
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.Monoid
 import           Data.Typeable
 

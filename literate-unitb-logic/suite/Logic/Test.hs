@@ -32,9 +32,10 @@ import Data.Hashable
 import Data.List as L hiding (union)
 import           Data.HashMap.Lazy hiding ( map, union, member )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 import Data.Monoid
 import Data.PartialOrd
-import qualified Data.Set as S
+import qualified Data.HashSet as S
 import           Data.Text (Text,unpack)
 import qualified Data.Text as T
 
@@ -118,7 +119,7 @@ mapping_acyclic :: (Type,Type) -> Maybe (Type,Type)
 mapping_acyclic (t0,t1) =
         maybe (Just (t0,t1)) (const Nothing) (do
             un <- unify t0 t1
-            return $ S.null (keysSet un `S.intersection` S.unions (map generics $ elems un)))
+            return $ S.null (M.keysSet un `S.intersection` S.unions (map generics $ elems un)))
 
 prop_type_mapping_acyclic :: (Type, Type) -> Property
 prop_type_mapping_acyclic (t0,t1) = 

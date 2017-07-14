@@ -33,13 +33,13 @@ import           Data.IntMap
             , mapMaybe )
 import           Data.List.NonEmpty (NonEmpty,nonEmpty)
 import qualified Data.HashMap.Lazy as M
-import qualified Data.Set as S
+import qualified Data.HashSet as S
 
 get_partition :: [Var] -> [Expr] -> ([(Key, Int)], [(Var, Int)], [(Expr, Int)])
 get_partition vs es = do -- error "UnitB.Feasibility.partition_expr: not implemented"
         runPartitionWith [0..m+n-1] $ do
-            forM_ (M.assocs me) $ \(e,i) -> 
-                forM_ (S.elems $ used_var e) $ \v ->
+            forM_ (M.toList me) $ \(e,i) -> 
+                forM_ (S.toList $ used_var e) $ \v ->
                     case M.lookup v mv of
                         Just j  -> merge i j
                         Nothing -> return ()
@@ -63,17 +63,17 @@ partition_expr :: (TypeSystem t,IsName n,IsQuantifier q)
                -> [([AbsVar n t],NonEmpty (AbsExpr n t q))]
 partition_expr vs es' = do 
         runPartitionWith [0..m+n-1] $ do
-            forM_ (M.assocs me) $ \(e,i) -> 
-                forM_ (S.elems $ used_var e) $ \v ->
+            forM_ (M.toList me) $ \(e,i) -> 
+                forM_ (S.toList $ used_var e) $ \v ->
                     case M.lookup v mv of
                         Just j  -> merge i j
                         Nothing -> return ()
             compress
                 -- At this point, i and j are in the same partition  ==  parent i = parent j
-            xs <- forM (M.assocs me) $ \(e,i) -> do
+            xs <- forM (M.toList me) $ \(e,i) -> do
                 j <- parent i
                 return (j,([],[e]))
-            ys <- forM (M.assocs mv) $ \(v,i) -> do
+            ys <- forM (M.toList mv) $ \(v,i) -> do
                 j <- parent i
                 return (j,([v],[]))
             let m = fromListWith mappend $ xs ++ ys

@@ -21,9 +21,10 @@ import Data.Default
 import Data.List as L
 import Data.List.Ordered as L
 import Data.HashMap.Lazy    as M hiding ( map )
+import Data.HashMap.Lazy.Extras (Key)
 import Data.Maybe  as MM hiding (fromJust)
 import Data.PartialOrd
-import qualified Data.Set  as S
+import qualified Data.HashSet  as S
 import Data.Serialize hiding (label,Partial)
 import Data.Text.Lines
 import Data.Typeable
@@ -99,7 +100,7 @@ applyTimeout x' = timeout %~ round . f . fromIntegral
         x = fromMaybe 1 x'
         f y = x * y
 
-instance (Ord name,Eq t,Eq q,Ord expr) => 
+instance (Key name,Eq t,Eq q,Ord expr) => 
         PreOrd (GenSequent name t q expr) where
     partCompare x y = genericPreorder (f x) (f y)
         where
@@ -107,7 +108,7 @@ instance (Ord name,Eq t,Eq q,Ord expr) =>
                     ( Partial to,Partial r,ctx,sThm
                     , Unordered hyps0,hyps1,Quotient goal)
 
-instance (Ord name,Eq t,Eq q,Ord expr) => 
+instance (Key name,Eq t,Eq q,Ord expr) => 
         PartialOrd (GenSequent name t q expr) where
 
 instance PreOrd SyntacticProp where
@@ -119,7 +120,7 @@ instance ZoomEq SyntacticProp where
 instance Default SyntacticProp where
     def = empty_monotonicity
 
-instance (Ord n,ZoomEq n,ZoomEq t,ZoomEq q,ZoomEq e) 
+instance (Key n,ZoomEq n,ZoomEq t,ZoomEq q,ZoomEq e) 
         => ZoomEq (GenSequent n t q e) where
 
 instance HasExprs (GenSequent n t q e) e where
@@ -290,7 +291,7 @@ remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m
         _ = dd :: M.HashMap InternalName Def'
         asm_types = MM.catMaybes 
                     $ L.map type_strip_generics 
-                    $ S.elems $ S.unions 
+                    $ S.toList $ S.unions 
                     $ L.map used_types $ L.map target (M.elems dd) ++ asm ++ M.elems hyp
         seq_types = S.fromList asm_types `S.union` used_types goal'
         -- seq_types = S.unions $ L.map referenced_types $ asm_types ++ S.toList (used_types goal')
@@ -298,7 +299,7 @@ remove_type_vars (Sequent tout res ctx m asm hyp goal) = Sequent tout res ctx' m
         const_types :: [FOType]
         const_types = foldMap (universe.type_of) 
                         $ M.elems $ ctx'^.constants 
-        decl_types :: S.Set FOType
+        decl_types :: S.HashSet FOType
         decl_types = S.unions $ L.map used_types $ goal' : asm' ++ M.elems hyp'
         ctx' :: FOContext
         ctx'  = to_fol_ctx decl_types $ ctx
@@ -489,7 +490,7 @@ instance NFData SyntacticProp
 instance NFData Rel
 instance NFData t => NFData (ArgDep t)
 
-instance ( Ord n, Arbitrary n, Arbitrary t, Arbitrary q, Arbitrary e
+instance ( Key n, Arbitrary n, Arbitrary t, Arbitrary q, Arbitrary e
          , IsQuantifier q, TypeSystem t )
         => Arbitrary (GenSequent n t q e) where
     arbitrary = scale (`div` 4) genericArbitrary
@@ -509,7 +510,7 @@ instance Arbitrary a => Arbitrary (ArgDep a) where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance (Ord n,Serialize n,Serialize t,Serialize q,Serialize expr) 
+instance (Key n,Serialize n,Serialize t,Serialize q,Serialize expr) 
     => Serialize (GenSequent n t q expr) where
 instance Serialize SyntacticProp where
 instance Serialize a => Serialize (ArgDep a) where

@@ -61,6 +61,7 @@ import qualified Data.List.Ordered as Ord
 import           Data.List.NonEmpty as NE hiding (length,tail,head,map)
 import qualified Data.List.NonEmpty as NE 
 import           Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M
 import           Data.Maybe as MM
 import           Data.Semigroup (Semigroup(..),First(..))
 import           Data.Text (Text)
@@ -137,7 +138,7 @@ clash x y = isNothing $ merge_scopes' x y
 merge_scopes :: (Scope a, Pre) => a -> a -> a
 merge_scopes x y = fromJust' $ merge_scopes' x y
 
-scopeUnion :: Ord k
+scopeUnion :: Key k
            => (a -> a -> Maybe a) 
            -> M.HashMap k a 
            -> M.HashMap k a 
@@ -283,7 +284,7 @@ all_errors :: Traversable t
            -> MM' c (Maybe (t a))
 all_errors m = T.mapM fromEither' m >>= (return . T.sequence)
 
-make_table :: (Ord a, PrettyPrintable a) 
+make_table :: (Key a, PrettyPrintable a) 
            => (a -> Text) 
            -> [(a,b,LineInfo)] 
            -> Either [Error] (M.HashMap a (b,LineInfo))
@@ -294,20 +295,20 @@ make_table f xs = validationToEither $ M.traverseWithKey failIf' $ M.fromListWit
         failIf' k xs = Failure $ err k (snd <$> xs)
         err x li = [MLError (f x) (fmap (prettyText x,) li)]
 
-make_all_tables' :: (Scope b, Show a, Ord a, Ord k) 
+make_all_tables' :: (Scope b, Show a, Key a, Key k) 
                  => (a -> Text) 
                  -> M.HashMap k [(a,b)] 
                  -> MM (Maybe (M.HashMap k (M.HashMap a b)))
 make_all_tables' f xs = T.sequence <$> T.sequence (M.map (make_table' f) xs `using` parTraversable rseq)
 
-make_all_tables :: (PrettyPrintable a, Ord a, Ord k) 
+make_all_tables :: (PrettyPrintable a, Key a, Key k) 
                 => (a -> Text)
                 -> M.HashMap k [(a, b, LineInfo)] 
                 -> MM (Maybe (M.HashMap k (M.HashMap a (b,LineInfo))))
 make_all_tables f xs = all_errors (M.map (make_table f) xs `using` parTraversable rseq)
 
 make_table' :: forall a b.
-               (Ord a, Show a, Scope b) 
+               (Key a, Show a, Scope b) 
             => (a -> Text) 
             -> [(a,b)] 
             -> MM (Maybe (M.HashMap a b))

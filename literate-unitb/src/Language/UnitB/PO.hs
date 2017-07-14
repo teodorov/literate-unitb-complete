@@ -47,8 +47,9 @@ import           Data.List.NonEmpty as NE hiding (inits,(!!))
 import           Data.HashMap.Lazy as M hiding 
                     ( map, (!)
                     , delete, filter, null
-                    , (\\), mapMaybe )
+                    , mapMaybe )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.Monoid
 import           Data.Monoid.Monad
 import           Data.Text (Text)
@@ -223,7 +224,7 @@ raw_machine_pos' m' = eval_generator $
                         wit_fis_po m ev
                         fis_po m ev
                     mapM_ (prog_wd_po m) $ M.toList $ _progress p
-                    run $ foldMapWithKey (fmap Cons . ref_po m) (m!.derivation)
+                    run $ M.foldMapWithKey (fmap Cons . ref_po m) (m!.derivation)
     where 
         m   = raw m'
         syn = allSyntacticThms (m!.theory)
@@ -286,7 +287,7 @@ theory_po th = do
         dep :: HashMap Label (HashMap Label ())
         dep       = M.map M.fromList $ M.fromListWith (++) 
                         [ (x,[(y,())]) | (x,y) <- th^.thm_depend ]
-        depend x  = thm `M.intersection` findWithDefault M.empty x dep
+        depend x  = thm `M.intersection` M.findWithDefault M.empty x dep
         (thm,axm) = M.partitionWithKey p $ th ^. fact
         p k _     = k `M.member` view theorems th
 
@@ -372,7 +373,7 @@ splitDetInit vs acts = (det' & _Wrapped.traverse %~ distr, M.map zall $ M.unionW
                 M.toList clash & \xs -> [ (l,[Word v `zeq` e]) | (v,es) <- xs, (l,e) <- es ]
         det'  :: HashMap Var (Label,RawExpr)
         clash :: HashMap Var [(Label,RawExpr)]
-        (clash,det') = mapEither onlyOne $ M.fromListWith (++) $ distrList $ M.toList det
+        (clash,det') = M.mapEither onlyOne $ M.fromListWith (++) $ distrList $ M.toList det
         distrList :: [(t1, NonEmpty (t, t2))] -> [(t, [(t1, t2)])]
         distrList xs = [ (v,[(l,e)]) | (l,ne) <- xs, (v,e) <- NE.toList ne ]
             -- det & _Wrapped %~ _ . L.map sequence
@@ -538,7 +539,7 @@ prop_saf' m excp (pname, Unless fv p q) =
         forM_ evts $ \(evt_lbl,evt) -> do
             let grd = evt^.new.guards
                 act = ba_predicate m evt
-                ind = findWithDefault M.empty (Right evt_lbl) inds
+                ind = M.findWithDefault M.empty (Right evt_lbl) inds
                 fvs = symbol_table fv 
                 neq x = znot $ Word x `zeq` Word (suff x)
                 isExcp = Right evt_lbl `M.member` inds
@@ -824,7 +825,7 @@ replace_fsched_po m (lbl,aevt) = do
                         emit_goal ["eqv"] $ fromRight'$
                             Right (zsome add_f) .=. Right (zsome del_f)
 
-intersections :: Ord k => [HashMap k a] -> HashMap k a
+intersections :: M.Key k => [HashMap k a] -> HashMap k a
 intersections []  = assertFalse' "intersection of empty list is undefined"
 intersections [x] = x
 intersections (x:xs) = x `intersection` intersections xs                                
@@ -892,7 +893,7 @@ splitNonDet :: forall expr. HashMap Label (Action' expr)
                , HashMap Label (Action' expr) )
 splitNonDet acts = (det' & _Wrapped.traverse %~ distr, clash' `M.union` nonDet)
     where
-        (nonDet,det) = mapEither isDet acts
+        (nonDet,det) = M.mapEither isDet acts
         distr :: (a,(b,c)) -> (b,(a,c))
         distr (x,(y,z)) = (y,(x,z))
         isDet = matching _Assign
@@ -900,7 +901,7 @@ splitNonDet acts = (det' & _Wrapped.traverse %~ distr, clash' `M.union` nonDet)
         clash' = clash & _Wrapped %~ \xs -> [ (l,Assign v e) | (v,es) <- xs, (l,e) <- es ]
         det'  :: HashMap Var (Label,expr)
         clash :: HashMap Var [(Label,expr)]
-        (clash,det') = mapEither onlyOne $ M.fromListWith (++) $ distrList $ M.toList det
+        (clash,det') = M.mapEither onlyOne $ M.fromListWith (++) $ distrList $ M.toList det
         distrList xs = [ (v,[(l,e)]) | (l,(v,e)) <- xs ]
         onlyOne [x] = Right x
         onlyOne x   = Left x

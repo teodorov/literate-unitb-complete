@@ -28,6 +28,7 @@ import qualified Data.DList as D
 import           Data.Hashable
 import           Data.List as L
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.String
 import           Data.Text (Text,pack,unpack)
 import           Data.Tuple.Generics

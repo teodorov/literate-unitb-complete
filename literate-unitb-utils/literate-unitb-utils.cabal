@@ -80,7 +80,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, existential, text, quickcheck-instances
+  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, existential, text, quickcheck-instances, unordered-containers, unordered-containers-extras
 
   -- Directories containing source files.
   hs-source-dirs:      .
@@ -94,5 +94,5 @@ test-suite test-utils
   default-language:    Haskell2010
   main-is: Test.hs
   default-extensions: QuasiQuotes, TemplateHaskell, OverloadedStrings
-  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, literate-unitb-utils, unitb-testing
+  build-depends:       array, async, base >=4.8 && < 5, bytestring, cereal < 5, containers, data-default, data-ordlist, deepseq, directory, dlist, either, filepath, generic-instances, hashable, control-invariants, lens, mtl, parsec, th-printf, process, QuickCheck, safe, semigroups, string-lenses, template-haskell, time, transformers >=0.3, zlib, pretty-printable, bytes, quickcheck-report, literate-unitb-utils, unitb-testing, unordered-containers
 

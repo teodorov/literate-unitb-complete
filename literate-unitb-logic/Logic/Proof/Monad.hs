@@ -18,7 +18,7 @@ import Control.Precondition
 
 import Data.List as L
 import Data.HashMap.Lazy as M
-import Data.Set as S
+import Data.HashSet as S
 import Data.Text (Text)
 
 import GHC.Generics.Instances

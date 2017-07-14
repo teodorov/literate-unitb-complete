@@ -19,7 +19,8 @@ import Control.Precondition ((!))
 import Data.Graph.Bipartite
 import Data.List as L
 import Data.HashMap.Lazy as M hiding ((!))
-import Data.Set  as S
+import Data.HashMap.Lazy.Extras as M
+import Data.HashSet  as S
 import           Data.Text (Text)
 import qualified Data.Text as T
 

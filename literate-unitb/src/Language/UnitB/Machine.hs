@@ -24,7 +24,7 @@ import Language.UnitB.Property
     -- Libraries
 import Control.Arrow
 import Control.DeepSeq
-import Control.Invariant
+import Control.Invariant hiding (isSubmapOf',member')
 import Control.Lens hiding (indices)
 import Control.Lens.HierarchyTH
 import Control.Lens.Misc
@@ -47,8 +47,9 @@ import           Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, inits )
 import           Data.List.NonEmpty as NE hiding (inits)
 import           Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M
 import           Data.Maybe as M
-import qualified Data.Set as S
+import qualified Data.HashSet as S
 import           Data.Serialize hiding (label,put)
 import           Data.String
 import           Data.Text (Text)
@@ -449,7 +450,7 @@ newEvents :: HasExpr expr
           -> EventMap expr
 newEvents xs = eventMap $ mapM_ (uncurry event . over _2 put) xs
 
-variableSet :: MachineAST -> S.Set Var
+variableSet :: MachineAST -> S.HashSet Var
 variableSet m = S.fromList $ M.elems $ m!.variables
 
 events :: HasMachineBase mch expr

@@ -15,6 +15,7 @@ import Control.Lens
 import Control.Precondition
 
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 
     -- arithmetic
 

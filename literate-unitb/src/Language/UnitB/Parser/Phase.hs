@@ -43,6 +43,7 @@ import Data.Hashable
 import Data.List as L
 import Data.List.NonEmpty as NE
 import Data.HashMap.Lazy as M hiding ((!))
+import Data.HashMap.Lazy.Extras as M
 import Data.Maybe as MM
 import Data.Semigroup
 import Data.Text (Text)
@@ -117,7 +118,7 @@ machineCmd cmd f = Pipeline m_spec empty_spec g
 
 cmdFun :: forall a b c d. 
               ( IsTuple LatexArg b
-              , Ord c )
+              , Key c )
            => (b -> c -> d -> M a) 
            -> Cmd
            -> c -> (HashMap c d) -> MM (Maybe a)
@@ -146,7 +147,7 @@ machineEnv env f = Pipeline m_spec empty_spec g
         g = collect param (envFun f)
 
 envFun :: forall a b c d. 
-              ( IsTuple LatexArg b, Ord c )
+              ( IsTuple LatexArg b, Key c )
            => (b -> LatexDoc -> c -> d -> M a) 
            -> Env
            -> c -> (HashMap c d) -> MM (Maybe a)
@@ -195,7 +196,7 @@ data Collect a b k t = Collect
     -- , getContent :: b -> a
     , tag :: k }
 
-collect :: (Ord k, Monoid z, Ord c, Show c)
+collect :: (Key k, Monoid z, Key c, Show c)
         => Collect a b k c
         -> (b -> c -> d -> MM (Maybe z)) 
         -> d
@@ -213,7 +214,7 @@ collect p f arg = do
     -- we want to encode phases as maps to 
     -- phase records and extract fields
     -- as maps to value
-onMap :: Ord k => Lens' a b -> Lens' (HashMap k a) (HashMap k b)
+onMap :: Key k => Lens' a b -> Lens' (HashMap k a) (HashMap k b)
 onMap ln f ma = M.intersectionWith (flip $ set ln) ma <$> mb' 
     where
         mb  = M.map (view ln) ma 
@@ -229,15 +230,15 @@ onMap' ln = to $ M.map $ view ln
 
 infixl 3 <.>
 
-{-# SPECIALIZE (<.>) :: (Ord a,Default b) => HashMap a (b -> c) -> HashMap a b -> HashMap a c #-}
-{-# SPECIALIZE (<.>) :: (Ord a,Default b) => HashMap a (b -> c) -> HashMap a b -> HashMap a c #-}
-(<.>) :: (Default b,Ord a) 
+{-# SPECIALIZE (<.>) :: (Key a,Default b) => HashMap a (b -> c) -> HashMap a b -> HashMap a c #-}
+{-# SPECIALIZE (<.>) :: (Key a,Default b) => HashMap a (b -> c) -> HashMap a b -> HashMap a c #-}
+(<.>) :: (Default b,Key a) 
       => HashMap a (b -> c) -> HashMap a b -> HashMap a c
 (<.>) mf mx = uncurry ($) <$> differenceWith g ((,def) <$> mf) mx
     where
         g (f,_) x = Just (f,x) 
 
-zipMap :: (Default a, Default b,Ord k) 
+zipMap :: (Default a, Default b,Key k) 
        => HashMap k a -> HashMap k b -> HashMap k (a,b)
 zipMap m0 m1 = M.unionWith f ((,def) <$> m0) ((def,) <$> m1)
     where
@@ -274,7 +275,7 @@ eventDifference f eid field = pEventRef . to f'
             es <- T.mapM (leftInfo.G.source) =<< predecessors cevt
             f (view field <$> es) <$> (view field <$> rightInfo cevt)
 
-eventDifferenceWithId :: (HasMachineP1 phase,Ord label,AEvtType phase ~ CEvtType phase)
+eventDifferenceWithId :: (HasMachineP1 phase,Key label,AEvtType phase ~ CEvtType phase)
                       => (   HashMap label (First a,NonEmpty SkipOrEvent) 
                           -> HashMap label (First a,NonEmpty SkipOrEvent) 
                           -> HashMap label (First b,c))
@@ -286,12 +287,12 @@ eventDifferenceWithId comp eid field = eventDifference f eid (to $ field' field)
         f old new = M.unionsWith (<>) (NE.toList old) `comp` new
         field' ln e = M.map ((,view eEventId e :| []).First) $ view ln e
 
-evtMergeAdded :: (HasMachineP1 phase, Ord label,AEvtType phase ~ CEvtType phase)
+evtMergeAdded :: (HasMachineP1 phase, Key label,AEvtType phase ~ CEvtType phase)
               => EventId
               -> Getting (HashMap label a) (AEvtType phase) (HashMap label a)
               -> Getter phase (HashMap label a)
 evtMergeAdded = eventDifference $ \old new -> new `M.difference` M.unions (NE.toList old)
-evtMergeDel :: (HasMachineP1 phase, Ord label,AEvtType phase ~ CEvtType phase)
+evtMergeDel :: (HasMachineP1 phase, Key label,AEvtType phase ~ CEvtType phase)
             => EventId
             -> Getting (HashMap label a) (AEvtType phase) (HashMap label a)
             -- -> Getter phase (HashMap label (a,NonEmpty SkipOrEvent))
@@ -390,7 +391,7 @@ pEventMerge' = pEventRef.to f
                 e  <- rightInfo v
                 return $ (k,(e,es))^.distrLeft
 
-traverseFilter :: Ord k => (a -> Bool) -> Traversal' (HashMap k a) (HashMap k a)
+traverseFilter :: Key k => (a -> Bool) -> Traversal' (HashMap k a) (HashMap k a)
 traverseFilter p f m = M.union <$> f m' <*> pure (m `M.difference` m')
     where
         m' = M.filter p m
@@ -554,7 +555,7 @@ aliases ln0 ln1 = lens getter $ flip setter
                 y = view ln1 z
         setter x = set ln0 x . set ln1 x
 
-inheritWith' :: Ord k 
+inheritWith' :: Key k 
              => (base -> conc) 
              -> (k -> conc -> abstr)
              -> (conc -> abstr -> conc)
@@ -568,7 +569,7 @@ inheritWith' decl inh (++) (Hierarchy _xs es) m = m2 -- _ $ L.foldl' f (M.map de
             inh k <$> p `M.lookup` m2
         m2 = M.mapWithKey (\k c -> maybe c (c ++) (prec k)) m1
 
-inheritWithAlt :: Ord k 
+inheritWithAlt :: Key k 
              => (base -> conc) 
              -> (k -> conc -> abstr)
              -> (conc -> abstr -> conc)
@@ -581,7 +582,7 @@ inheritWithAlt decl inh (++) (Hierarchy xs es) m = L.foldl' f (M.map decl m) xs
                  Nothing -> m
         app ixs k dxs = dxs ++ inh k ixs
 
-inheritWith :: Ord k 
+inheritWith :: Key k 
             => (base -> conc) 
             -> (conc -> abstr)
             -> (conc -> abstr -> conc)
@@ -623,7 +624,7 @@ topological_order = Pipeline empty_spec empty_spec $ \es' -> do
             return Nothing -- (error "topological_order")
         msg = [st|A cycle exists in the %s|]
 
-fromList' :: Ord a => [a] -> HashMap a ()
+fromList' :: Key a => [a] -> HashMap a ()
 fromList' xs = M.fromList $ L.zip xs $ L.repeat ()
 
 inherit :: Hierarchy MachineId -> HashMap MachineId [b] -> HashMap MachineId [b]

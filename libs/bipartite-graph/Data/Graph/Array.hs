@@ -22,11 +22,14 @@ import Data.Array.IArray hiding ((!))
 import Data.Array.IO
 import Data.Array.ST
 import Data.Graph (SCC(..))
+import Data.Hashable
 import Data.List
 import Data.STRef
 import qualified Data.List.Ordered as OL
-import qualified Data.HashMap.Lazy as M
-import qualified Data.Set as S
+import qualified Data.HashMap.Lazy        as M
+import qualified Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet        as S
+import qualified Data.HashSet.Extras as S
 import qualified Data.Tuple as T
 
 import Test.QuickCheck hiding (frequency,elements)
@@ -36,13 +39,13 @@ import Test.QuickCheck.Report as QC
 data Color = White | Grey | Black
     deriving (Eq)
 
-closure :: forall v. Ord v => [v] -> [(v,v)] -> M.HashMap v [v]
+closure :: forall v. (Ord v,Hashable v) => [v] -> [(v,v)] -> M.HashMap v [v]
 closure vs es = closure' (graph vs es)
 
-closure' :: forall v. Ord v => GraphImp v -> M.HashMap v [v]
+closure' :: forall v. (Ord v,Hashable v) => GraphImp v -> M.HashMap v [v]
 closure' g = runST $ do
         ar <- newArray_ (V 0,V $ nn-1)
-                :: ST s (STArray s Vertex (S.Set Vertex))
+                :: ST s (STArray s Vertex (S.HashSet Vertex))
         forM_ top $ \xs -> do
             let ys  = S.fromList $ concatMap (i2e !) xs
             zs <- forM (S.toList $ ys S.\\ S.fromList xs) $ 
@@ -75,7 +78,7 @@ topological_sort g = map (fmap (i2v !)) $ top_sort' g
     where
         i2v = int2v g
 
-top_sort :: forall v. Ord v => [v] -> [(v,v)] -> [SCC v]
+top_sort :: forall v. (Ord v,Hashable v) => [v] -> [(v,v)] -> [SCC v]
 top_sort vs es = map (fmap (i2v !)) $ top_sort' g
     where
         i2v = int2v g
@@ -198,7 +201,7 @@ data GraphImp v = GraphImp
 
 deriving instance Show v => Show (SCC v)
 
-from_map :: forall v. Ord v => [v] -> (M.HashMap v [v]) -> GraphImp v
+from_map :: forall v. (Ord v,Hashable v) => [v] -> (M.HashMap v [v]) -> GraphImp v
 from_map vs es = GraphImp vs es' i2e i2v v2i fwd bwd f f' nn mm
     where
         g = graph vs es'
@@ -223,7 +226,7 @@ from_map vs es = GraphImp vs es' i2e i2v v2i fwd bwd f f' nn mm
                 return ar
         v2i = M.fromList $ zip vs' [V 0..]
 
-graphWith :: forall v. Ord v => [v] -> (v -> v -> Bool) -> GraphImp v
+graphWith :: forall v. (Ord v,Hashable v) => [v] -> (v -> v -> Bool) -> GraphImp v
 graphWith vs f = g { rel = f, reli = f' }
     where
         g      = graph vs' es
@@ -231,7 +234,7 @@ graphWith vs f = g { rel = f, reli = f' }
         vs' = OL.nubSort vs
         es  = [ (u,v) | u <- vs', v <- vs', f u v ]
 
-graph :: forall v. Ord v => [v] -> [(v,v)] -> GraphImp v
+graph :: forall v. (Ord v,Hashable v) => [v] -> [(v,v)] -> GraphImp v
 graph vs es = GraphImp vs' es i2e i2v v2i fwd bwd f f' nn mm
     where
         f' i j = j `S.member` (mi2e ! i)
@@ -263,7 +266,7 @@ graph vs es = GraphImp vs' es i2e i2v v2i fwd bwd f f' nn mm
 newtype Partition s v = Partition (STArray s v v)
 
 newtype Vertex = V Int
-    deriving (Eq, Ord, Ix, Enum, Show)
+    deriving (Eq, Ord, Ix, Enum, Show, Hashable)
 
 
 
@@ -288,7 +291,7 @@ merge part@(Partition ar) i j = do
             then writeArray ar pJ pI
             else writeArray ar pI pJ
 
-getSets :: forall s v. (Enum v, Ix v) => Partition s v -> ST s (M.HashMap v [v])
+getSets :: forall s v. (Enum v, Ix v,Hashable v) => Partition s v -> ST s (M.HashMap v [v])
 getSets part@(Partition ar) = do
             (_,n) <- getBounds ar
             res <- newArray (toEnum 0,n) []
@@ -348,7 +351,7 @@ prop_u_scc_disconnected (Graph vs es) =
         xs = u_scc vs f
         f x y = (x,y) `elem` es || (y,x) `elem` es
 
-prop_u_scc_valid_components :: Ord a => Graph a -> Bool
+prop_u_scc_valid_components :: (Ord a,Hashable a) => Graph a -> Bool
 prop_u_scc_valid_components (Graph vs es) =
         and [    u == v 
               || connected g u v 
@@ -360,7 +363,7 @@ prop_u_scc_valid_components (Graph vs es) =
         xs = u_scc vs f
         f x y = (x,y) `elem` es || (y,x) `elem` es
 
-prop_top_sort_complete :: Ord a => Graph a -> Bool
+prop_top_sort_complete :: (Ord a,Hashable a) => Graph a -> Bool
 prop_top_sort_complete (Graph vs es) = OL.nubSort vs == sort (concat $ map component $ top_sort vs es)
 
 is_cycle :: SCC v -> Bool
@@ -371,18 +374,18 @@ acyclic :: Pre => SCC v -> v
 acyclic (AcyclicSCC v) = v
 acyclic (CyclicSCC _)  = undefined'
 
-prop_top_sort_cycles :: Ord a => Graph a -> Bool
+prop_top_sort_cycles :: (Ord a,Hashable a) => Graph a -> Bool
 prop_top_sort_cycles (Graph vs es) = all (\xs -> and [ connected g x y | x <- xs, y <- xs ]) top
     where
         top = map component $ filter is_cycle $ top_sort vs es
         g = graph vs es
 
-prop_top_sort_singles :: Ord a => Graph a -> Bool
+prop_top_sort_singles :: (Ord a,Hashable a) => Graph a -> Bool
 prop_top_sort_singles (Graph vs es) = all (\xs -> and [ not $ (x,y) `elem` es | x <- xs, y <- xs ]) top
     where
         top = map component $ filter (not . is_cycle) $ top_sort vs es
 
-prop_top_sort_order :: Ord v => Graph v -> Bool 
+prop_top_sort_order :: (Ord v,Hashable v) => Graph v -> Bool 
 prop_top_sort_order (Graph vs es) = and [ not $ (u,v) `elem` es 
                                         | (vs,xs) <- zip top (drop 1 $ tails top)
                                         , v  <- vs
@@ -392,7 +395,7 @@ prop_top_sort_order (Graph vs es) = and [ not $ (u,v) `elem` es
         top = map component $ top_sort vs es
 
 
-connected :: Ord v => GraphImp v -> v -> v -> Bool
+connected :: (Hashable v,Ord v) => GraphImp v -> v -> v -> Bool
 connected g u v = evalState (aux u v) (S.singleton u)
     -- aux [] (vcount g) u v
     where
@@ -414,21 +417,21 @@ connected g u v = evalState (aux u v) (S.singleton u)
                         ) xs
         tab = forward g
 
-prop_closure_complete :: Ord a => Graph a -> Bool
+prop_closure_complete :: (Ord a,Hashable a) => Graph a -> Bool
 prop_closure_complete (Graph vs es) = OL.nubSort vs == M.keys (closure vs es)
 
-prop_closure_contain_all_edges :: Ord a => Graph a -> Bool
+prop_closure_contain_all_edges :: (Ord a,Hashable a) => Graph a -> Bool
 prop_closure_contain_all_edges (Graph vs es) = all (\(u,v) -> v `elem` cl ! u) es
     where
         cl = closure vs es
 
-prop_closure_closed :: Ord a => Graph a -> Bool
+prop_closure_closed :: (Ord a,Hashable a) => Graph a -> Bool
 prop_closure_closed (Graph vs es) = all (\(u,v) -> v `elem` cl ! u) edge_pairs
     where
         cl = closure vs es
         edge_pairs = [ (u,w) | u <- M.keys cl, v <- cl ! u, w <- cl ! v ]
 
-prop_closure_minimal :: Ord a => Graph a -> Bool
+prop_closure_minimal :: (Ord a,Hashable a) => Graph a -> Bool
 prop_closure_minimal (Graph vs es) = all (\(u,v) -> connected g u v) all_edges
     where
         g  = graph vs es

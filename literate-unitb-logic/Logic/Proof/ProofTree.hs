@@ -17,9 +17,10 @@ import Control.Lens hiding (Context,rewrite)
 import           Data.List as L
 import           Data.Maybe as M 
 import qualified Data.HashMap.Lazy as M 
+import qualified Data.HashMap.Lazy.Extras as M 
+import           Data.HashSet as S 
 import           Data.Monoid
 import           Data.Serialize hiding (label)
-import           Data.Set as S 
 import           Data.Text as T (Text,intercalate)
 import           Data.Typeable
 

@@ -14,6 +14,7 @@ import Data.Data hiding (typeOf)
 import Data.Default
 import Data.Graph
 import Data.Graph.Array
+import Data.Hashable
 import Data.List as L
 import Data.List.Ordered
 import Data.HashMap.Lazy as M hiding ((!))
@@ -21,10 +22,17 @@ import Data.Tuple
 import Data.Typeable.Lens
 
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.Utils
 
 import Text.Printf
 
+instance Hashable OccName where
+instance Hashable ModName where
+instance Hashable PkgName where
+instance Hashable NameFlavour where
+instance Hashable NameSpace where
+instance Hashable Name where
 
 makePolyClass :: Name -> DecsQ
 makePolyClass recName = do

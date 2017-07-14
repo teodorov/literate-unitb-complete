@@ -39,10 +39,11 @@ import Logic.Names.Internals as Names
 import Control.Lens
 import Data.Text (pack)
 import Data.Typeable
+import Data.HashMap.Lazy.Extras (Key)
 
 class HasNames a n | a -> n where
     type SetNameT n' a :: *
-    namesOf :: Ord n' 
+    namesOf :: Key n' 
             => Traversal a (SetNameT n' a)
                          n n'
 

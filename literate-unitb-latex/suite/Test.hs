@@ -70,7 +70,7 @@ sections = [
     "invariant",
     "machine"]
 
-extract_structure :: Text -> Either [Error] (M.HashMap Text [LatexNode])
+extract_structure :: Lazy.Text -> Either [Error] (M.HashMap Text [LatexNode])
 extract_structure ct = do
     xs <- latex_structure "" ct
     return (find_env sections xs)

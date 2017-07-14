@@ -63,7 +63,9 @@ import Data.Functor.Classes
 import Data.List  as L hiding (transpose,lookup)
 import Data.List.NonEmpty  as NE hiding (fromList,transpose)
 import Data.HashMap.Lazy   as M hiding (fromList,empty,traverseWithKey,lookup,member,(!))
+import Data.HashMap.Lazy.Extras   as M
 import qualified Data.HashMap.Lazy   as M hiding ((!))
+import Data.Hashable
 import Data.Semigroup
 import Data.Serialize
 import Data.Serialize.Instances ()
@@ -112,14 +114,16 @@ data Edge s0 s1 = Edge Int Int
 makeLenses ''BiGraph'
 makeLenses ''AdjList
 instance NFData (Edge s0 s1)
+instance Hashable (Edge s0 s1)
 instance NFData (Vertex s0)
 
-instance (Ord key0, Ord key1, Eq v0, Eq v1, Eq e) => Eq (BiGraph' key0 v0 key1 v1 e) where
+instance (Eq key0, Eq key1, Hashable key0, Hashable key1, Eq v0, Eq v1, Eq e) 
+      => Eq (BiGraph' key0 v0 key1 v1 e) where
     g0 == g1 = f g0 == f g1
         where
             f x = (edgeMap x, leftMap x, rightMap x)
 
-fromList :: (Ord key0,Ord key1)
+fromList :: (Eq key0,Eq key1,Hashable key0,Hashable key1)
          => [(key0,v0)] 
          -> [(key1,v1)] -> [(key0,key1)] 
          -> Maybe (BiGraph' key0 v0 key1 v1 ())
@@ -128,7 +132,7 @@ fromList v0 v1 es = makeGraph $ do
     mapM_ (uncurry newRightVertex) v1
     mapM_ (uncurry addEdge) es
 
-fromList' :: (Ord key0,Ord key1,Pre)
+fromList' :: (Eq key0,Eq key1,Hashable key0,Hashable key1,Pre)
           => [(key0,v0)] 
           -> [(key1,v1)] -> [(key0,key1)] 
           -> BiGraph' key0 v0 key1 v1 ()
@@ -141,7 +145,8 @@ empty = Graph emptyList emptyList M.empty
 emptyList :: AdjList key vs
 emptyList = AList emptyAr emptyAr emptyAr M.empty
 
-mapALKey :: Ord k1 => (k0 -> k1) -> AdjList k0 v -> AdjList k1 v
+mapALKey :: (Key k0,Key k1) 
+         => (k0 -> k1) -> AdjList k0 v -> AdjList k1 v
 mapALKey f al = al { _arKey = al^.arKey & traverse %~ f, _mapKey = M.mapKeys f $ al^.mapKey }
 
 emptyAr :: Array Int e
@@ -216,7 +221,9 @@ zipArrayWithM f a0 a1 = array (i,j) <$> traverse (\i -> (i,) <$> f (a0 ! i) (a1 
         i = fst (bounds a0) `max` fst (bounds a0)
         j = snd (bounds a1) `min` snd (bounds a1)
 
-newLeftVertex :: Ord key0 => key0 -> v0 -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s0)
+newLeftVertex :: (Key key0) 
+              => key0 -> v0 
+              -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s0)
 newLeftVertex k v = GB $ do
     c <- use $ _2 . to (M.lookup k)
     case c of
@@ -228,14 +235,18 @@ newLeftVertex k v = GB $ do
         return $ Vertex n
       Just n -> return $ Vertex n
 
-getLeftVertex :: Ord key0 => key0 -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s0)
+getLeftVertex :: (Key key0) 
+              => key0 
+              -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s0)
 getLeftVertex k = do
     m <- GB $ use _2
     case k `M.lookup` m of
         Just i -> return (Vertex i)
         Nothing -> mzero
 
-newRightVertex :: Ord key1 => key1 -> v1 -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s1)
+newRightVertex :: (Key key1)
+               => key1 -> v1 
+               -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s1)
 newRightVertex k v = GB $ do
     c <- use $ _4 . to (M.lookup k)
     case c of
@@ -247,7 +258,9 @@ newRightVertex k v = GB $ do
         return $ Vertex n
       Just n -> return $ Vertex n
 
-getRightVertex :: Ord key1 => key1 -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s1)
+getRightVertex :: (Key key1)
+               => key1 
+               -> GraphBuilder key0 v0 key1 v1 e s0 s1 (Vertex s1)
 getRightVertex k  = do
     m <- GB $ use _4
     case k `M.lookup` m of
@@ -261,7 +274,9 @@ newEdge' :: Vertex s0 -> Vertex s1 -> e -> GraphBuilder key0 v0 key1 v1 e s0 s1 
 newEdge' (Vertex u) (Vertex v) e = GB $ do
     tell ([],[],[(u,v,e)])
 
-addEdge :: (Ord key0,Ord key1) => key0 -> key1 -> GraphBuilder key0 v0 key1 v1 () s0 s1 ()
+addEdge :: (Eq key0,Eq key1,Hashable key0,Hashable key1) 
+        => key0 -> key1 
+        -> GraphBuilder key0 v0 key1 v1 () s0 s1 ()
 addEdge k0 k1 = do
     v0 <- getLeftVertex k0
     v1 <- getRightVertex k1
@@ -386,7 +401,7 @@ acrossBoth :: Applicative f
 acrossBoth f g h (Graph lf rt ed) = Graph <$> (arVals.traverse) f lf 
                                         <*> (arVals.traverse) g rt 
                                         <*> traverse h ed
-mapKeys :: Ord k1
+mapKeys :: (Eq k0,Eq k1,Hashable k0,Hashable k1)
         => (k0 -> k1)
         -> BiGraph k0 vA vB
         -> BiGraph k1 vA vB
@@ -410,20 +425,25 @@ mapBothWithKey f g = mapLeftWithKey f . mapRightWithKey g
 mapEdges :: (eA -> eB) -> BiGraph' k0 v0 k1 v1 eA -> BiGraph' k0 v0 k1 v1 eB
 mapEdges = over traverseEdges . (. view _3)
 
-leftMap :: (Ord key0) => BiGraph' key0 v0 key1 v1 e -> HashMap key0 v0
+leftMap :: (Key key0) => BiGraph' key0 v0 key1 v1 e -> HashMap key0 v0
 leftMap g = M.fromList $ L.zip (A.elems $ g^.leftAL.arKey) (A.elems $ g^.leftAL.arVals)
 
-rightMap :: Ord key1 => BiGraph' key0 v0 key1 v1 e -> HashMap key1 v1
+rightMap :: (Key key1) 
+         => BiGraph' key0 v0 key1 v1 e 
+         -> HashMap key1 v1
 rightMap g = M.fromList $ L.zip (A.elems $ g^.rightAL.arKey) (A.elems $ g^.rightAL.arVals)
 
-edgeMap :: (Ord key0,Ord key1) => BiGraph' key0 v0 key1 v1 e -> HashMap (key0,key1) e
+edgeMap :: (Eq key0,Eq key1,Hashable key0,Hashable key1) 
+        => BiGraph' key0 v0 key1 v1 e 
+        -> HashMap (key0,key1) e
 edgeMap g = M.mapKeys (f leftAL *** f rightAL) $ g^.edges
     where
         f ln = ((g^.ln.arKey) !)
 
 instance ( Show key0, Show key1
          , Show e
-         , Ord key0, Ord key1
+         , Eq key0, Eq key1
+         , Hashable key0, Hashable key1
          , Show v0, Show v1) 
         => Show (BiGraph' key0 v0 key1 v1 e) where
     show g = [s|Graph { left = %s, right = %s, edges = %s }|]
@@ -431,7 +451,7 @@ instance ( Show key0, Show key1
                 (show $ rightMap g) 
                 (show $ edgeMap g)
 
-insertEdge :: Ord key 
+insertEdge :: (Key key) 
            => key -> v0 -> key -> v1 
            -> BiGraph key v0 v1 
            -> BiGraph key v0 v1
@@ -460,7 +480,9 @@ insertEdge kx x ky y g = g & leftAL  %~ f nx kx x ny
 readGraph :: BiGraph' key0 v0 key1 v1 e -> (forall s0 s1. GraphReader' key0 v0 key1 v1 e s0 s1 a) -> a
 readGraph g (GR cmd) = runReader cmd g
 
-forwardEdges :: Ord key0 => BiGraph' key0 v0 key1 v1 e -> HashMap key0 (v0,NonEmpty key1)
+forwardEdges :: (Key key0) 
+             => BiGraph' key0 v0 key1 v1 e 
+             -> HashMap key0 (v0,NonEmpty key1)
 forwardEdges g = readGraph g $ do
     vs <- getLeftVertices
     xs <- mapM leftKey vs
@@ -470,7 +492,9 @@ forwardEdges g = readGraph g $ do
         T.mapM rightKey es
     return $ M.fromList $ L.zip xs $ L.zip ys zs
 
-backwardEdges :: (Ord key0,Ord key1) => BiGraph' key0 v0 key1 v1 e -> HashMap key1 (v1,NonEmpty key0)
+backwardEdges :: (Eq key0,Eq key1,Hashable key0,Hashable key1) 
+              => BiGraph' key0 v0 key1 v1 e 
+              -> HashMap key1 (v1,NonEmpty key0)
 backwardEdges g = readGraph g $ do
     vs <- getRightVertices
     xs <- mapM rightKey vs
@@ -480,17 +504,21 @@ backwardEdges g = readGraph g $ do
         T.mapM leftKey es
     return $ M.fromList $ L.zip xs $ L.zip ys zs
 
-hasLeftVertex :: Ord key0 => key0 -> GraphReader' key0 v0 key1 v1 e s0 s1 (Maybe (Vertex s0))
+hasLeftVertex :: (Key key0)
+              => key0 
+              -> GraphReader' key0 v0 key1 v1 e s0 s1 (Maybe (Vertex s0))
 hasLeftVertex v = GR $ do
     vs <- view $ leftAL.mapKey
     return $ Vertex <$> v `M.lookup` vs
 
-hasRightVertex :: Ord key1 => key1 -> GraphReader' key0 v0 key1 v1 e s0 s1 (Maybe (Vertex s1))
+hasRightVertex :: (Key key1) 
+               => key1 
+               -> GraphReader' key0 v0 key1 v1 e s0 s1 (Maybe (Vertex s1))
 hasRightVertex v = GR $ do
     vs <- view $ rightAL.mapKey
     return $ Vertex <$> v `M.lookup` vs
 
-leftVertex :: (Ord key0,Pre)
+leftVertex :: (Key key0,Pre)
            => key0
            -> GraphReader' key0 v0 key1 v1 e s0 s1 (Vertex s0)
 leftVertex v = GR $ do
@@ -502,7 +530,7 @@ getEdges = GR $ do
     es <- views edges $ M.mapKeys (uncurry Edge)
     return $ () <$ es
 
-rightVertex :: (Ord key1,Pre)
+rightVertex :: (Key key1,Pre)
             => key1
             -> GraphReader' key0 v0 key1 v1 e s0 s1 (Vertex s1)
 rightVertex v = GR $ do
@@ -512,19 +540,23 @@ rightVertex v = GR $ do
 edgeInfo :: Edge s0 s1 -> GraphReader' key0 v0 key1 v1 e s0 s1 e
 edgeInfo (Edge i j) = GR $ views edges (! (i,j))
 
-member :: (Ord key0,Ord key1) => key0 -> key1 
+member :: (Eq key0,Eq key1,Hashable key0,Hashable key1) 
+       => key0 -> key1 
        -> BiGraph' key0 v0 key1 v1 e -> Bool
 member k0 k1 g = isJust $ lookup k0 k1 g
 
-leftMember :: Ord key0 => key0 
+leftMember :: (Key key0)
+           => key0 
            -> BiGraph' key0 v0 key1 v1 e -> Bool
 leftMember k0 g = isJust $ leftLookup k0 g
 
-rightMember :: Ord key1 => key1 
-            -> BiGraph' key0 v0 key1 v1 e -> Bool
+rightMember :: (Key key1)
+            => key1 
+            -> BiGraph' key0 v0 key1 v1 e 
+            -> Bool
 rightMember k1 g = isJust $ rightLookup k1 g
 
-lookup :: (Ord key0, Ord key1) 
+lookup :: (Eq key0, Eq key1, Hashable key0, Hashable key1) 
        => key0 -> key1 
        -> BiGraph' key0 v0 key1 v1 e -> Maybe e
 lookup k0 k1 g = readGraph g $ do
@@ -533,13 +565,14 @@ lookup k0 k1 g = readGraph g $ do
     traverse edgeInfo =<< fmap join (sequence $ liftM2 hasEdge v0 v1)
     --traverse edgeInfo =<< hasEdge v0 v1
 
-leftLookup :: Ord key0 
+leftLookup :: (Key key0)
            => key0 -> BiGraph' key0 v0 key1 v1 e 
            -> Maybe v0
 leftLookup k0 g = readGraph g $ do
     traverse leftInfo =<< hasLeftVertex k0
 
-rightLookup :: Ord key1 => key1 
+rightLookup :: (Key key1)
+            => key1 
             -> BiGraph' key0 v0 key1 v1 e -> Maybe v1
 rightLookup k1 g = readGraph g $ do
     traverse rightInfo =<< hasRightVertex k1
@@ -642,15 +675,17 @@ liftShowsMap showK showA n m = showParen (n >= 10) $
           (liftShowsPairPrec showK showA) 
           10 (M.toList m)
 
-liftEqGraph :: (Ord k0,Ord k1,Ord k0',Ord k1')
-               => (k0 -> k0' -> Bool)
-               -> (v0 -> v0' -> Bool)
-               -> (k1 -> k1' -> Bool)
-               -> (v1 -> v1' -> Bool)
-               -> (e -> e' -> Bool)
-               -> BiGraph' k0 v0 k1 v1 e 
-               -> BiGraph' k0' v0' k1' v1' e' 
-               -> Bool
+liftEqGraph :: (Eq k0,Eq k1,Eq k0',Eq k1'
+               ,Hashable k0, Hashable k1
+               ,Hashable k0',Hashable k1')
+            => (k0 -> k0' -> Bool)
+            -> (v0 -> v0' -> Bool)
+            -> (k1 -> k1' -> Bool)
+            -> (v1 -> v1' -> Bool)
+            -> (e -> e' -> Bool)
+            -> BiGraph' k0 v0 k1 v1 e 
+            -> BiGraph' k0' v0' k1' v1' e' 
+            -> Bool
 liftEqGraph eqK0 eqV0 eqK1 eqV1 eqE g g' = 
          liftEqMap eqK0 eqV0 (leftMap g) (leftMap g')
       && liftEqMap eqK1 eqV1 (rightMap g) (rightMap g')
@@ -695,9 +730,9 @@ liftShowsGraph _showK0 _showV0 _showK1 _showV1 _showE _n _g
 instance (NFData k,NFData a) => NFData (AdjList k a)
 instance (NFData k0,NFData k1,NFData v0,NFData v1,NFData e) => NFData (BiGraph' k0 v0 k1 v1 e)
 
-instance (Ord k0,Ord k1,ZoomEq k0,ZoomEq k1,ZoomEq v0,ZoomEq v1,ZoomEq e) 
+instance (Eq k0,Eq k1,Hashable k0,Hashable k1,ZoomEq k0,ZoomEq k1,ZoomEq v0,ZoomEq v1,ZoomEq e) 
         => ZoomEq (BiGraph' k0 v0 k1 v1 e) where
     g0 .== g1 = (edgeList g0) .== (edgeList g1)
 
-instance (Ord v0,Serialize v0,Serialize v1,Serialize e) => Serialize (BiGraph v0 v1 e) where
-instance (Ord v0,Serialize v0,Serialize v1) => Serialize (AdjList v0 v1) where
+instance (Key v0,Serialize v0,Serialize v1,Serialize e) => Serialize (BiGraph v0 v1 e) where
+instance (Key v0,Serialize v0,Serialize v1) => Serialize (AdjList v0 v1) where

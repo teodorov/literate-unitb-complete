@@ -21,7 +21,7 @@ import Control.Precondition
 import           Data.Either
 import           Data.Either.Combinators (mapLeft)
 import qualified Data.HashMap.Lazy as M
-import qualified Data.Set as S
+import qualified Data.HashSet as S
 import           Data.Text (Text,unpack)
 import qualified Data.Text as T
 

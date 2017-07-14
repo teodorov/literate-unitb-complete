@@ -20,6 +20,8 @@ import Control.Lens.Misc
 import           Data.Data
 import           Data.Default
 import qualified Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M (Key)
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.PartialOrd
 import           Data.Semigroup
 import           Data.Serialize
@@ -77,7 +79,7 @@ instance (PrettyPrintable n,PrettyPrintable t,PrettyPrintable q
          , IsName n, IsQuantifier q, TypeSystem t) 
         => PrettyRecord (GenContext n t q) where
 
-instance (Ord n) => HasSymbols (GenContext n t q) () n where
+instance (Key n) => HasSymbols (GenContext n t q) () n where
     symbols ctx = M.unions [f a,f b,f c]
         where
             (Context _ a b c _) = ctx^.genContext
@@ -117,31 +119,31 @@ data CtxConflict n t q = CtxWith
             , declaration :: GenContext n t q }
     deriving (Generic)
 
-instance (Ord n) => Semigroup (GenContext n t q) where
-instance (Ord n) => Monoid (GenContext n t q) where
+instance (Key n) => Semigroup (GenContext n t q) where
+instance (Key n) => Monoid (GenContext n t q) where
     mempty  = genericMEmpty
     mconcat = genericMConcat
     mappend = genericMAppend
-instance (Ord n) => Semigroup (Intersection (GenContext n t q)) where
+instance (Key n) => Semigroup (Intersection (GenContext n t q)) where
     (<>) = genericSemigroupMAppendWith
     sconcat = genericSemigroupMConcatWith
 
-instance (Ord n) => Semigroup (CtxConflict n t q) where
-instance (Ord n) => Monoid (CtxConflict n t q) where
+instance (Key n) => Semigroup (CtxConflict n t q) where
+instance (Key n) => Monoid (CtxConflict n t q) where
     mempty  = def
     mappend c0 c1 = CtxWith 
         { conflict = mconcat [conflict c0,conflict c1
             , getIntersection $ Intersection (declaration c0) <> Intersection (declaration c1)] 
         , declaration = declaration c0 `mappend` declaration c1 }
 
-instance (Ord n,Eq t,Eq q) => PreOrd (GenContext n t q) where
+instance (Key n,Eq t,Eq q) => PreOrd (GenContext n t q) where
     partCompare = genericPreorder
 
-instance (Ord n,Eq t,Eq q) => PartialOrd (GenContext n t q) where
+instance (Key n,Eq t,Eq q) => PartialOrd (GenContext n t q) where
 
-instance ( Ord n,ZoomEq n,ZoomEq t,ZoomEq q) 
+instance ( Key n,ZoomEq n,ZoomEq t,ZoomEq q) 
         => ZoomEq (GenContext n t q) where
-instance ( Ord n,TypeSystem t,IsQuantifier q
+instance ( Key n,TypeSystem t,IsQuantifier q
          , Arbitrary n,Arbitrary t,Arbitrary q) 
         => Arbitrary (GenContext n t q) where
     arbitrary = scale (`div` 2) genericArbitrary
@@ -209,5 +211,5 @@ instance HasNames (GenContext n t q) n where
             <*> traversePairs (onBoth f $ traverse2 f) d
             <*> traversePairs (onBoth f $ traverse1 f) e
 
-instance (Ord n,Serialize n,Serialize t,Serialize q) 
+instance (Key n,Serialize n,Serialize t,Serialize q) 
     => Serialize (GenContext n t q) where

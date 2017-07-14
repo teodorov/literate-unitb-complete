@@ -36,8 +36,9 @@ import           Data.List as L
 import           Data.List.NonEmpty as NE 
 import           Data.HashMap.Lazy as M hiding ( map )
 import qualified Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet as S
 import           Data.Semigroup hiding (option)
-import qualified Data.Set as S
 import           Data.Text (Text,unpack)
 import qualified Data.Text as T
 

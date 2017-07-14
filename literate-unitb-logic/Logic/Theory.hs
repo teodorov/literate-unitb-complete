@@ -39,6 +39,7 @@ import Control.Precondition
 import           Data.Foldable as F
 import           Data.List as L
 import           Data.HashMap.Lazy as M 
+import           Data.HashMap.Lazy.Extras as M 
 
 all_theories :: Theory -> [Theory]
 all_theories th = th : M.elems (all_theories' th)

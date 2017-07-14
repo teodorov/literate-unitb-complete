@@ -43,11 +43,12 @@ import           Data.Either
 import           Data.List as L hiding ( union )
 import           Data.List.Ordered hiding (nub)
 import           Data.HashMap.Lazy as M 
-                    hiding ( map, union, unions, (\\) )
+                    hiding ( map, union, unions )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet as S 
 import qualified Data.Maybe as MM
 import           Data.Monoid
-import qualified Data.Set as S 
 import           Data.Text as T (Text,unlines,intercalate)
 
 import Prelude as L
@@ -328,15 +329,15 @@ ctx_strip_generics :: IsName n
                    -> Maybe (GenContext InternalName FOType HOQuantifier)
 ctx_strip_generics (Context a b c d e) = 
         Context a 
-            <$> (mapKeys asInternal <$> traverse var_strip_generics b)
-            <*> (mapKeys asInternal <$> traverse fun_strip_generics c)
-            <*> (mapKeys asInternal <$> traverse def_strip_generics d)
-            <*> (mapKeys asInternal <$> traverse var_strip_generics e)
+            <$> (M.mapKeys asInternal <$> traverse var_strip_generics b)
+            <*> (M.mapKeys asInternal <$> traverse fun_strip_generics c)
+            <*> (M.mapKeys asInternal <$> traverse def_strip_generics d)
+            <*> (M.mapKeys asInternal <$> traverse var_strip_generics e)
 
 class Typed a => HasGenerics a where
-    generics    :: a -> S.Set InternalName
-    variables   :: a -> S.Set InternalName
-    types_of    :: a -> S.Set Type
+    generics    :: a -> S.HashSet InternalName
+    variables   :: a -> S.HashSet InternalName
+    types_of    :: a -> S.HashSet Type
     genericsList :: a -> [InternalName]
     generics x  = S.fromList $ genericsList x
     genericsList x  = concatMap genericsList $ S.toList $ types_of x
@@ -512,7 +513,7 @@ patterns :: Generic a a => a -> [Type]
 patterns ts = map maybe_pattern pat
     where
         pat  = L.filter hg types
-        types = L.map gen $ S.elems $ types_of ts
+        types = L.map gen $ S.toList $ types_of ts
         hg x = not $ S.null $ generics x
             -- has generics
         -- gen = M.fromSet GENERIC $ S.unions $ L.map variables types
@@ -525,7 +526,7 @@ patterns ts = map maybe_pattern pat
 
     -- generic to first order
 gen_to_fol :: (IsQuantifier q,IsName n,Pre)
-           => S.Set FOType 
+           => S.HashSet FOType 
            -> Label 
            -> AbsExpr n Type q 
            -> [(Label,AbsExpr InternalName FOType q)]
@@ -534,12 +535,12 @@ gen_to_fol types lbl e = map (f &&& inst) xs
         inst m = mk_error ("gen_to_fol" :: String, (types_of $ e' m,e))
                     strip_generics $ e' m
         e' m   = substitute_type_vars (M.map as_generic m) e
-        xs     = match_all pat (S.elems types)
+        xs     = match_all pat (S.toList types)
         f xs   = composite_label [lbl, label $ foldMap z3_decoration $ M.elems xs]
         pat    = patterns e
 
 to_fol_ctx :: forall q n. (IsQuantifier q,IsName n)
-           => S.Set FOType 
+           => S.HashSet FOType 
            -> GenContext n Type q 
            -> GenContext InternalName FOType q
 to_fol_ctx types (Context s vars funs defs dums) = 
@@ -556,7 +557,7 @@ to_fol_ctx types (Context s vars funs defs dums) =
             where
                 pat    = patterns fun
                 xs     = L.map (M.map as_generic) 
-                            $ match_all pat (S.elems types)
+                            $ match_all pat (S.toList types)
                 inst :: HashMap InternalName Type -> FOFun
                 inst m = mk_error m fun_strip_generics $ substitute_type_vars m fun'
 
@@ -568,7 +569,7 @@ to_fol_ctx types (Context s vars funs defs dums) =
             where 
                 pat    = patterns def
                 xs     = L.map (M.map as_generic) 
-                            $ match_all pat (S.elems types)
+                            $ match_all pat (S.toList types)
                 
                 inst :: HashMap InternalName Type -> AbsDef InternalName FOType q
                 inst m = mk_error m def_strip_generics $ substitute_type_vars m def'
@@ -634,7 +635,7 @@ mk_error z f x =
             Just y -> y
             Nothing -> assertFalseMessage $ [s|failed to strip type variables: \n'%s'\n'%s'|] (pretty_print' x) (show z)
 
-consistent :: (Eq b, Ord k) 
+consistent :: (Eq b, M.Key k) 
            => HashMap k b -> HashMap k b -> Bool
 consistent x y = x `M.intersection` y == y `M.intersection` x
 

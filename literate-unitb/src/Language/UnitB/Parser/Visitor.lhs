@@ -69,9 +69,10 @@ import           Data.Either.Validation
 import           Data.Foldable as F
 import           Data.List as L
 import qualified Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M
 import           Data.Maybe
 import           Data.Monoid
-import           Data.Set hiding (map)
+import           Data.HashSet hiding (map)
 import           Data.Text (Text,pack,unpack)
 import qualified Data.Text as T
 import           Data.Traversable as T
@@ -306,7 +307,7 @@ instance Read Str where
                 rec (c:xs)) RP.<++
                 return (String $ pack $ reverse xs)) [c]
     
-instance Readable (Set Label) where
+instance Readable (HashSet Label) where
     read_args = do
         ts <- ST.get
         ([arg],ts) <- lift $ cmd_params 1 ts
@@ -532,7 +533,7 @@ bind_all xs msgs lu = do
             maybe (throwError [Error msg li | msg <- zs]) return ys
 
 
-insert_new :: Ord a 
+insert_new :: Key a 
            => a -> b -> M.HashMap a b 
            -> Maybe (M.HashMap a b)
 insert_new x y m

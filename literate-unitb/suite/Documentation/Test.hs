@@ -14,8 +14,9 @@ import Documentation.SummaryGen
 import Control.Lens
 import Control.Precondition
 
-import Data.HashMap.Lazy as M
-import Data.HashMap.Lazy.Syntax
+import Data.Map as M
+import Data.HashMap.Lazy as HM
+import Data.Map.Syntax
 import           Data.Text (Text)
 import qualified Data.Text as T
 
@@ -176,8 +177,8 @@ case3 = makeReport $ do
     return $ getListing $
         liveness_sum m
 
-result4 :: Either Text (Map FilePath Bool)
-result4 = Right $ fromRight' $ runMap $ do
+result4 :: Either Text (HashMap FilePath Bool)
+result4 = Right $ HM.fromList . M.toList $ fromRight' $ runMap $ do
         "." ## False
         "/" ## False
         "dir" ## False 
@@ -238,10 +239,10 @@ result4 = Right $ fromRight' $ runMap $ do
         "dir/file/machine_m3_thm.tex"   ## True
         "dir/file/machine_m3_trans.tex" ## True
 
-case4 :: IO (Either Text (Map FilePath Bool))
+case4 :: IO (Either Text (HashMap FilePath Bool))
 case4 = runEitherT $ do
     s <- get_system path0
-    return $ M.map isJust $ view' files $ execMockFileSystem 
+    return $ HM.map isJust $ view' files $ execMockFileSystem 
         $ produce_summaries "dir/file.ext" s
 
 case5 :: IO Text

@@ -107,6 +107,7 @@ test-suite test
                         text, quickcheck-instances,
                         containers, mtl,
                         either, lens,
-                        process
+                        process,
+                        unordered-containers
    default-language:    Haskell2010
    default-extensions:  TypeFamilies, TemplateHaskell, QuasiQuotes, DeriveGeneric, FlexibleInstances, TypeSynonymInstances, MultiParamTypeClasses, FlexibleContexts, RankNTypes, DeriveFunctor, GeneralizedNewtypeDeriving, DeriveFoldable, DeriveTraversable, OverloadedStrings

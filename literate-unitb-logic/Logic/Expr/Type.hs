@@ -64,7 +64,7 @@ data Sort =
     deriving (Eq, Ord, Show, Typeable, Data, Generic)
 
 newtype Field = Field Name
-    deriving (Eq, Ord, Show, Typeable, Data, Generic)
+    deriving (Eq, Ord, Hashable, Show, Typeable, Data, Generic)
 
 type Type = GenericType
 
@@ -123,7 +123,6 @@ instance PrettyPrintable Sort where
 instance Hashable FOType where
 instance Hashable GenericType where
 instance Hashable Sort where
-instance Hashable Field where
 
 instance Typed () where
     type TypeOf () = ()

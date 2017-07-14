@@ -21,7 +21,7 @@ import Control.Precondition
 import           Data.Default
 import qualified Data.HashMap.Lazy as M
 import qualified Data.Maybe as M
-import qualified Data.Set as S
+import qualified Data.HashSet as S
 
 import Test.UnitTest
 
@@ -273,12 +273,12 @@ result7 = ctx_strip_generics $ Context M.empty M.empty fun' M.empty M.empty
 fun :: Fun
 pat :: [Type]
 xs  :: [M.HashMap InternalName GenericType]
-ts  :: S.Set FOType
+ts  :: S.HashSet FOType
 
 fun = head $ M.elems (set_theory^.funs)
 pat    = patterns fun
 xs     = map (M.map as_generic) 
-                            $ match_all pat (S.elems ts)
+                            $ match_all pat (S.toList ts)
 ts  = S.fromList $ M.catMaybes $ map type_strip_generics [ set_type int, int ]
 
 case8 :: IO (Maybe (GenContext InternalName FOType HOQuantifier))

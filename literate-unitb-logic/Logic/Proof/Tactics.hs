@@ -45,7 +45,8 @@ import           Data.Graph hiding (Table)
 import           Data.List as L
 import qualified Data.List.Ordered as OL
 import           Data.HashMap.Lazy  as M
-import qualified Data.Set  as S
+import           Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet  as S
 import           Data.Text (Text,unpack)
 import qualified Data.Text  as T
 import           Data.Tuple
@@ -70,7 +71,7 @@ newtype TacticT m a = TacticT
                 (RWST 
                     TacticParam 
                     [Label] 
-                    (S.Set Label,S.Set Name) m) a }
+                    (S.HashSet Label,S.HashSet Name) m) a }
     deriving (Functor,Applicative,MonadError)
 
 instance Show (TacticT m a) where
@@ -725,11 +726,11 @@ indirect_equality dir op zVar@(Var _ t) proof = do
                                                               
             _ -> fail $ unpack $ "expecting an equality:\n" <> pretty_print' goal
 
-intersectionsWith :: Ord a => (b -> b -> b) -> [HashMap a b] -> HashMap a b
+intersectionsWith :: Key a => (b -> b -> b) -> [HashMap a b] -> HashMap a b
 intersectionsWith _ [] = error "intersection of an empty list of sets"
 intersectionsWith f (x:xs) = L.foldl' (intersectionWith f) x xs
 
-intersections :: Ord a => [HashMap a b] -> HashMap a b
+intersections :: Key a => [HashMap a b] -> HashMap a b
 intersections = intersectionsWith const
 
 --by_antisymmetry :: Monad m 

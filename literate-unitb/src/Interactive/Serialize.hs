@@ -28,9 +28,9 @@ import qualified Data.ByteString.Lazy as Lazy
 import           Data.Either.Combinators
 import           Data.Either.Validation
 import qualified Data.HashMap.Strict as H
-import           Data.HashMap.Lazy as M 
-        ( mapKeys )
 import qualified Data.HashMap.Lazy as M 
+import           Data.HashMap.Lazy.Extras as M 
+        ( mapKeys )
 import           Data.Serialize as Ser ( Serialize(..), encodeLazy, decodeLazy ) 
 -- import           Data.Serialize.Instances
 import           Data.Serialize.Put 

@@ -21,7 +21,8 @@ import           Data.Foldable as F
 import           Data.List as L
 import           Utilities.MapSyntax
 import qualified Data.HashMap.Lazy as M
-import qualified Data.Set as S
+import qualified Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet as S
 import           Data.Text as T (unlines,unpack)
 
 import Text.Printf.TH
@@ -429,7 +430,7 @@ one_point_rule' (Binder q vs r t _)
         
         insts :: [ ( M.HashMap (AbsVar n t) (AbsExpr n t q)
                    , [AbsExpr n t q]
-                   , S.Set (AbsVar n t)) ]
+                   , S.HashSet (AbsVar n t)) ]
         insts = [ (M.unions $ map subst ts,ts,S.unions $ map used_var ts) | ts <- ts' ]
         
         subst :: AbsExpr n t q -> M.HashMap (AbsVar n t) (AbsExpr n t q)

@@ -43,6 +43,7 @@ packages:
     - lens-extra/
     - transformer-lenses/
     - unfoldable/
+    - unordered-containers-extras/
 
 - location:
     git: https://github.com/unitb/serialize-instances.git
@@ -52,7 +53,7 @@ packages:
     commit: 1bcc8cd5a91bc660346d1df7eb6ebb1a8152e865
 - location:
     git: https://github.com/unitb/axiomatic-classes.git
-    commit: 24ce269668f39a74ba1fe0628c4f6d65e092870c
+    commit: a58bc292b0405e5e9b764e479df510c1588aa111
 - location:
     git: https://github.com/unitb/invariants.git
     commit: e644470ef8c16d5b1631b23ff3a127f8596955b8

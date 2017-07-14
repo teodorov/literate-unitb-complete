@@ -26,7 +26,8 @@ import Data.Hashable
 import Data.List as L
 import Data.List.NonEmpty as NE hiding (take)
 import Data.MakeTable
-import Data.HashMap.Lazy  as M hiding (fold)
+import Data.HashMap.Lazy  as M
+import Data.HashMap.Lazy.Extras as M
 import Data.Semigroup
 import Data.Serialize hiding (label)
 import Data.String

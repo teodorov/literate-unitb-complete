@@ -34,6 +34,7 @@ import Data.Either.Combinators
 import Data.List as L hiding (lookup)
 import qualified Data.List.NonEmpty as NE
 import Data.HashMap.Lazy as M hiding (lookup,(!))
+import Data.HashMap.Lazy.Extras as M
 import Data.Monoid
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
@@ -122,7 +123,7 @@ verifyFilesOnlyWith opt keep files i = makeReport' empty $ do
     if and b then do
         ms <- EitherT $ fst <$> many_file_obligations' files
         if i < size ms then do
-            let (m,pos) = snd $ i `elemAt` ms
+            let (m,pos) = snd (i `elemAt` ms)
             r <- lift $ trying id (str_verify_machine_with (\lbl s -> guard (keep lbl) >> Just (execState opt s)) m)
             case r of
                 Right (s,_,_) -> return (s, pos)
@@ -201,7 +202,7 @@ sequent' path lbl i = do
         xs <- EitherT $ (mapLeft show_err . fst) 
             <$> list_file_obligations' path
         if i < size xs then do
-            let pos = snd $ snd $ i `elemAt` xs
+            let pos = snd $ snd (i `elemAt` xs)
             lookupSequent' (label lbl) pos
         else
             left $ [st|accessing %dth refinement out of %d|] i (size xs)   

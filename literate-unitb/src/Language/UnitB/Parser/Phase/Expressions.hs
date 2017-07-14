@@ -48,8 +48,9 @@ import           Data.Functor.Compose
 import           Data.List as L hiding ( union, insert, inits )
 import           Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
-import           Data.HashMap.Lazy   as M hiding ( map, (\\), (!) )
+import           Data.HashMap.Lazy   as M hiding ( map, (!) )
 import qualified Data.HashMap.Lazy   as M
+import qualified Data.HashMap.Lazy.Extras   as M
 import           Data.Semigroup
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
@@ -85,7 +86,7 @@ run_phase3_exprs = -- withHierarchy $ _ *** expressions >>> _ -- (C.id &&& expre
                -> MM' Input (MMap MachineP3)
         wrapup r_ord p2 es = do
             let es' :: Maybe (MMap [(Label, ExprScope)])
-                es' = inherit2 p2 r_ord . unionsWith (++) <$> es
+                es' = inherit2 p2 r_ord . M.unionsWith (++) <$> es
             exprs <- triggerM
                 =<< make_all_tables' err_msg
                 =<< triggerM es'
@@ -146,7 +147,7 @@ make_phase3 p2 exprs' = triggerLenient $ do
             m' <- fromListWith (++).L.map (first Right) <$> liftFieldMLenient g p2 exprs
             let _ = m :: HashMap SkipOrEvent [EventP3Field]
             let ms = M.unionsWith (++) [m', m, M.singleton (Left SkipEvent) [ECoarseSched "default" zfalse]]
-            return $ \_ eid e -> return $ makeEventP3 e (findWithDefault [] eid ms)
+            return $ \_ eid e -> return $ makeEventP3 e (M.findWithDefault [] eid ms)
         liftEvent :: (   Label 
                       -> ExprScope 
                       -> Reader MachineP2
@@ -454,7 +455,7 @@ fine_sch_decl = machineCmd "\\fschedule" $ \(Conc evt, NewLabel lbl, Expr xs) _m
         --  Theory Properties  --
         -------------------------
 
-parseExpr' :: (HasMchExpr b a, Ord label)
+parseExpr' :: (HasMchExpr b a, M.Key label)
            => Lens' MachineP3 (HashMap label a) 
            -> [(label,b)] 
            -> RWS () [Error] MachineP3 ()

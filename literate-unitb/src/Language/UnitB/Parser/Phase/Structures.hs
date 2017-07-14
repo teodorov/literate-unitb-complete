@@ -32,8 +32,9 @@ import           Control.Monad.Reader.Class
 
 import qualified Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, insert, inits )
-import           Data.HashMap.Lazy   as M hiding ( map, (\\) )
-import qualified Data.HashMap.Lazy   as M
+import           Data.HashMap.Lazy        as M hiding ( map )
+import qualified Data.HashMap.Lazy        as M
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.Text (Text)
 
 import Text.Printf.TH
@@ -51,7 +52,7 @@ run_phase0_blocks = withInput $ proc doc -> do
 run_phase1_types :: Pipeline MM (MMap MachineP0) SystemP1
 run_phase1_types = proc p0 -> do
     ts <- set_decl      -< p0
-    e <- arr (fmap $ unionsWith (++)) <<< run_phase 
+    e <- arr (fmap $ M.unionsWith (++)) <<< run_phase 
         [ event_splitting
         , event_decl
         , event_merging  ] -< p0

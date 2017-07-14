@@ -48,6 +48,7 @@ import Control.Precondition
 import Data.Default
 import Data.Either
 import Data.Function
+import Data.Hashable
 import Data.List as L
 import Data.Semigroup
 import Data.Serialize
@@ -95,6 +96,8 @@ data Assoc = LeftAssoc | RightAssoc | NoAssoc
 
 data Flipping = Flipped | Direct
     deriving (Eq,Ord,Show,Generic,Typeable,Bounded,Enum)
+
+instance Hashable Flipping where
 
 data Notation = Notation
     { -- _new_ops a list of all the operators defined by this Notation object
@@ -219,8 +222,7 @@ precede x y
 data UnaryOperator = UnaryOperator InternalName Name Fun
     deriving (Typeable,Generic,Eq,Ord,Show)
 
-
-
+instance Hashable UnaryOperator where
 
 instance PrettyPrintable UnaryOperator where
     pretty (UnaryOperator x y _) = pretty (x,y) -- format str x y
@@ -243,6 +245,8 @@ data BinOperator = BinOperator InternalName Name Flipping Fun
 
 instance ZoomEq BinOperator where
     (.==) = (I.===)
+
+instance Hashable BinOperator where
 
 instance PrettyPrintable BinOperator where
     pretty (BinOperator x y _ _) = pretty (x,y) -- format str x y

@@ -21,6 +21,7 @@ import Control.Precondition
 import Data.Either.Combinators hiding (fromRight')
 import Data.List as L
 import Data.HashMap.Lazy hiding ((!))
+import Data.HashMap.Lazy.Extras
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T

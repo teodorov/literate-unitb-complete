@@ -61,12 +61,13 @@ import qualified Data.Graph.Bipartite as G
 import qualified Data.Maybe as MM
 import           Data.List as L hiding ( union, insert, inits )
 import           Data.List.NonEmpty hiding ((<|),map,length,fromList)
-import           Data.HashMap.Lazy   as M hiding ( map, (\\), (!) )
+import           Data.HashMap.Lazy   as M hiding ( map, (!) )
 import qualified Data.HashMap.Lazy   as M
+import qualified Data.HashMap.Lazy.Extras   as M
+import qualified Data.HashSet as S
 import           Data.Proxy.TH
 import           Data.Relation (type(<->),(|>),(<|))
 import qualified Data.Relation as R
-import qualified Data.Set as S
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Traversable as T
@@ -173,8 +174,8 @@ make_phase4 p3 coarse_refs fine_refs prog_ref comments proofs
     where
         updateEvt :: SkipOrEvent -> EventP3 -> EventP4
         updateEvt (Right eid) e = EventP4 e 
-                (findWithDefault [] eid _pCoarseRef) 
-                (findWithDefault Nothing eid _pFineRef) 
+                (M.findWithDefault [] eid _pCoarseRef) 
+                (M.findWithDefault Nothing eid _pFineRef) 
         updateEvt (Left SkipEvent) e = EventP4 e [] Nothing
         _p3 = p3 & pEventRef %~ G.mapLeftWithKey updateEvt
         _pProofs = proofs

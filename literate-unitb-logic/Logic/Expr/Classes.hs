@@ -19,6 +19,7 @@ import Data.Foldable as F
 import Data.Function
 import Data.List as L hiding (intercalate)
 import Data.HashMap.Lazy  as M
+import Data.HashMap.Lazy.Extras  as M (Key)
 import Data.Monoid
 import Data.Text (Text,unpack)
 import Data.Tuple
@@ -169,14 +170,14 @@ instance ZoomEq Text where
 z3_escape :: String -> InternalName
 z3_escape = fromString''
 
-insert_symbol :: Ord n => HasName a n => a -> HashMap n a -> HashMap n a
+insert_symbol :: Key n => HasName a n => a -> HashMap n a -> HashMap n a
 insert_symbol x = M.insert (x^.name) x
 
-symbol_table' :: (HasName b n, Foldable f,Ord n) 
+symbol_table' :: (HasName b n, Foldable f,Key n) 
               => (a -> b) -> f a -> HashMap n a
 symbol_table' f xs = M.fromList $ L.map (as_pair' f) $ F.toList xs
 
-symbol_table :: (HasName a n, Foldable f,Ord n) 
+symbol_table :: (HasName a n, Foldable f,Key n) 
              => f a -> HashMap n a
 symbol_table = symbol_table' id
 

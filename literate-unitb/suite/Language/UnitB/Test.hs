@@ -424,7 +424,7 @@ result_train_m0_tr_neg_po = T.unlines
     , " (=> (select st t) (not (select st' t)))"
     ]
 
-check_mch :: Either [Error] RawMachine -> IO (Text, Map Label Sequent)
+check_mch :: Either [Error] RawMachine -> IO (Text, HashMap Label Sequent)
 check_mch em = do
     case em of
         Right m -> do
@@ -490,7 +490,7 @@ result4 :: ([(Int, Int)], [(Var, Int)], [(Expr, Int)])
         (d,d_decl) = Exp.var "d" int
         f (xs,ys) = (sort xs, sort ys)
 
-result5 :: Map Label Sequent
+result5 :: HashMap Label Sequent
 result5 = eval_generator $ with (do
             POG.variables $ symbol_table
                 [ z3Var "p" bool
@@ -511,7 +511,7 @@ result5 = eval_generator $ with (do
         c' = ctx (do
             primable [var| p, q : \Bool |])
 
-case5 :: IO (Map Label Sequent)
+case5 :: IO (HashMap Label Sequent)
 case5 = return $ eval_generator 
         $ prop_saf' m (Just "ae0") ("lbl", getExpr <$> c [safe| p UNLESS q |])
     where

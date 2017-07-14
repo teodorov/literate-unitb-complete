@@ -49,6 +49,7 @@ import Data.Graph.Bipartite as G
 import Data.List as L
 import Data.List.NonEmpty as NE
 import Data.HashMap.Lazy  as M
+import Data.HashMap.Lazy.Extras  as M
 import Data.Maybe
 import Data.Semigroup
 import           Data.Text (Text)
@@ -59,7 +60,7 @@ import Test.QuickCheck.Report
 import Utilities.MapSyntax
 import Utilities.Syntactic
 
-mkMap :: (Arbitrary a,Ord k) => Hierarchy k -> Gen (HashMap k [a])
+mkMap :: (Arbitrary a,M.Key k) => Hierarchy k -> Gen (HashMap k [a])
 mkMap (Hierarchy xs _) = M.fromList.L.zip xs <$> replicateM (L.length xs) arbitrary
 
 prop_inherit_equiv :: Hierarchy Int
@@ -69,7 +70,7 @@ prop_inherit_equiv h = forAll (mkMap h) $ \m ->
 
 return []
 
-runMap :: (Ord k, Scope a, Pre) 
+runMap :: (M.Key k, Scope a, Pre) 
        => MapSyntax k a b 
        -> HashMap k a
 runMap = runMapWith merge_scopes
@@ -236,13 +237,13 @@ name2 = testName "test 2, phase 2 (variables), creating state"
 -- {-# SPECIALIZE lnZip' :: (Ord k) => HashMap k (a -> b) -> Traversal (HashMap k a) (HashMap k c) b c #-}
 -- {-# INLINE lnZip' :: forall a k b c. (Ord k) => HashMap k (a -> b) -> Traversal (HashMap k a) (HashMap k c) b c #-}
 {-# INLINE lnZip' #-}
-lnZip' :: (Ord k) => HashMap k (a -> b) -> Traversal (HashMap k a) (HashMap k c) b c
+lnZip' :: (M.Key k) => HashMap k (a -> b) -> Traversal (HashMap k a) (HashMap k c) b c
 lnZip' m f m' = traverse f $ M.intersectionWith (flip id) m' m
 
 -- {-# SPECIALIZE lnZip :: (Ord k) => HashMap k b -> Traversal (HashMap k a) (HashMap k c) (a,b) c #-}
 -- {-# SPECIALIZE lnZip :: (Ord k) => HashMap k b -> Traversal (HashMap k a) (HashMap k c) (a,b) c #-}
 {-# INLINE lnZip #-}
-lnZip :: (Ord k) 
+lnZip :: (M.Key k) 
       => HashMap k b -> Traversal (HashMap k a) (HashMap k c) (a,b) c
 lnZip m = lnZip' $ flip (,) <$> m
 
@@ -251,7 +252,7 @@ lnZip m = lnZip' $ flip (,) <$> m
 -- {-# SPECIALIZE lnZip5 :: (Ord k) => HashMap k b0 -> HashMap k b1 -> HashMap k b2 -> HashMap k b3 -> HashMap k b4
 --                       -> Traversal (HashMap k a) (HashMap k z) (a,b0,b1,b2,b3,b4) z #-}
 {-# INLINE lnZip5 #-}
-lnZip5 :: (Ord k)
+lnZip5 :: (M.Key k)
        => HashMap k b0 -> HashMap k b1 -> HashMap k b2 -> HashMap k b3 -> HashMap k b4
        -> Traversal (HashMap k a) (HashMap k z) (a,b0,b1,b2,b3,b4) z
 lnZip5 m0 m1 m2 m3 m4 = lnZip' $ (f <$> m0) `op` m1 `op` m2 `op` m3 `op` m4

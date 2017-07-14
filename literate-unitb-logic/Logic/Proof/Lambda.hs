@@ -19,8 +19,10 @@ import Control.Precondition
 
 import           Data.Default
 import           Data.List as L hiding (union)
+import           Data.Hashable
 import           Data.HashMap.Lazy  as M hiding (filter)
-import qualified Data.Set as S
+import           Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet as S
 import           Data.Tuple
 import qualified Data.Traversable as T
 import           Data.Typeable
@@ -105,7 +107,7 @@ canonical role vs e = do
                 return (CL fv us e' t', es)) 
             state
 
-findFreeVars :: S.Set Var' -> Expr' -> State CanonicalRewriter Expr'
+findFreeVars :: S.HashSet Var' -> Expr' -> State CanonicalRewriter Expr'
 findFreeVars ls e
     | S.null (used_var e `S.intersection` ls) 
                 = Word <$> expr_name e
@@ -244,3 +246,4 @@ lambdas (Record e t)  = Record <$> traverseRecExpr lambdas e
                                <*> pure t
 
 instance NFData CanonicalLambda where
+instance Hashable CanonicalLambda where

@@ -43,8 +43,9 @@ import           Data.List.NonEmpty as NE (toList)
 import           Data.Either
 import           Data.Either.Validation
 import           Data.Existential
-import           Data.HashMap.Lazy as M hiding ( map, (\\) )
+import           Data.HashMap.Lazy as M hiding ( map )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.List as L hiding ( union, insert, inits )
 import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Text (Text)
@@ -73,7 +74,7 @@ run_phase2_vars = C.id &&& symbols >>> liftP wrapup
             , remove_ind
             , remove_var ]
         wrapup (SystemP r_ord p1,vs) = do
-            let vs' = inherit2 p1 r_ord . unionsWith (++) <$> vs
+            let vs' = inherit2 p1 r_ord . M.unionsWith (++) <$> vs
             vars <- triggerM
                 =<< make_all_tables' err_msg 
                 =<< triggerM vs'
@@ -144,7 +145,7 @@ make_phase2 p1 vars = join $
                            -> ParserSetting
                     parser table    = m^.pMchSynt & decls %~ union table
                 case eid of 
-                    Right eid -> \e e' -> return $ makeEventP2 e (_pSchSynt e') (_pEvtSynt e') (findWithDefault [] eid table)  -- (m ! eid)
+                    Right eid -> \e e' -> return $ makeEventP2 e (_pSchSynt e') (_pEvtSynt e') (M.findWithDefault [] eid table)  -- (m ! eid)
                     Left SkipEvent -> \e e' -> return $ makeEventP2 e (_pEvtSynt e') (_pSchSynt e') []
 
 instance IsVarScope TheoryDef where

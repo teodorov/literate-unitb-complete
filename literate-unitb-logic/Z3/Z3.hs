@@ -59,7 +59,8 @@ import qualified Data.DList as D
 import           Data.Either.Combinators
 import           Data.List as L hiding (union)
 import           Data.Monoid
-import qualified Data.Set as S
+import qualified Data.HashSet as S
+import qualified Data.HashSet.Extras as S
 import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -75,7 +76,7 @@ import System.Process.Text
 import TextShow (showt)
 import Text.Printf.TH
 
-import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 
 total_caps :: SSem
 total_caps = unsafePerformIO $ new $ z3_config^.capacity
@@ -147,7 +148,7 @@ instance Tree Z3Command where
     as_tree GetModel      = Expr.List [Str "get-model"]
     rewriteM _ = pure
 
-z3_pattern :: S.Set FOVar -> FOExpr -> [FOExpr]
+z3_pattern :: S.HashSet FOVar -> FOExpr -> [FOExpr]
 z3_pattern vs e = runReader (head e) False
     where
         head e'@(FunApp f [_,y])

@@ -28,6 +28,7 @@ import Control.Monad.Trans.Either
 import Control.Precondition
 
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 -- import Data.List
 import Data.Monoid
 import           Data.Text (Text,pack)
@@ -54,15 +55,15 @@ import Utilities.TimeIt
 
 import Text.Printf
 
-seqFileFormat' :: FileFormat (M.Map Label (M.Map Label (Bool, Seq)))
+seqFileFormat' :: FileFormat (M.HashMap Label (M.HashMap Label (Bool, Seq)))
 seqFileFormat' = prismFormat pr $ seqFileFormat
     where 
-        pr :: Iso' (M.Map Key (Seq, Maybe Bool)) 
-                   (M.Map Label (M.Map Label (Bool, Seq))) 
+        pr :: Iso' (M.HashMap Key (Seq, Maybe Bool)) 
+                   (M.HashMap Label (M.HashMap Label (Bool, Seq))) 
         pr = pruneUntried.mapping swapped.curriedMap
         pruneUntried :: Iso' 
-                            (M.Map Key (Seq, Maybe Bool)) 
-                            (M.Map Key (Seq, Bool))
+                            (M.HashMap Key (Seq, Maybe Bool)) 
+                            (M.HashMap Key (Seq, Bool))
         pruneUntried = iso (M.mapMaybe sequence) (traverse._2 %~ Just)
 
 with_po_map :: StateT Params IO a -> Params -> IO ()

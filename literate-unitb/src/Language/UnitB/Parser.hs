@@ -39,8 +39,9 @@ import qualified Control.Monad.Writer as W
 import           Data.Either.Combinators
 import           Data.List.Ordered (sortOn)
 import qualified Data.List.NonEmpty as NE
-import           Data.HashMap.Lazy   as M hiding ( map, (\\) )
+import           Data.HashMap.Lazy   as M hiding ( map )
 import qualified Data.HashMap.Lazy   as M
+import qualified Data.HashMap.Lazy.Extras   as M
 import           Data.Semigroup
 import           Data.Text (Text)
 import qualified Data.Text.Lazy.IO as Lazy
@@ -85,7 +86,7 @@ list_machines fn = do
         doc <- liftIO $ Lazy.readFile fn
         xs  <- hoistEither $ latex_structure fn doc
         ms <- hoistEither $ all_machines xs
-        return $ map snd $ toAscList $ ms!.machines
+        return $ map snd $ M.toAscList $ ms!.machines
 
 list_proof_obligations :: FilePath
                        -> EitherT [Error] IO [(Machine, HashMap Label Sequent)]
@@ -114,7 +115,7 @@ parse_machine fn = runEitherT $ do
         doc <- liftIO $ Lazy.readFile fn
         xs  <- hoistEither $ latex_structure fn doc
         ms  <- hoistEither $ all_machines xs
-        return $ map snd $ toAscList $ ms!.machines
+        return $ map snd $ M.toAscList $ ms!.machines
 
 get_components :: LatexDoc -> LineInfo 
                -> Either [Error] (HashMap Name [LatexDoc],HashMap Text [LatexDoc])

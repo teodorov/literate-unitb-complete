@@ -26,7 +26,7 @@ import Data.Either.Validation
 import qualified Data.Maybe as MM
 import           Data.List as L hiding ( union, insert, inits )
 import qualified Data.List.NonEmpty as NE
-import           Data.HashMap.Lazy   as M hiding ( (\\), (!) )
+import           Data.HashMap.Lazy   as M hiding ( (!) )
 import qualified Data.Text as T
 
 import Text.Printf.TH

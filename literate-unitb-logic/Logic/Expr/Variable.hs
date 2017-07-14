@@ -17,6 +17,7 @@ import Control.Precondition
 import Data.Data
 import Data.Hashable
 import Data.HashMap.Lazy as M
+import Data.HashMap.Lazy.Extras as M
 import Data.Serialize
 import           Data.Text (Text)
 

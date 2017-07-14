@@ -28,6 +28,7 @@ import Data.Functor.Classes
 import Data.Functor.Compose
 import Data.Graph.Bipartite
 import Data.HashMap.Lazy as M hiding ((!))
+import Data.HashMap.Lazy.Extras as M
 import Data.Serialize
 
 import GHC.Generics.Instances

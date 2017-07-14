@@ -36,8 +36,9 @@ import Control.Lens.Misc
 import qualified Data.Graph.Bipartite as G
 import           Data.List as L hiding ( union, insert, inits )
 import qualified Data.List.NonEmpty as NE
-import           Data.HashMap.Lazy   as M hiding ( map, (\\) )
+import           Data.HashMap.Lazy   as M hiding ( map )
 import qualified Data.HashMap.Lazy   as M
+import qualified Data.HashMap.Lazy.Extras as M
 import qualified Data.Maybe as MM
 import           Data.Semigroup
 
@@ -156,13 +157,13 @@ make_machine (MId m) p4 = mch'
                 , _fine_sched = evt^.eFineSched
                 } & coarse_sched .~ evt^.eCoarseSched
 
-uncurryMap :: (Ord a,Ord b) => HashMap a (HashMap b c) -> HashMap (a,b) c
+uncurryMap :: (M.Key a,M.Key b) => HashMap a (HashMap b c) -> HashMap (a,b) c
 uncurryMap m = fromList $ do
         (x,ys) <- toList m
         (y,z)  <- toList ys
         return ((x,y),z)
 
-flipMap :: (Ord a, Ord b) => HashMap a (HashMap b c) -> HashMap b (HashMap a c)
+flipMap :: (M.Key a, M.Key b) => HashMap a (HashMap b c) -> HashMap b (HashMap a c)
 flipMap m = M.map fromList $ fromListWith (++) $ do
     (x,xs) <- toList $ M.map toList m
     (y,z)  <- xs
@@ -186,7 +187,7 @@ fieldB f (Right x) = (Left . (x,)) <$> f x
 
 parseEvtExprChoice :: ( HasInhStatus decl (InhStatus expr)
                       , HasDeclSource decl DeclSource 
-                      , Ord label)
+                      , M.Key label)
               => Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> ((Label,decl) -> label)
@@ -196,7 +197,7 @@ parseEvtExprChoice oldLn newLn f = parseEvtExprChoice' oldLn newLn newLn f
 
 parseEvtExprChoice' :: ( HasInhStatus decl (InhStatus expr)
                       , HasDeclSource decl DeclSource 
-                      , Ord label)
+                      , M.Key label)
               => Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> Lens' MachineP3 (HashMap EventId (HashMap label expr))
@@ -210,7 +211,7 @@ parseEvtExprChoice' oldLn delLn newLn = parseEvtExprChoiceImp
 
 parseEvtExprChoiceImp :: ( HasInhStatus decl (InhStatus expr)
                          , HasDeclSource decl DeclSource 
-                         , Ord label)
+                         , M.Key label)
               => Maybe (ReifiedLens' MachineP3 (HashMap EventId (HashMap label expr)))
               -> Maybe (ReifiedLens' MachineP3 (HashMap EventId (HashMap label expr)))
               -> Maybe (ReifiedLens' MachineP3 (HashMap EventId (HashMap label expr)))
@@ -234,14 +235,14 @@ parseEvtExprChoiceImp oldLn delLn newLn f xs = do
     delLn `assign` doubleUnion (g del_xs)
     newLn `assign` doubleUnion (g new_xs)
 
-doubleUnion :: (Ord k0,Ord k1)
+doubleUnion :: (M.Key k0,M.Key k1)
             => [(k0,[(k1,a)])]
             -> HashMap k0 (HashMap k1 a)
             -> HashMap k0 (HashMap k1 a)
 doubleUnion xs = M.unionWith M.union (M.map M.fromList $ M.fromListWith (++) xs)
 
 
-parseEvtExprDefault :: (HasEvtExpr decl expr, Ord label)
+parseEvtExprDefault :: (HasEvtExpr decl expr, M.Key label)
               => Lens' MachineP3 (HashMap EventId (HashMap label expr))
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]
@@ -252,7 +253,7 @@ parseEvtExprDefault ln f xs = do
         xs'' = M.map M.fromList $ M.fromListWith (++) xs'
     ln %= flip (M.unionWith M.union) xs''
 
-parseInitExpr :: (HasEvtExpr decl expr, Ord label)
+parseInitExpr :: (HasEvtExpr decl expr, M.Key label)
               => Lens' MachineP3 (HashMap label expr)
               -> ((Label,decl) -> label)
               -> [(Maybe EventId, [(Label, decl)])]

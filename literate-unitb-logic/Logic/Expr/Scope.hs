@@ -18,6 +18,7 @@ import Control.Monad.Reader.Class
 import Data.Default
 import Data.List
 import Data.HashMap.Lazy as M
+import Data.HashMap.Lazy.Extras as M
 
 import GHC.Generics.Instances
 import GHC.Stack.Utils

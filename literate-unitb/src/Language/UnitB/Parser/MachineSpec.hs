@@ -26,8 +26,9 @@ import Control.Precondition
 
 import qualified Data.List as L
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet as S
 import           Data.Monoid ((<>))
-import qualified Data.Set as S
 import           Data.Text (Text,pack,unpack)
 import qualified Data.Text as T
 
@@ -223,7 +224,7 @@ with_type_error = do
         suchThat (gen_machine True)
              (\m -> not $ L.null $ range m)
     where
-        range m = M.elems vars `L.intersect` S.elems fv
+        range m = M.elems vars `L.intersect` S.toList fv
             where
                 vars  = m!.variables
                 fv    = S.unions $ map (used_var.getExpr) $ expressions m

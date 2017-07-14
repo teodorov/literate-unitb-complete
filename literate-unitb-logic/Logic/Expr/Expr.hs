@@ -34,8 +34,9 @@ import           Data.Data
 import           Data.Hashable
 import           Data.List as L
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 import           Data.Serialize
-import qualified Data.Set as S
+import qualified Data.HashSet as S
 import           Data.Text (Text)
 
 import GHC.Generics hiding (to,from)
@@ -134,7 +135,7 @@ arbitraryRecord mkExpr arb = oneof
         n <- choose (0,2)
         execStateT (replicateM n updateOnce) =<< recLit
 
-arbitraryFields :: (Arbitrary k,Ord k)
+arbitraryFields :: (Arbitrary k,M.Key k)
                 => Gen a -> Gen (M.HashMap k a)
 arbitraryFields arb = M.fromList <$> fields
     where
@@ -476,6 +477,8 @@ instance ( ZoomEq t
          , ZoomEq q) 
         => ZoomEq (AbsDef n t q) where
 
+instance (Hashable t,Hashable n,Hashable q) => Hashable (AbsDef n t q)
+
 instance ( TypeSystem t
          , IsQuantifier q
          , Arbitrary t
@@ -645,7 +648,7 @@ instance HasScope Expr where
         let free = used_var' e
         areVisible [vars,constants] free e
 
-merge :: (Ord k, Eq a, Show k, Show a)
+merge :: (M.Key k, Eq a, Show k, Show a)
           => M.HashMap k a -> M.HashMap k a -> M.HashMap k a
 merge m0 m1 = M.unionWithKey f m0 m1
     where
@@ -654,7 +657,7 @@ merge m0 m1 = M.unionWithKey f m0 m1
             | otherwise = error $ [s|conflicting declaration for key %s: %s %s|] 
                             (show k) (show x) (show y)
 
-merge_all :: (Ord k, Eq a, Show k, Show a)
+merge_all :: (M.Key k, Eq a, Show k, Show a)
           => [M.HashMap k a] -> M.HashMap k a
 merge_all ms = foldl' (M.unionWithKey f) M.empty ms
     where
@@ -686,7 +689,7 @@ substitute' m e = f e
 used_var :: ( TypeSystem a,TypeSystem t
             , TypeAnnotationPair t a
             , IsQuantifier q, IsName n) 
-         => GenExpr n t a q -> S.Set (AbsVar n t)
+         => GenExpr n t a q -> S.HashSet (AbsVar n t)
 used_var (Word v) = S.singleton v
 used_var (Binder _ vs r expr _) = (used_var expr `S.union` used_var r) `S.difference` S.fromList vs
 used_var expr = visit (\x y -> S.union x (used_var y)) S.empty expr
@@ -695,7 +698,7 @@ used_var' :: HasGenExpr expr => expr -> M.HashMap (NameT (ExprT expr)) (VarT (Ex
 used_var' = symbol_table . S.toList . used_var . asExpr
 
 used_fun :: (TypeSystem t, IsQuantifier q, IsName n) 
-         => AbsExpr n t q -> S.Set (AbsFun n t)
+         => AbsExpr n t q -> S.HashSet (AbsFun n t)
 used_fun e = visit f s e
     where
         f x y = S.union x (used_fun y)
@@ -721,7 +724,7 @@ instance (TypeSystem t,IsName n,Typeable q) => Named (AbsDef n t q) where
                 $ adaptName x
 
 used_types :: (TypeSystem t,IsQuantifier q,IsName n) 
-           => AbsExpr n t q -> S.Set t
+           => AbsExpr n t q -> S.HashSet t
 used_types e = visit (flip $ S.union . used_types) (
         case e of
             Binder _ vs e0 e1 t -> S.fromList $ t : type_of e0 : type_of e1 : L.map f vs
@@ -791,9 +794,6 @@ instance (Lift expr) => Lift (RecordExpr expr) where
 instance IsRawExpr (AbsExpr InternalName Type HOQuantifier) where
 instance IsExpr (AbsExpr Name Type HOQuantifier) where
 instance HasExpr (AbsExpr Name Type HOQuantifier) where
-
-
-
 
 instance NFData CastType where
 instance (NFData t,NFData q,NFData n) => NFData (AbsDef n t q)

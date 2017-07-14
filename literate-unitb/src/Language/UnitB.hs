@@ -42,11 +42,12 @@ import           Data.List as L hiding (inits, union,insert)
 import           Data.HashMap.Lazy as M hiding 
                     ( map, (!)
                     , delete, filter, null
-                    , (\\), mapMaybe )
+                    , mapMaybe )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet.Extras as S
 import           Data.Monoid ((<>))
 import           Data.Serialize
-import qualified Data.Set as S
 import           Data.Text (Text,pack)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -123,7 +124,7 @@ instance Show a => Show (MemBox a) where
 makeLenses ''MachinePO'
 
 po_table :: SystemSemantics' expr -> SeqMap
-po_table sys = fmap (,Nothing) . uncurryMap $ proof_obligation <$> (mapKeys as_label $ sys!.machines)
+po_table sys = fmap (,Nothing) . uncurryMap $ proof_obligation <$> (M.mapKeys as_label $ sys!.machines)
 
 _machineSyntax :: Prism' MachineWithProofs RawMachine
 _machineSyntax = prism'
@@ -170,7 +171,7 @@ instance (HasExpr expr,ZoomEq expr) => HasDefs (MachinePO' expr) (HashMap Name e
 
 instance HasExpr expr => HasInvariant (MachinePO' expr) where
     invariant m = do
-        "inv1" ## keysSet (m^.proofs) `S.isSubsetOf` keysSet (raw_proof_obligation m)
+        "inv1" ## M.keysSet (m^.proofs) `S.isSubsetOf` M.keysSet (raw_proof_obligation m)
     updateCache m = m 
             { _raw_proof_obligation_field = b
             , _proof_obligation_field = box $ 

@@ -12,8 +12,8 @@ import Control.Monad.Identity
 import Data.Char
 import Data.Either
 import Data.List as L
-import Data.HashMap.Strict (HashMap)
-import Data.HashMap.Lazy as M (HashMap,fromList,union)
+import Data.HashMap.Strict as Strict (HashMap)
+import Data.HashMap.Lazy as M (fromList,union)
 
 import GHC.Generics hiding (from,to)
 import GHC.Generics.Lens
@@ -128,11 +128,11 @@ instance (GAllMaps map c) => GAllMaps map (D1 d c) where
 instance (GAllMaps map c) => GAllMaps map (C1 d c) where
     gAllMaps f tag (M1 x) = M1 <$> gAllMaps f tag x
 
-instance (Show k,Show b) => GAllMaps HashMap (K1 a (HashMap k b)) where
-    gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
-    gAllMaps _ Nothing (K1 x) = K1 <$> pure x
+-- instance (Show k,Show b) => GAllMaps M.HashMap (K1 a (M.HashMap k b)) where
+--     gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
+--     gAllMaps _ Nothing (K1 x) = K1 <$> pure x
 
-instance (Show k,Show b) => GAllMaps HashMap (K1 a (HashMap k b)) where
+instance (Show k,Show b) => GAllMaps Strict.HashMap (K1 a (Strict.HashMap k b)) where
     gAllMaps f (Just tag) (K1 x) = K1 <$> f tag x
     gAllMaps _ Nothing (K1 x) = K1 <$> pure x
 

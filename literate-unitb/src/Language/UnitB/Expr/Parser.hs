@@ -8,6 +8,7 @@ import Language.UnitB
 import           Control.Lens hiding ( indices )
 import           Data.HashMap.Lazy hiding ( map )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
 
 machine_setting :: Machine -> ParserSetting
 machine_setting m = setting

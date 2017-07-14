@@ -180,7 +180,7 @@ machine0 = newMachine trainName $ do
         axm4 = c [expr| \qforall{p}{}{ \neg p = ent \equiv p \in \{ext\} \bunion PLF } |]
         axm5 = c [expr| \qforall{p}{}{ p = ent \lor p = ext \equiv \neg p \in PLF } |]
 
-vars :: Map Name Var
+vars :: HashMap Name Var
 vars = symbol_table [in_decl,loc_decl]
 
 c :: Ctx
@@ -374,7 +374,7 @@ result1 = T.unlines
     , "passed 96 / 97"
     ]
 
-case1 :: IO (Text, Map Label Sequent)
+case1 :: IO (Text, HashMap Label Sequent)
 case1 = verify path0 0 
         
 result2 :: Text
@@ -5451,7 +5451,7 @@ result14 = T.unlines
     , "passed 64 / 66"
     ]
 
-case14 :: IO (Text, Map Label Sequent)
+case14 :: IO (Text, HashMap Label Sequent)
 case14 = verify path14 0
     
 path15 :: FilePath
@@ -5534,7 +5534,7 @@ result15 = T.unlines
     , "passed 69 / 72"
     ]
 
-case15 :: IO (Text, Map Label Sequent)
+case15 :: IO (Text, HashMap Label Sequent)
 case15 = verify path15 0
 
 path16 :: FilePath
@@ -5636,7 +5636,7 @@ result16 = T.unlines
     , "passed 90 / 91"
     ]
 
-case16 :: IO (Text, Map Label Sequent)
+case16 :: IO (Text, HashMap Label Sequent)
 case16 = verify path16 0
 
 path17 :: FilePath

@@ -26,6 +26,7 @@ import Data.Hashable
 import Data.List as L
 import Data.List.NonEmpty as NE
 import Data.HashMap.Lazy  as M
+import Data.HashMap.Lazy.Extras  as M
 import Data.Maybe
 import Data.Semigroup hiding (All)
 import Data.Serialize hiding (label)
@@ -449,7 +450,7 @@ changes ch = to $ \(EvtRef (_,aevt) (_,cevt)) -> create $ do
         raw_guards  .= ( aevt^.raw_guards )  `diff` ( cevt^.raw_guards ) 
         actions .= ( aevt^.actions ) `diff` ( cevt^.actions )
     where
-        diff :: Ord k
+        diff :: Key k
              => HashMap k a -> HashMap k a -> HashMap k a
         diff = case ch of
                     Old -> M.difference

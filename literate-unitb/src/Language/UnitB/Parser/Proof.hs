@@ -33,8 +33,9 @@ import           Control.Monad.Trans.Writer
 import           Data.Char
 import           Data.HashMap.Lazy hiding ( map )
 import qualified Data.HashMap.Lazy as M
+import qualified Data.HashMap.Lazy.Extras as M
+import qualified Data.HashSet.Extras as S
 import           Data.Maybe
-import qualified Data.Set as S
 import qualified Data.Traversable as T 
 import qualified Data.Text as T 
 
@@ -337,7 +338,7 @@ collect_proof_step = do
                     defs    = definition step
                     ng      = new_goal step
                     thm_ref = theorem_ref step
-                if keysSet prfs `S.isSubsetOf` keysSet assrt
+                if M.keysSet prfs `S.isSubsetOf` M.keysSet assrt
                      then return $ LP.with_line_info li $ do
                         defs <- forM defs $ 
                             runKleisli $ second $ Kleisli id

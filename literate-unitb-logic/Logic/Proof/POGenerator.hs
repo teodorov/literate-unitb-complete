@@ -36,6 +36,7 @@ import           Data.List  as L
 import           Data.List.NonEmpty as NE
 import           Data.HashMap.Lazy as M hiding ( map )
 import qualified Data.HashMap.Lazy as M
+import           Data.HashMap.Lazy.Extras as M 
 import           Data.Semigroup
 import           Data.Text (Text)
 
@@ -190,7 +191,7 @@ variables :: M.HashMap Name Var -> POCtx' lbl ()
 variables vars = POCtx $ do
         S.context.constants %= (vars `merge`)
 
-eval_generator :: (Ord lbl,Show lbl)
+eval_generator :: (Key lbl,Show lbl)
                => POGen' lbl () 
                -> M.HashMap lbl Sequent
 eval_generator cmd = runIdentity $ eval_generatorT cmd
@@ -200,7 +201,7 @@ tracePOG (POGen cmd) = POGen $ do
     xs <- snd <$> listen cmd
     traceM $ L.unlines $ L.map (show . second (view goal)) (D.toList xs)
 
-eval_generatorT :: (Monad m,Ord lbl,Show lbl) 
+eval_generatorT :: (Monad m,Key lbl,Show lbl) 
                 => POGenT' lbl m () 
                 -> m (M.HashMap lbl Sequent)
 eval_generatorT cmd = 

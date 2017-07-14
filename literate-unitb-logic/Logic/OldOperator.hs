@@ -5,8 +5,10 @@ import Logic.Operator
     -- Libraries
 import Data.Array
 import Data.List
+import Data.Hashable
 import Data.HashMap.Lazy
 import Data.Typeable
+import GHC.Generics
 
 data XUnaryOperator = Negation
     deriving (Eq, Ord)
@@ -24,7 +26,9 @@ data XBinOperator =
         | And | Or
         | Implies | Follows 
         | Equiv
-    deriving (Eq,Ord,Show,Enum,Ix,Typeable)
+    deriving (Eq,Ord,Show,Enum,Ix,Typeable,Generic)
+
+instance Hashable XBinOperator where
 
 associativity :: [([XBinOperator],Assoc)]
 associativity = 

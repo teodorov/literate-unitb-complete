@@ -27,10 +27,13 @@ import           Data.Graph hiding ( vertices )
 import           Data.List as L hiding ( union, (\\), transpose, map )
 import qualified Data.List as L
 import qualified Data.List.Ordered as OL
+import           Data.Hashable
 import           Data.HashMap.Lazy  as M 
     ( HashMap, fromList, fromListWith
     , toList )
 import qualified Data.HashMap.Lazy  as M 
+import           Data.HashMap.Lazy.Extras  as M (Key)
+import qualified Data.HashMap.Lazy.Extras  as M 
 import           Data.Maybe
 import           Data.Tuple
 
@@ -50,19 +53,20 @@ data Matrix a b = Matrix (HashMap a (HashMap a b)) [a] b
 empty :: b -> Matrix a b
 empty x = Matrix M.empty [] x
 
-(!) :: Ord k => Matrix k b -> (k,k) -> b
+(!) :: (Key k) => Matrix k b -> (k,k) -> b
 (!) (Matrix m _ x) (y,z) = maybe x (M.findWithDefault x z) (M.lookup y m)
 
-unionWith :: Ord k => (a -> a -> a) 
+unionWith :: (Key k) => (a -> a -> a) 
           -> Matrix k a -> Matrix k a -> Matrix k a
 unionWith g (Matrix m0 xs x) (Matrix m1 ys y) = Matrix (M.unionWith f m0 m1) (nub $ xs ++ ys) (g x y)
     where
         f m0 m1 = M.unionWith g m0 m1
 
-transpose :: Ord a => Matrix a b -> Matrix a b
+transpose :: (Ord a,Hashable a) => Matrix a b -> Matrix a b
 transpose m = mapKeys swap m
 
-mapKeys :: Ord b => ((a,a) -> (b,b)) -> Matrix a c -> Matrix b c 
+mapKeys :: (Key a,Key b) 
+        => ((a,a) -> (b,b)) -> Matrix a c -> Matrix b c 
 mapKeys f (Matrix m xs x) = Matrix result (nub ys) x
     where
         result = M.map fromList 
@@ -77,7 +81,7 @@ mapKeys f (Matrix m xs x) = Matrix result (nub ys) x
                 let (x',y') = f (x,y)
                 [x',y']
 
-as_map :: Ord t => Matrix t a -> HashMap (t,t) a
+as_map :: (Key t) => Matrix t a -> HashMap (t,t) a
 as_map g@(Matrix m _ x) = M.union result other
     where
         other = M.fromList $ zip (keys g) $ repeat x
@@ -112,7 +116,7 @@ cycles_with ys xs = stronglyConnComp $ collapse $ sort $ alist ++ vs
             | x1 /= y1  = (x1,x2,xs) : collapse zs
         collapse xs = xs
 
-times :: (Ord a, Composition b)
+times :: (Key a, Composition b)
       => Matrix a b -> Matrix a b 
       -> Matrix a b
 times (Matrix m0 xs x) (Matrix m1 ys y) = Matrix m2 zs z
@@ -239,7 +243,7 @@ closure xs = ys
             | b         = [(m1 P.! i, m1 P.! j)]
             | otherwise = []
 
-m_closure :: (Ix b, Ord b) => [(b,b)] -> Array (b,b) Bool
+m_closure :: (Ix b, Key b) => [(b,b)] -> Array (b,b) Bool
 m_closure xs = ixmap (g m, g n) f $ closure_ ar
     where
         (m0,m1,ar) = matrix_of xs
@@ -247,7 +251,7 @@ m_closure xs = ixmap (g m, g n) f $ closure_ ar
         g (i,j)    = (m1 P.! i, m1 P.! j) 
         (m,n)      = bounds ar
 
-m_closure_with :: (Ord b) => [b] -> [(b,b)] -> Matrix b Bool
+m_closure_with :: (Ord b,Hashable b) => [b] -> [(b,b)] -> Matrix b Bool
 m_closure_with vs es = Matrix (M.map (M.mapKeys convert . fromList . (`zip` repeat True)) result) new_vs False
     where
             -- adjacency list
@@ -267,28 +271,31 @@ m_closure_with vs es = Matrix (M.map (M.mapKeys convert . fromList . (`zip` repe
         result      = M.mapKeys convert $ foldl' f al order
         convert x   = tr P.! x
 
-as_matrix :: Ord a => [(a, a)] -> Matrix a Bool
+as_matrix :: (Ord a,Hashable a) => [(a, a)] -> Matrix a Bool
 as_matrix xs = as_matrix_with [] xs
 
-from_list :: forall a b. (Eq b,Ord a) => [((a,a),b)] -> b -> Matrix a b
+from_list :: forall a b. (Eq b,Key a) => [((a,a),b)] -> b -> Matrix a b
 from_list es def = Matrix zs' vs def
     where 
         zs  = [ (x,[(y,b)]) | ((x,y),b) <- es, b /= def ]
         zs' = M.map fromList $ fromListWith (++) zs
         vs  = nub $ L.map (fst . fst) es ++ L.map (snd . fst) es :: [a]
 
-as_matrix_with :: Ord a => [a] -> [(a,a)] -> Matrix a Bool
+as_matrix_with :: (Key a) 
+               => [a] -> [(a,a)] -> Matrix a Bool
 as_matrix_with vs es = Matrix (M.map fromList $ fromListWith (++) zs) vs False
         -- zip cs (repeat False) ++ zip es (repeat True)
     where
 --        cs = [ (x,y) | x <- rs, y <- rs ]
         zs = [ (x,[(y,True)]) | (x,y) <- es ]
 
-matrix_of :: (Ord a) => [(a,a)] -> (HashMap a Int, Array Int a, Array (Int,Int) Bool)
+matrix_of :: (Ord a,Hashable a) => [(a,a)] -> (HashMap a Int, Array Int a, Array (Int,Int) Bool)
 matrix_of xs = matrix_of_with [] xs
 
     -- replace the maps with arrays
-matrix_of_with :: (Ord a) => [a] -> [(a,a)] -> (HashMap a Int, Array Int a, Array (Int,Int) Bool)
+matrix_of_with :: (Ord a,Hashable a) 
+               => [a] -> [(a,a)] 
+               -> (HashMap a Int, Array Int a, Array (Int,Int) Bool)
 matrix_of_with rs xs = (m0,m1,ar)
     where
         vs = sort $ nub (L.map fst xs ++ L.map snd xs ++ rs)
@@ -338,7 +345,7 @@ run_tests = $forAllProperties'
 
 instance (NFData a,NFData b) => NFData (Matrix a b)
 
-instance (Ord a,Enum a,Eq b,Arbitrary b) => Arbitrary (Matrix a b) where
+instance (Key a,Enum a,Eq b,Arbitrary b) => Arbitrary (Matrix a b) where
     arbitrary = do
         (Positive m) <- arbitrary
         -- (Positive n) <- arbitrary
@@ -351,7 +358,7 @@ instance (Ord a,Enum a,Eq b,Arbitrary b) => Arbitrary (Matrix a b) where
             return ((toEnum i, toEnum j),x)
         return $ from_list ys def
 
-axm_def :: (Show a, Arbitrary a, Ord a, Composition b) 
+axm_def :: (Show a, Arbitrary a, Eq a, Hashable a, Composition b) 
          => Matrix a b -> Property
 axm_def m' = forAll arbitrary $ \(x,z) -> 
         m (x,z)  ==  uppest (L.map (\y -> m(x,y) `seq` m(y,z)) $ vertices m')

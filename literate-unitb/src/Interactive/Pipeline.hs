@@ -41,6 +41,7 @@ import           Data.HashMap.Lazy as M
                     ( insert, keys
                     , toList, unions )
 import qualified Data.HashMap.Lazy as M 
+import qualified Data.HashMap.Lazy.Extras as M 
 import           Data.Monoid ((<>))
 import           Data.Text (Text,pack,unpack)
 import qualified Data.Text as T
