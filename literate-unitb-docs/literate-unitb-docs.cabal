@@ -30,6 +30,7 @@ library
                        control-invariants,
                        transformers,
                        mtl, lens,
+                       semigroups,
                        data-default,
                        literate-unitb-verifier
   hs-source-dirs:      src
