@@ -54,7 +54,8 @@ library
                        stm,
                        pseudomacros,
                        time,
-                       gitrev
+                       gitrev,
+                       semigroups
   hs-source-dirs:      src
   default-extensions:  QuasiQuotes, TemplateHaskell, DeriveGeneric, FlexibleContexts, TypeSynonymInstances, FlexibleInstances, OverloadedStrings
   default-language:    Haskell2010
