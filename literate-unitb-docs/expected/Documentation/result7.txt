@@ -1,0 +1,8 @@
+\textbf{assumptions}
+\begin{block}
+  \item[ \eqref{asm0} ]{$\neg ext \in plf \1\land \neg ext = ent$} %
+  \item[ \eqref{asm1} ]{$\qforall{b}{}{ b \in \Blk \2\equiv b \in plf \1\lor b = ent \1\lor b = ext }$} %
+  \item[ \eqref{asm2} ]{$\qexists{b}{}{b \in plf}$} %
+  \item[ \eqref{asm3} ]{$\neg ent \in plf$} %
+  \item[ \eqref{asm7} ]{$(\{ ext \} \bunion plf = \compl \{ent\}) \land (\{ ent \} \bunion plf = \compl \{ext\}) \land \{ ext, ent \} = \compl plf$} %
+\end{block}

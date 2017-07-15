@@ -1,0 +1,8 @@
+error 75:4:
+    type of empty-fun is ill-defined: \pfun [\TRAIN,_a]
+
+error 75:4:
+    type of empty-fun is ill-defined: \pfun [\TRAIN,_b]
+
+error 77:3:
+    type of empty-fun is ill-defined: \pfun [\TRAIN,_a]

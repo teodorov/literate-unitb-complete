@@ -1,0 +1,6 @@
+  o  m0/INIT/INV/m0:inv0
+  o  m0/INIT/INV/m0:inv1
+  o  m0/input/INV/m0:inv0
+  o  m0/input/INV/m0:inv1
+  o  m0/input/SAF/m0:saf0
+passed 5 / 5

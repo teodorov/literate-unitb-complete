@@ -70,8 +70,9 @@ case1 :: IO (Either [Error] [Machine])
 case1 = do
     parse path1
 
-result2 :: Text
-result2 = T.unlines 
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result2.txt"
+    T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/inc/FIS/x@prime"
@@ -91,8 +92,9 @@ path2 = [path|Tests/small_machine_t2.tex|]
 case2 :: IO (Text, Map Label Sequent)
 case2 =  verify path2 0
 
-result3 :: Text
-result3 = T.unlines 
+result3 :: Output
+result3 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result3.txt"
+    T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , " xxx m0/SKIP/CO/co0"
     , "  o  m0/inc/CO/co0"
@@ -110,8 +112,9 @@ path3 = [path|Tests/small_machine.tex|]
 case3 :: IO (Text, Map Label Sequent)
 case3 = verify path3 0
 
-result4 :: Text
-result4 = T.unlines 
+result4 :: Output
+result4 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result4.txt"
+    T.unlines 
     [ "; m0/inc/INV/inv0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -149,8 +152,9 @@ show_po path lbl = proof_obligation path (prettyText lbl) 0
 case4 :: IO Text
 case4 = show_po path3 "m0/inc/INV/inv0"
 
-result5 :: Text
-result5 = T.unlines 
+result5 :: Output
+result5 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result5.txt"
+    T.unlines 
     [ "; m0/SKIP/CO/co0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -183,8 +187,9 @@ result5 = T.unlines
 case5 :: IO Text
 case5 = show_po path3 "m0/SKIP/CO/co0"
 
-result6 :: Text
-result6 = T.unlines 
+result6 :: Output
+result6 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result6.txt"
+    T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , " xxx m0/SKIP/CO/co0"
     , "  o  m0/inc/CO/co0"
@@ -203,8 +208,9 @@ path6 = [path|Tests/small_machine_t3.tex|]
 case6 :: IO (Text, Map Label Sequent)
 case6 = verify path6 0
 
-result7 :: Text
-result7 = T.unlines 
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result7.txt"
+    T.unlines 
     [ "; m0/inc/SCH/grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -236,8 +242,9 @@ case7 = show_po path6 "m0/inc/SCH/grd0"
 path8 :: FilePath
 path8 = [path|Tests/small_machine_t4.tex|]
 
-result8 :: Text
-result8 = T.unlines 
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result8.txt"
+    T.unlines 
     [ "; m0/inc/SCH/grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -266,8 +273,9 @@ result8 = T.unlines
 case8 :: IO Text
 case8 = show_po path8 "m0/inc/SCH/grd0"
 
-result9 :: Text
-result9 = T.unlines
+result9 :: Output
+result9 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result9.txt"
+    T.unlines
     [ "; m0/inc/C_SCH/weaken/c0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -298,8 +306,9 @@ result9 = T.unlines
 case9 :: IO Text
 case9 = show_po path6 "m0/inc/C_SCH/weaken/c0"
 
-result10 :: Text
-result10 = T.unlines 
+result10 :: Output
+result10 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result10.txt"
+    T.unlines 
     [ "; m0/tr0/TR/inc/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -328,8 +337,9 @@ result10 = T.unlines
 case10 :: IO Text
 case10 = show_po path6 "m0/tr0/TR/inc/EN"
 
-result11 :: Text
-result11 = T.unlines
+result11 :: Output
+result11 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result11.txt"
+    T.unlines
     [ "; m0/tr0/TR/inc/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -438,8 +448,9 @@ case12 :: IO Text
 case12 = do
     find_errors path12
 
-result12 :: Text
-result12 = T.unlines
+result12 :: Output
+result12 = readFileLn' "expected/Language/UnitB/Parser/SmallMachine/result12.txt"
+    T.unlines
     [ "Multiple expressions with the label c0"
     , "error 41:1:"
     , "\tcoarse schedule (event 'inc')"

@@ -1,0 +1,2 @@
+error 227:2:
+    'c' is not a disappearing variable or a new index

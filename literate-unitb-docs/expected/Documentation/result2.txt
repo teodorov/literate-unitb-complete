@@ -1,0 +1,5 @@
+\textbf{safety}
+\begin{block}
+  \item[ \eqref{m2:saf1} ]{$t \in in \land loc.t = ext \textbf{\quad unless \quad} \neg ext \in \ran. loc$} %
+  \item[ \eqref{m2:saf2} ]{$t \in in \land b \in plf \1\land  loc.t = b \textbf{\quad unless \quad} b \in plf \1\land \qforall{t}{ t \in in }{ \neg loc.t = b }$} %
+\end{block}

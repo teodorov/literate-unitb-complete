@@ -119,7 +119,7 @@ library
 
   default-language:    Haskell2010
 
-  build-depends:       ansi-terminal, axiomatic-classes, base >=4.8 && < 5, bipartite-graph, bytestring, cereal < 5, classy-lens-hierarchy, co-applicative, containers, data-compressed, data-default, data-ordlist, deepseq, directory >= 1.2.2.0, dlist, either, existential, existential, file-system-mockup, filepath, generic-instances, hashable, control-invariants, lens, lens-extra, literate-unitb-latex, literate-unitb-logic, literate-unitb-utils, monoid-transformer, mtl, parallel, th-printf, process, QuickCheck, semigroupoids, semigroups, show-with, stm, tagged, template-haskell, transformers >=0.3, unfoldable, unordered-containers, witherable, typelist-functor, constraints, pretty-printable, prelude-extras, hscolour, unordered-containers, literate-unitb-config, syntax-error, quickcheck-report, text, text-show, pseudomacros, time
+  build-depends:       ansi-terminal, axiomatic-classes, base >=4.8 && < 5, bipartite-graph, bytestring, cereal < 5, classy-lens-hierarchy, co-applicative, containers, data-compressed, data-default, data-ordlist, deepseq, directory >= 1.2.2.0, dlist, either, existential, existential, file-system-mockup, filepath, generic-instances, hashable, control-invariants, lens, lens-extra, literate-unitb-latex, literate-unitb-logic, literate-unitb-utils, monoid-transformer, mtl, parallel, th-printf, process, QuickCheck, semigroupoids, semigroups, show-with, stm, tagged, template-haskell, transformers >=0.3, unfoldable, unordered-containers, witherable, typelist-functor, constraints, pretty-printable, prelude-extras, hscolour, unordered-containers, literate-unitb-config, syntax-error, quickcheck-report, text, text-show, pseudomacros, time, unitb-testing, pipes-text
 
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
@@ -193,6 +193,6 @@ test-suite tests
                         file-system-mockup,
                         semigroups,
                         literate-unitb-config,
-                        pretty-printable
+                        pretty-printable, template-haskell
    default-language:    Haskell2010
    default-extensions:  TupleSections, DeriveFunctor, DeriveGeneric, DeriveFoldable, RankNTypes, MultiParamTypeClasses, GeneralizedNewtypeDeriving, TemplateHaskell, FlexibleContexts, FlexibleInstances, DeriveDataTypeable, TypeSynonymInstances, DefaultSignatures, DeriveTraversable, FunctionalDependencies, ImplicitParams, QuasiQuotes

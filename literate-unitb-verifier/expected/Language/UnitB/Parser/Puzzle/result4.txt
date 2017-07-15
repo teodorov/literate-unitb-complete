@@ -1,0 +1,19 @@
+invalid label: m1/LIVE/prog3/ensure/TR/visit/EN
+m1/INIT/INV/inv0
+m1/LIVE/prog3/ensure/TR/WFIS/p/p@prime
+m1/LIVE/prog3/ensure/TR/visit/NEG
+m1/prog1/LIVE/induction/lhs
+m1/prog1/LIVE/induction/rhs
+m1/prog2/LIVE/PSP/lhs
+m1/prog2/LIVE/PSP/rhs
+m1/term/C_SCH/delay/0/prog/prog1/rhs/sch1
+m1/term/C_SCH/delay/0/saf/visit/SAF/term
+m1/term/INV/inv0
+m1/term/SAF/LIVE/prog3/ensure
+m1/term/SAF/saf1
+m1/term/SAF/saf2
+m1/term/SCH/grd0
+m1/visit/INV/inv0
+m1/visit/SAF/LIVE/prog3/ensure
+m1/visit/SAF/saf1
+m1/visit/SAF/saf2

@@ -1,0 +1,48 @@
+%!TEX root=../file.ext
+\begin{block}
+  \item   \textbf{machine} m3
+  \item   \textbf{refines} m2
+  \item   \textbf{sets}
+  \begin{block}
+    \item   $\Blk$
+    \item   $\Train$
+  \end{block}
+  \item   \textbf{constants}
+  \begin{block}
+    \item   $ent \in \Blk$
+    \item   $ext \in \Blk$
+    \item   $plf \subseteq \Blk$
+  \end{block}
+  \item   \input{file/machine_m3_asm}
+  \item   \textbf{variables}
+  \begin{block}
+    \item   $in \subseteq \Train$
+    \item   $loc \in \Train \pfun \Blk$
+    \item   $isgn \in \textbf{Bool}$\quad(new)
+    \item   $osgn \subseteq \Blk$\quad(new)
+  \end{block}
+  \item   \input{file/machine_m3_inv}
+  \item   \input{file/machine_m3_prog}
+  \item   \input{file/machine_m3_saf}
+  \item   \input{file/machine_m3_trans}
+  \item   \textbf{initialization}
+  \begin{block}
+    \item[ ]{$loc \, = \emptyfun$} %
+    %\eqref{in0}
+    \item[ ]{$in = \emptyset$} %
+    %\eqref{in1}
+    \item[ ]{$osgn = \emptyset$} %
+    %\eqref{m3:init0}
+    \item[ ]{$isgn = \false$} %
+    %\eqref{m3:init1}
+  \end{block}
+  \textbf{events}
+  \begin{block}
+    \item   \input{file/m3_m0-enter}
+    \item   \input{file/m3_m0-leave}
+    \item   \input{file/m3_m1-movein}
+    \item   \input{file/m3_m1-moveout}
+    \item   \input{file/m3_m3-ctr-plf}
+  \end{block}
+  \item   \textbf{end} \\
+\end{block}

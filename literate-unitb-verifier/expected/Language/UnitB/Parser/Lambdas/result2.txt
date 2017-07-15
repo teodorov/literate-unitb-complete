@@ -1,0 +1,55 @@
+  o  m0/INIT/INV/inv0
+  o  m0/INIT/INV/inv1
+  o  m0/INIT/INV/inv2
+  o  m0/INIT/INV/inv3/goal
+  o  m0/INIT/INV/inv3/hypotheses
+  o  m0/INIT/INV/inv3/relation
+  o  m0/INIT/INV/inv3/step 1
+  o  m0/INIT/INV/inv3/step 2
+  o  m0/INIT/INV/inv3/step 3
+  o  m0/INIT/INV/inv4
+  o  m0/INIT/INV/inv5
+  o  m0/INV/WD
+  o  m0/evt/FIS/a@prime
+  o  m0/evt/FIS/b@prime
+  o  m0/evt/FIS/c@prime
+  o  m0/evt/FIS/f@prime
+  o  m0/evt/FIS/n@prime
+  o  m0/evt/INV/inv0/goal
+  o  m0/evt/INV/inv0/hypotheses
+  o  m0/evt/INV/inv0/relation
+  o  m0/evt/INV/inv0/step 1
+  o  m0/evt/INV/inv0/step 2
+  o  m0/evt/INV/inv0/step 3
+  o  m0/evt/INV/inv0/step 4
+  o  m0/evt/INV/inv0/step 5
+  o  m0/evt/INV/inv1/goal
+  o  m0/evt/INV/inv1/hypotheses
+  o  m0/evt/INV/inv1/relation
+  o  m0/evt/INV/inv1/step 1
+  o  m0/evt/INV/inv1/step 2
+  o  m0/evt/INV/inv1/step 3
+  o  m0/evt/INV/inv1/step 4
+  o  m0/evt/INV/inv1/step 5
+  o  m0/evt/INV/inv1/step 6
+  o  m0/evt/INV/inv1/step 7
+  o  m0/evt/INV/inv2/easy
+  o  m0/evt/INV/inv3/goal
+  o  m0/evt/INV/inv3/hypotheses
+  o  m0/evt/INV/inv3/relation
+  o  m0/evt/INV/inv3/step 1
+  o  m0/evt/INV/inv3/step 2
+  o  m0/evt/INV/inv3/step 3
+  o  m0/evt/INV/inv3/step 4
+  o  m0/evt/INV/inv3/step 5
+  o  m0/evt/INV/inv4
+  o  m0/evt/INV/inv5/assertion/asm0/easy
+  o  m0/evt/INV/inv5/main goal/goal
+  o  m0/evt/INV/inv5/main goal/hypotheses
+  o  m0/evt/INV/inv5/main goal/relation
+  o  m0/evt/INV/inv5/main goal/step 1
+  o  m0/evt/INV/inv5/main goal/step 2
+  o  m0/evt/INV/inv5/main goal/step 3
+  o  m0/evt/INV/inv5/main goal/step 4
+  o  m0/evt/INV/inv5/main goal/step 5
+passed 54 / 54

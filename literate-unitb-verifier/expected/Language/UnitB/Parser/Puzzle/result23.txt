@@ -1,0 +1,2 @@
+error 227:2:
+    deleted variable 'xyz' does not exist

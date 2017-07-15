@@ -1,0 +1,2 @@
+error 641:1:
+    goal m1:prog1 is not a valid progress property

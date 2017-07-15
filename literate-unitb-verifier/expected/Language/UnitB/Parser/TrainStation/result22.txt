@@ -1,0 +1,2 @@
+error 48:1:
+    event(s) leave have indices and require witnesses

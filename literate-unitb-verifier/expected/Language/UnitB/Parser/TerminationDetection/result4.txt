@@ -1,0 +1,26 @@
+  o  m3/INIT/INV/m3:inv0
+  o  m3/INIT/INV/m3:inv1
+  o  m3/INV/WD
+  o  m3/activate/INV/m3:inv0
+ xxx m3/activate/INV/m3:inv1
+  o  m3/activate/WD/ACT/m3:act0
+  o  m3/add/INV/m3:inv0
+  o  m3/add/INV/m3:inv1/goal
+  o  m3/add/INV/m3:inv1/hypotheses
+  o  m3/add/INV/m3:inv1/relation
+  o  m3/add/INV/m3:inv1/step 1
+  o  m3/add/INV/m3:inv1/step 2
+  o  m3/add/INV/m3:inv1/step 3
+  o  m3/add/INV/m3:inv1/step 4
+  o  m3/add/INV/m3:inv1/step 5
+  o  m3/add/INV/m3:inv1/step 6
+  o  m3/add/INV/m3:inv1/step 7
+ xxx m3/add/INV/m3:inv1/step 8
+  o  m3/add/WD/ACT/m3:act0
+  o  m3/add/WD/GRD
+  o  m3/detect/INV/m3:inv0
+  o  m3/detect/INV/m3:inv1
+  o  m3/detect/WD/GRD
+  o  m3/stop/INV/m3:inv0
+  o  m3/stop/INV/m3:inv1
+passed 23 / 25

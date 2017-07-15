@@ -1,0 +1,110 @@
+; m1/prog1/LIVE/induction/rhs
+(set-option :auto-config false)
+(set-option :smt.timeout 3000)
+(declare-datatypes (a) ( (Maybe (Just (fromJust a)) Nothing) ))
+(declare-datatypes () ( (Null null) ))
+(declare-datatypes (a b) ( (Pair (pair (first a) (second b))) ))
+(define-sort guarded (a) (Maybe a))
+; comment: we don't need to declare the sort Bool
+; comment: we don't need to declare the sort Int
+(declare-sort sl$Pcs 0)
+; comment: we don't need to declare the sort Real
+(define-sort set (a) (Array a Bool))
+(declare-const V (set sl$Pcs))
+(declare-const b Bool)
+(declare-const b@prime Bool)
+(declare-const vs (set sl$Pcs))
+(declare-const vs@prime (set sl$Pcs))
+(declare-fun card@@sl$Pcs ( (set sl$Pcs) ) Int)
+(declare-fun finite@@sl$Pcs ( (set sl$Pcs) ) Bool)
+(define-fun all@@sl$Pcs
+            ()
+            (set sl$Pcs)
+            ( (as const (set sl$Pcs))
+              true ))
+(define-fun compl@@sl$Pcs
+            ( (s1 (set sl$Pcs)) )
+            (set sl$Pcs)
+            ( (_ map not)
+              s1 ))
+(define-fun empty-set@@sl$Pcs
+            ()
+            (set sl$Pcs)
+            ( (as const (set sl$Pcs))
+              false ))
+(define-fun set-diff@@sl$Pcs
+            ( (s1 (set sl$Pcs))
+              (s2 (set sl$Pcs)) )
+            (set sl$Pcs)
+            (intersect s1 ( (_ map not) s2 )))
+(define-fun st-subset@@sl$Pcs
+            ( (s1 (set sl$Pcs))
+              (s2 (set sl$Pcs)) )
+            Bool
+            (and (subset s1 s2) (not (= s1 s2))))
+(define-fun sl$Pcs
+            ()
+            (set sl$Pcs)
+            ( (as const (set sl$Pcs))
+              true ))
+(assert (forall ( (r (set sl$Pcs)) )
+                (! (=> (finite@@sl$Pcs r) (<= 0 (card@@sl$Pcs r)))
+                   :pattern
+                   ( (<= 0 (card@@sl$Pcs r)) ))))
+(assert (forall ( (r (set sl$Pcs)) )
+                (! (= (= (card@@sl$Pcs r) 0) (= r empty-set@@sl$Pcs))
+                   :pattern
+                   ( (card@@sl$Pcs r) ))))
+(assert (forall ( (r (set sl$Pcs))
+                  (r0 (set sl$Pcs)) )
+                (! (=> (= (intersect r r0) empty-set@@sl$Pcs)
+                       (= (card@@sl$Pcs (union r r0))
+                          (+ (card@@sl$Pcs r) (card@@sl$Pcs r0))))
+                   :pattern
+                   ( (card@@sl$Pcs (union r r0)) ))))
+(assert (forall ( (s1 (set sl$Pcs))
+                  (s2 (set sl$Pcs)) )
+                (! (=> (finite@@sl$Pcs s1)
+                       (finite@@sl$Pcs (set-diff@@sl$Pcs s1 s2)))
+                   :pattern
+                   ( (finite@@sl$Pcs (set-diff@@sl$Pcs s1 s2)) ))))
+(assert (forall ( (s1 (set sl$Pcs))
+                  (s2 (set sl$Pcs)) )
+                (! (=> (and (finite@@sl$Pcs s1) (finite@@sl$Pcs s2))
+                       (finite@@sl$Pcs (union s1 s2)))
+                   :pattern
+                   ( (finite@@sl$Pcs (union s1 s2)) ))))
+(assert (forall ( (s1 (set sl$Pcs))
+                  (s2 (set sl$Pcs)) )
+                (! (=> (and (finite@@sl$Pcs s2) (not (finite@@sl$Pcs s1)))
+                       (not (finite@@sl$Pcs (set-diff@@sl$Pcs s1 s2))))
+                   :pattern
+                   ( (finite@@sl$Pcs (set-diff@@sl$Pcs s1 s2)) ))))
+(assert (finite@@sl$Pcs empty-set@@sl$Pcs))
+(assert (not (forall ( (V (set sl$Pcs)) )
+                     (=> true
+                         (=> (or (st-subset@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs) V)
+                                 (= vs sl$Pcs))
+                             (or (and (subset (set-diff@@sl$Pcs sl$Pcs vs) V)
+                                      (subset empty-set@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs))
+                                      (finite@@sl$Pcs (set-diff@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs) empty-set@@sl$Pcs)))
+                                 (= vs sl$Pcs)))))))
+(assert (not (=> (or (st-subset@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs) V)
+                     (= vs sl$Pcs))
+                 (or (and (subset (set-diff@@sl$Pcs sl$Pcs vs) V)
+                          (subset empty-set@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs))
+                          (finite@@sl$Pcs (set-diff@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs) empty-set@@sl$Pcs)))
+                     (= vs sl$Pcs)))))
+; asm0
+(assert (finite@@sl$Pcs sl$Pcs))
+; inv0
+(assert (=> b (= vs sl$Pcs)))
+(assert (not (=> (st-subset@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs) V)
+                 (and (subset (set-diff@@sl$Pcs sl$Pcs vs) V)
+                      (subset empty-set@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs))
+                      (finite@@sl$Pcs (set-diff@@sl$Pcs (set-diff@@sl$Pcs sl$Pcs vs) empty-set@@sl$Pcs))))))
+(check-sat-using (or-else (then qe smt)
+                          (then simplify smt)
+                          (then skip smt)
+                          (then (using-params simplify :expand-power true) smt)))
+; m1/prog1/LIVE/induction/rhs

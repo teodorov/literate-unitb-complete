@@ -1,0 +1,61 @@
+In 'm3', event 'flick', coarse schedule 'sch1' refers to deleted symbols
+error 101:4:
+	deleted variable 'ts'
+
+error 161:2:
+	coarse schedule 'sch1'
+
+
+In 'm3', event 'flick', guard 'grd0' refers to deleted symbols
+error 101:4:
+	deleted variable 'ts'
+
+error 162:2:
+	guard 'grd0'
+
+
+In 'm3', event 'term', coarse schedule 'sch2' refers to deleted symbols
+error 101:4:
+	deleted variable 'ts'
+
+error 104:2:
+	coarse schedule 'sch2'
+
+
+In 'm3', event 'count', coarse schedule 'sch0' refers to deleted symbols
+error 116:4:
+	deleted variable 'cs'
+
+error 176:2:
+	coarse schedule 'sch0'
+
+
+In 'm3', event 'flick', action 'act0' refers to deleted symbols
+error 116:4:
+	deleted variable 'cs'
+
+error 163:2:
+	action 'act0'
+
+
+In 'm3', event 'flick', coarse schedule 'sch0' refers to deleted symbols
+error 116:4:
+	deleted variable 'cs'
+
+error 160:2:
+	coarse schedule 'sch0'
+
+
+In 'm3', initialization predicate 'in2' refers to deleted symbols
+error 116:4:
+	deleted variable cs
+
+error 175:2:
+	predicate in2
+
+
+error 204:2:
+    event 'flick', action 'act' was deleted but does not exist
+
+error 205:2:
+    initialization predicate 'in' was deleted but does not exist

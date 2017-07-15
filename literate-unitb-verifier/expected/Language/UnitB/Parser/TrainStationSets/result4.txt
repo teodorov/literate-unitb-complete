@@ -1,0 +1,5 @@
+error 494:27:
+    unrecognized term: t
+Perhaps you meant:
+ent (variable)
+ext (variable)

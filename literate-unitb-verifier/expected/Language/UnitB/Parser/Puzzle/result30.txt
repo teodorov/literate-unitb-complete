@@ -1,0 +1,111 @@
+Multiple expressions with the label grd0
+error 53:2:
+	guard (event 'term')
+
+error 253:2:
+	guard (event 'term')
+
+
+Multiple expressions with the label sch1
+error 54:2:
+	coarse schedule (event 'term')
+
+error 254:2:
+	coarse schedule (event 'term')
+
+
+Multiple expressions with the label act1
+error 88:2:
+	action (event 'visit')
+
+error 288:2:
+	action (event 'visit')
+
+
+Multiple expressions with the label sch0
+error 160:2:
+	coarse schedule (event 'flick')
+
+error 360:2:
+	coarse schedule (event 'flick')
+
+
+Multiple expressions with the label sch1
+error 161:2:
+	coarse schedule (event 'flick')
+
+error 361:2:
+	coarse schedule (event 'flick')
+
+
+Multiple expressions with the label grd0
+error 162:2:
+	guard (event 'flick')
+
+error 362:2:
+	guard (event 'flick')
+
+
+Multiple expressions with the label act0
+error 163:2:
+	action (event 'flick')
+
+error 363:2:
+	action (event 'flick')
+
+
+Multiple expressions with the label sch0
+error 176:2:
+	coarse schedule (event 'count')
+
+error 376:2:
+	coarse schedule (event 'count')
+
+
+Multiple expressions with the label act0
+error 179:2:
+	action (event 'count')
+
+error 379:2:
+	action (event 'count')
+
+
+Multiple expressions with the label act1
+error 180:2:
+	action (event 'count')
+
+error 380:2:
+	action (event 'count')
+
+
+Multiple expressions with the label grd1
+error 188:2:
+	guard (event 'flick')
+
+error 388:2:
+	guard (event 'flick')
+
+
+Multiple expressions with the label sch2
+error 189:2:
+	coarse schedule (event 'flick')
+
+error 389:2:
+	coarse schedule (event 'flick')
+
+
+Multiple expressions with the label m3:act1
+error 223:3:
+	action (event 'count')
+
+error 423:3:
+	action (event 'count')
+
+
+Multiple expressions with the label m3:grd0
+error 224:3:
+	guard (event 'count')
+
+error 424:3:
+	guard (event 'count')
+

@@ -26,14 +26,16 @@ case0 :: IO Text
 case0 = do
     find_errors path0
 
-result0 :: Text
-result0 = "no errors"
+result0 :: Output
+result0 = readFileLn' "expected/Language/UnitB/Parser/Definitions/result0.txt"
+    id "no errors"
 
 case1 :: IO POResult
 case1 = verify path0 0
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/Definitions/result1.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , " xxx m0/act/INV/inv0"
     , "passed 1 / 2"
@@ -42,8 +44,9 @@ result1 = T.unlines
 case2 :: IO Text
 case2 = proof_obligation path0 "m0/act/INV/inv0" 0
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/Definitions/result2.txt"
+    T.unlines
     [ "; m0/act/INV/inv0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

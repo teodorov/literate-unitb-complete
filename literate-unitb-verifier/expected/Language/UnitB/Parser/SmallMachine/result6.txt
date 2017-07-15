@@ -1,0 +1,10 @@
+  o  m0/INIT/INV/inv0
+ xxx m0/SKIP/CO/co0
+  o  m0/inc/CO/co0
+  o  m0/inc/FIS/x@prime
+  o  m0/inc/FIS/y@prime
+  o  m0/inc/INV/inv0
+  o  m0/inc/SCH/grd0
+  o  m0/tr0/TR/inc/EN
+  o  m0/tr0/TR/inc/NEG
+passed 8 / 9

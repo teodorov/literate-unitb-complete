@@ -1,0 +1,13 @@
+A cycle exists in the liveness proof
+error 339:1:
+	Progress property prog0 (refined in m0)
+
+error 341:1:
+	Progress property prog1 (refined in m0)
+
+error 343:1:
+	Progress property prog2 (refined in m0)
+
+error 347:1:
+	Progress property prog3 (refined in m0)
+

@@ -1,0 +1,6 @@
+A cycle exists in the liveness proof
+error 42:1:
+	Progress property p0 (refined in m0)
+
+error 51:1:
+	Event evt (refined in m1)

@@ -1,0 +1,98 @@
+  o  train0/INIT/INV/inv1
+  o  train0/INIT/INV/inv2/goal
+  o  train0/INIT/INV/inv2/hypotheses
+  o  train0/INIT/INV/inv2/relation
+  o  train0/INIT/INV/inv2/step 1
+  o  train0/INIT/INV/inv2/step 2
+  o  train0/INIT/INV/inv2/step 3
+  o  train0/INV/WD
+  o  train0/SKIP/CO/co0
+  o  train0/SKIP/CO/co1
+  o  train0/co0/CO/WD
+  o  train0/co1/CO/WD
+  o  train0/enter/CO/co0/case 1/goal
+  o  train0/enter/CO/co0/case 1/hypotheses
+  o  train0/enter/CO/co0/case 1/relation
+  o  train0/enter/CO/co0/case 1/step 1
+  o  train0/enter/CO/co0/case 1/step 2
+  o  train0/enter/CO/co0/case 2/goal
+  o  train0/enter/CO/co0/case 2/hypotheses
+  o  train0/enter/CO/co0/case 2/relation
+  o  train0/enter/CO/co0/case 2/step 1
+  o  train0/enter/CO/co0/case 2/step 2
+  o  train0/enter/CO/co0/case 2/step 3
+  o  train0/enter/CO/co0/case 2/step 4
+  o  train0/enter/CO/co0/completeness
+  o  train0/enter/CO/co1/completeness
+  o  train0/enter/CO/co1/new assumption
+  o  train0/enter/CO/co1/part 1/goal
+  o  train0/enter/CO/co1/part 1/hypotheses
+  o  train0/enter/CO/co1/part 1/relation
+  o  train0/enter/CO/co1/part 1/step 1
+  o  train0/enter/CO/co1/part 1/step 2
+  o  train0/enter/CO/co1/part 2/case 1/goal
+  o  train0/enter/CO/co1/part 2/case 1/hypotheses
+  o  train0/enter/CO/co1/part 2/case 1/relation
+  o  train0/enter/CO/co1/part 2/case 1/step 1
+  o  train0/enter/CO/co1/part 2/case 1/step 2
+  o  train0/enter/CO/co1/part 2/case 2/assertion/hyp6/easy
+  o  train0/enter/CO/co1/part 2/case 2/main goal/goal
+  o  train0/enter/CO/co1/part 2/case 2/main goal/hypotheses
+  o  train0/enter/CO/co1/part 2/case 2/main goal/relation
+  o  train0/enter/CO/co1/part 2/case 2/main goal/step 1
+  o  train0/enter/CO/co1/part 2/case 2/main goal/step 2
+  o  train0/enter/CO/co1/part 2/case 2/main goal/step 3
+  o  train0/enter/CO/co1/part 2/completeness
+  o  train0/enter/FIS/in@prime
+  o  train0/enter/FIS/loc@prime
+  o  train0/enter/INV/inv1
+  o  train0/enter/INV/inv2/goal
+  o  train0/enter/INV/inv2/hypotheses
+  o  train0/enter/INV/inv2/relation
+  o  train0/enter/INV/inv2/step 1
+  o  train0/enter/INV/inv2/step 2
+  o  train0/enter/INV/inv2/step 3
+  o  train0/enter/INV/inv2/step 4
+  o  train0/enter/INV/inv2/step 5
+  o  train0/enter/SCH/grd1
+  o  train0/leave/CO/co0/assertion/hyp6/goal
+  o  train0/leave/CO/co0/assertion/hyp6/hypotheses
+  o  train0/leave/CO/co0/assertion/hyp6/relation
+  o  train0/leave/CO/co0/assertion/hyp6/step 1
+  o  train0/leave/CO/co0/assertion/hyp6/step 2
+  o  train0/leave/CO/co0/assertion/hyp6/step 3
+  o  train0/leave/CO/co0/main goal/goal
+  o  train0/leave/CO/co0/main goal/hypotheses
+  o  train0/leave/CO/co0/main goal/relation
+  o  train0/leave/CO/co0/main goal/step 1
+  o  train0/leave/CO/co0/main goal/step 2
+  o  train0/leave/CO/co0/main goal/step 3
+  o  train0/leave/CO/co0/main goal/step 4
+  o  train0/leave/CO/co0/new assumption
+  o  train0/leave/CO/co1/goal
+  o  train0/leave/CO/co1/hypotheses
+  o  train0/leave/CO/co1/relation
+  o  train0/leave/CO/co1/step 1
+  o  train0/leave/CO/co1/step 2
+  o  train0/leave/CO/co1/step 3
+  o  train0/leave/CO/co1/step 4
+  o  train0/leave/CO/co1/step 5
+  o  train0/leave/CO/co1/step 6
+  o  train0/leave/CO/co1/step 7
+  o  train0/leave/CO/co1/step 8
+  o  train0/leave/FIS/in@prime
+  o  train0/leave/FIS/loc@prime
+  o  train0/leave/INV/inv1
+  o  train0/leave/INV/inv2/goal
+  o  train0/leave/INV/inv2/hypotheses
+  o  train0/leave/INV/inv2/relation
+  o  train0/leave/INV/inv2/step 1
+  o  train0/leave/INV/inv2/step 2
+  o  train0/leave/INV/inv2/step 3
+  o  train0/leave/INV/inv2/step 4
+ xxx train0/leave/SCH/grd0
+  o  train0/leave/WD/GRD
+  o  train0/tr0/TR/WFIS/t/t@prime
+  o  train0/tr0/TR/leave/EN
+  o  train0/tr0/TR/leave/NEG
+passed 96 / 97

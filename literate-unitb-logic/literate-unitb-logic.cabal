@@ -119,7 +119,7 @@ library
          -j8
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >= 4.8 && < 5, lens >= 4.12, array, containers, deepseq, data-default, cereal < 5, QuickCheck, mtl, template-haskell, hashable, dlist, semigroups, either, transformers, SafeSemaphore, data-ordlist, MissingH, pseudomacros, literate-unitb-utils, literate-unitb-config, literate-unitb-latex, control-invariants, generic-instances, th-printf, axiomatic-classes, partial-order, string-lenses, data-packaged, monad-loops, classy-lens-hierarchy, unitb-testing, lens-extra, axiomatic-classes, pretty-printable, bipartite-graph, syntax-error, quickcheck-report, async, text, text-show, process-extras
+  build-depends:       base >= 4.8 && < 5, lens >= 4.12, array, containers, deepseq, data-default, cereal < 5, QuickCheck, mtl, template-haskell, hashable, dlist, semigroups, either, transformers, SafeSemaphore, data-ordlist, MissingH, pseudomacros, literate-unitb-utils, literate-unitb-config, literate-unitb-latex, control-invariants, generic-instances, th-printf, axiomatic-classes, partial-order, string-lenses, data-packaged, monad-loops, classy-lens-hierarchy, unitb-testing, lens-extra, axiomatic-classes, pretty-printable, bipartite-graph, syntax-error, quickcheck-report, async, text, text-show, process-extras, pipes, pipes-safe
   
   -- Directories containing source files.
   hs-source-dirs:      .
@@ -139,7 +139,6 @@ test-suite test
    default-language:    Haskell2010
    other-modules:
         Logic.Test
-        Logic.Test.Stable
         Z3.Test
    main-is: test.hs
    build-depends:       base >= 4.8 && < 5,

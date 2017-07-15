@@ -1,0 +1,32 @@
+\noindent \ref{m1:moveout} $[t]$ \textbf{event}
+\begin{block}
+  \item   \textbf{refines}
+  \begin{block}
+    \item   \ref{m1:moveout}
+  \end{block}
+  \item   \textbf{during}
+  \begin{block}
+    \item[ ]{$t \in in \land loc.t \in plf$} %
+    %\eqref{m1:moveoutc1}
+  \end{block}
+  \item   \textbf{upon}
+  \begin{block}
+    \item[ ]{$\neg ext \in \ran.loc$} %
+    %\eqref{m1:moveoutmo:f0}
+  \end{block}
+  \item   \textbf{when}
+  \begin{block}
+    \item[ ]{$t \in in$} %
+    %\eqref{m1:moveoutmo:g1}
+    \item[ ]{$loc.t \in plf$} %
+    %\eqref{m1:moveoutmo:g2}
+    \item[ ]{$\neg ext \in \ran.loc$} %
+    %\eqref{m1:moveoutmo:g3}
+  \end{block}
+  \item   \textbf{begin}
+  \begin{block}
+    \item[ ]{$loc \bcmsuch loc' = loc \1 | t \fun ext$} %
+    %\eqref{m1:moveouta2}
+  \end{block}
+  \item   \textbf{end} \\
+\end{block}

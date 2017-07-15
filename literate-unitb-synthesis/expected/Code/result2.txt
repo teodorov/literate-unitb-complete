@@ -1,0 +1,7 @@
+s' = State
+     { v_b = 1
+     , v_c = 6
+     , v_n = 0
+     , v_a = 0
+     , v_f = M.empty
+     }

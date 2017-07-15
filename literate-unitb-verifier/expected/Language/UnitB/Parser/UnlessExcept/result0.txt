@@ -1,0 +1,5 @@
+  o  m0/evt0/FIS/p@prime
+ xxx m0/evt0/SAF/saf1
+  o  m0/evt1/FIS/p@prime
+  o  m0/evt1/SAF/saf1
+passed 3 / 4

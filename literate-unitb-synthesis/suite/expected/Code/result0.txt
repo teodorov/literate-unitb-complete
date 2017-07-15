@@ -1,0 +1,6 @@
+    data State = State
+        { v_a :: Int 
+        , v_b :: Int 
+        , v_c :: Int
+        , v_f :: M.Map (Int) (Int) 
+        , v_n :: Int } 

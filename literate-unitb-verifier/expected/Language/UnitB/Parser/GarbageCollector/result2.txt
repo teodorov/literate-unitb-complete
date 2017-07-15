@@ -1,0 +1,17 @@
+  o  m2/INIT/INV/m2:inv0
+  o  m2/add/INV/m2:inv0
+  o  m2/add/SAF/m2:saf0
+  o  m2/alloc/INV/m2:inv0
+  o  m2/alloc/SAF/m2:saf0
+  o  m2/delete/INV/m2:inv0
+  o  m2/delete/SAF/m2:saf0
+ xxx m2/free/C_SCH/weaken/m2:sch0
+ xxx m2/free/C_SCH/weaken/m2:sch1
+  o  m2/free/GRD/str/m1:sch1
+  o  m2/free/INV/m2:inv0
+  o  m2/free/SAF/m2:saf0
+  o  m2/free/SCH/m0:grd0
+ xxx m2/m2:prog0/LIVE/add
+ xxx m2/m2:prog1/LIVE/add
+ xxx m2/m2:prog2/LIVE/add
+passed 11 / 16

@@ -1,0 +1,4 @@
+  o  m0/INIT/INV/m0:inv0
+  o  m0/activate/INV/m0:inv0
+  o  m0/stop/INV/m0:inv0
+passed 3 / 3

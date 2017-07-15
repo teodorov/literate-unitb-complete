@@ -177,10 +177,11 @@ test' = test_cases
         [ textCase "test 0" 
                     (return $ [st|hello %s name is %s and I'm %d years old|] 
                             ("my" :: String) ("Simon" :: String) (28 :: Int)) 
-                    ("hello my name is Simon and I'm 28 years old")
+                    (yield "hello my name is Simon and I'm 28 years old")
         , textCase "test 1"
                     (return $ [st|this is a tree %s, its second leaf is %s|] (show t4) (show t2))
-                    (   "this is a tree Node \"Candide+Paul-Henri\" (Node \"Yves+Sylvie\" Leaf Leaf) "
+                    (yield $
+                       "this is a tree Node \"Candide+Paul-Henri\" (Node \"Yves+Sylvie\" Leaf Leaf) "
                      <> "(Node \"Danielle+Louis\" (Node \"Francois+Elsa\" Leaf Leaf) "
                      <>       "(Node \"Emilie+Vincent\" Leaf Leaf)), its second leaf is "
                      <>       "Node \"Francois+Elsa\" Leaf Leaf")

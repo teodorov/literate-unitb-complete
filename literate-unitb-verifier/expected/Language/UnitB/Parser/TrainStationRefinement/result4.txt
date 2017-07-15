@@ -1,0 +1,2 @@
+error 31:1:
+    Machine m0 refines a non-existant machine: mm

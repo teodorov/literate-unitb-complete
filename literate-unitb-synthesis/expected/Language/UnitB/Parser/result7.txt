@@ -1,0 +1,59 @@
+{-# LANGUAGE RecordWildCards #-}
+import Data.Map as M
+import Data.Set as S
+import Control.Concurrent.STM
+import Control.Monad
+import Control.Monad.Fix
+import Control.Monad.State.Class
+import Control.Monad.Trans
+import Control.Monad.Trans.RWS   hiding (get,put)
+import Control.Monad.Trans.State hiding (get,put)
+
+data Shared = Shared
+    { s_b :: TVar (Int)
+    , s_f :: TVar (M.Map (Int) (Int))
+    , s_n :: TVar (Int) }
+
+data State = State
+    { v_a :: Int
+    , v_c :: Int }
+
+find_cubes c_N = do
+        s_b <- newTVarIO 1
+        s_n <- newTVarIO 0
+        s_f <- newTVarIO M.empty
+        fst `liftM` (execRWST proc (Shared { .. }) s' :: IO (Main.State,()))
+    where
+        s' = State
+             { v_c = 6
+             , v_a = 0
+             }
+        proc =
+               fix $ \proc' -> do
+                 (State { .. }) <- get
+                 (Shared { .. }) <- ask
+                 expr <- lift $ atomically $ do
+                   v_n <- readTVar s_n
+                   return (not (v_n < c_N))
+                 if expr then return ()
+                 else do
+                   s@(State { .. }) <- get
+                   (Shared { .. }) <- ask
+                   expr <- lift $ atomically $ do
+                     v_n <- readTVar s_n
+                     if (v_n < c_N) then do
+                       v_b <- readTVar s_b
+                       v_f <- readTVar s_f
+                       v_n <- readTVar s_n
+                       let s' = s
+                               { v_a = (v_a + v_b)
+                               , v_c = (v_c + 6)
+                               }
+                       writeTVar s_n (v_n + 1)
+                       writeTVar s_b (v_b + v_c)
+                       writeTVar s_f (M.insert v_n v_a v_f)
+                       return s'
+                     else
+                       return s
+                   put expr
+                   proc'

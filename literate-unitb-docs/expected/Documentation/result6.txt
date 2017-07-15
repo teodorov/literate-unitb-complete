@@ -1,0 +1,4 @@
+\textbf{definitions}
+\begin{block}
+  \item[] {$Req \3\triangleq [ 'req : \REQ ]$} %
+\end{block}

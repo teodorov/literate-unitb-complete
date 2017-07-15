@@ -1,0 +1,101 @@
+  o  m2/INIT/INV/m2:inv0
+  o  m2/INV/WD
+  o  m2/m0:enter/FIS/in@prime
+  o  m2/m0:enter/FIS/loc@prime
+  o  m2/m0:enter/INV/m2:inv0
+  o  m2/m0:enter/SAF/m2:saf1
+  o  m2/m0:enter/SAF/m2:saf2
+  o  m2/m0:enter/SCH/et:g1
+  o  m2/m0:enter/WD/GRD
+  o  m2/m0:leave/FIS/in@prime
+  o  m2/m0:leave/FIS/loc@prime
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp3/easy
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp4/easy
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp5/easy
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp6/easy
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp7/goal
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp7/hypotheses
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp7/relation
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp7/step 1
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp7/step 2
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp7/step 3
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp8/goal
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp8/hypotheses
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp8/relation
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp8/step 1
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp8/step 2
+  o  m2/m0:leave/INV/m2:inv0/assertion/hyp8/step 3
+  o  m2/m0:leave/INV/m2:inv0/main goal/goal
+  o  m2/m0:leave/INV/m2:inv0/main goal/hypotheses
+  o  m2/m0:leave/INV/m2:inv0/main goal/relation
+  o  m2/m0:leave/INV/m2:inv0/main goal/step 1
+  o  m2/m0:leave/INV/m2:inv0/main goal/step 2
+  o  m2/m0:leave/INV/m2:inv0/main goal/step 3
+  o  m2/m0:leave/INV/m2:inv0/new assumption
+  o  m2/m0:leave/SAF/m2:saf1
+  o  m2/m0:leave/SAF/m2:saf2
+  o  m2/m0:leave/WD/GRD
+  o  m2/m1:movein/C_SCH/delay/0/prog/m2:prog0/rhs/mi:c0
+  o  m2/m1:movein/C_SCH/delay/0/saf/m0:enter/SAF/m1:movein
+  o  m2/m1:movein/C_SCH/delay/0/saf/m0:leave/SAF/m1:movein
+  o  m2/m1:movein/C_SCH/delay/0/saf/m1:movein/SAF/m1:movein
+  o  m2/m1:movein/C_SCH/delay/0/saf/m1:moveout/SAF/m1:movein
+  o  m2/m1:movein/FIS/loc@prime
+  o  m2/m1:movein/INV/m2:inv0
+  o  m2/m1:movein/SAF/m2:saf1
+  o  m2/m1:movein/SAF/m2:saf2
+  o  m2/m1:movein/SCH
+  o  m2/m1:movein/SCH/b
+  o  m2/m1:movein/WD/C_SCH
+  o  m2/m1:movein/WD/GRD
+  o  m2/m1:moveout/FIS/loc@prime
+  o  m2/m1:moveout/F_SCH/replace/prog/m2:prog1/rhs/mo:f0
+  o  m2/m1:moveout/INV/m2:inv0
+  o  m2/m1:moveout/SAF/m2:saf1
+  o  m2/m1:moveout/SAF/m2:saf2
+  o  m2/m1:moveout/SCH/mo:g3
+  o  m2/m1:moveout/WD/F_SCH
+  o  m2/m1:moveout/WD/GRD
+  o  m2/m2:prog0/LIVE/trading/lhs
+  o  m2/m2:prog0/LIVE/trading/rhs
+  o  m2/m2:prog0/PROG/WD/rhs
+  o  m2/m2:prog1/LIVE/trading/lhs
+  o  m2/m2:prog1/LIVE/trading/rhs
+  o  m2/m2:prog1/PROG/WD/rhs
+  o  m2/m2:prog2/LIVE/disjunction/lhs
+  o  m2/m2:prog2/LIVE/disjunction/rhs
+  o  m2/m2:prog2/PROG/WD/lhs
+  o  m2/m2:prog2/PROG/WD/rhs
+  o  m2/m2:prog3/LIVE/discharge/saf/lhs
+  o  m2/m2:prog3/LIVE/discharge/saf/rhs
+  o  m2/m2:prog3/LIVE/discharge/tr
+  o  m2/m2:prog3/PROG/WD/lhs
+  o  m2/m2:prog3/PROG/WD/rhs
+  o  m2/m2:prog4/LIVE/monotonicity/lhs
+  o  m2/m2:prog4/LIVE/monotonicity/rhs
+  o  m2/m2:prog4/PROG/WD/lhs
+  o  m2/m2:prog4/PROG/WD/rhs
+  o  m2/m2:prog5/LIVE/disjunction/lhs
+  o  m2/m2:prog5/LIVE/disjunction/rhs
+  o  m2/m2:prog5/PROG/WD/lhs
+  o  m2/m2:prog5/PROG/WD/rhs
+  o  m2/m2:prog6/LIVE/discharge/saf/lhs
+  o  m2/m2:prog6/LIVE/discharge/saf/rhs
+  o  m2/m2:prog6/LIVE/discharge/tr
+  o  m2/m2:prog6/PROG/WD/lhs
+  o  m2/m2:prog6/PROG/WD/rhs
+  o  m2/m2:saf1/SAF/WD/lhs
+  o  m2/m2:saf1/SAF/WD/rhs
+  o  m2/m2:saf2/SAF/WD/lhs
+  o  m2/m2:saf2/SAF/WD/rhs
+  o  m2/m2:tr0/TR/WD
+  o  m2/m2:tr0/TR/WFIS/t/t@prime
+  o  m2/m2:tr0/TR/m0:leave/EN
+  o  m2/m2:tr0/TR/m0:leave/NEG
+  o  m2/m2:tr1/TR/WD
+  o  m2/m2:tr1/TR/WFIS/t/t@prime
+  o  m2/m2:tr1/TR/leadsto/lhs
+  o  m2/m2:tr1/TR/leadsto/rhs
+  o  m2/m2:tr1/TR/m1:moveout/EN
+  o  m2/m2:tr1/TR/m1:moveout/NEG
+passed 100 / 100

@@ -1,0 +1,7 @@
+Multiple expressions with the label c0
+error 41:1:
+	coarse schedule (event 'inc')
+
+error 46:1:
+	co property
+

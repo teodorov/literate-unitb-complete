@@ -1,0 +1,28 @@
+find_cubes c_N = do
+        execState proc s'
+    where
+        s' = State
+             { v_b = 1
+             , v_c = 6
+             , v_n = 0
+             , v_a = 0
+             , v_f = M.empty
+             }
+        proc =
+               fix $ \proc' -> do
+                 (State { .. }) <- get
+                 if (not (v_n < c_N)) then return ()
+                 else do
+                   s@(State { .. }) <- get
+                   if (v_n < c_N) then do
+                     let s' = s
+                             { v_n = (v_n + 1)
+                             , v_a = (v_a + v_b)
+                             , v_b = (v_b + v_c)
+                             , v_c = (v_c + 6)
+                             , v_f = (M.insert v_n v_a v_f)
+                             }
+                     put s'
+                   else
+                     put s
+                   proc'

@@ -1,0 +1,7 @@
+error 225:24:
+    unrecognized term: cs
+Perhaps you meant:
+c (variable)
+ts (variable)
+vs (variable)
+\Pcs (variable)

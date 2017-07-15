@@ -63,15 +63,15 @@ part2 = test_cases
             [ (textCase "test 5, proof obligation, leave/en/tr0/WFIS" case5 result5)
             , (textCase "test 23, proof obligation, leave/en/tr0/EN" case23 result23)
             , (textCase "test 24, proof obligation, leave/en/tr0/NEG" case24 result24)
-            , (aCase "test 7, undeclared symbol" case7 result7)
-            , (aCase "test 8, undeclared event (wrt transient)" case8 result8)
-            , (aCase "test 9, undeclared event (wrt c sched)" case9 result9)
+            , (textCase "test 7, undeclared symbol" case7 result7)
+            , (textCase "test 8, undeclared event (wrt transient)" case8 result8)
+            , (textCase "test 9, undeclared event (wrt c sched)" case9 result9)
             ]
 part3 :: TestCase
 part3 = test_cases
             "part 3"
-            [ (aCase "test 10, undeclared event (wrt indices)" case10 result10)
-            , (aCase "test 11, undeclared event (wrt assignment)" case11 result11)
+            [ (textCase "test 10, undeclared event (wrt indices)" case10 result10)
+            , (textCase "test 11, undeclared event (wrt assignment)" case11 result11)
             , (textCase "test 12, proof obligation leave/INV/inv2" case12 result12)
             ]
 part4 :: TestCase
@@ -272,8 +272,9 @@ path0 = [path|Tests/train-station.tex|]
 case0 :: IO (Either [Error] [MachineAST])
 case0 = (traverse.traverse %~ view' syntax) <$> parse path0
 
-result1 :: Text
-result1 = T.unlines 
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result1.txt"
+    T.unlines 
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2/goal"
     , "  o  train0/INIT/INV/inv2/hypotheses"
@@ -377,8 +378,9 @@ result1 = T.unlines
 case1 :: IO (Text, Map Label Sequent)
 case1 = verify path0 0 
         
-result2 :: Text
-result2 = T.unlines 
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result2.txt"
+    T.unlines 
     [ "; train0/enter/FIS/in@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -914,8 +916,9 @@ result2 = T.unlines
 case2 :: IO Text
 case2 = proof_obligation path0 "train0/enter/FIS/in@prime" 0
 
-result20 :: Text
-result20 = T.unlines 
+result20 :: Output
+result20 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result20.txt"
+    T.unlines 
     [ "; train0/enter/FIS/loc@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1453,8 +1456,9 @@ result20 = T.unlines
 case20 :: IO Text
 case20 = proof_obligation path0 "train0/enter/FIS/loc@prime" 0
             
-result3 :: Text
-result3 = T.unlines 
+result3 :: Output
+result3 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result3.txt"
+    T.unlines 
     [ "; train0/leave/FIS/in@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1995,8 +1999,9 @@ result3 = T.unlines
 case3 :: IO Text
 case3 = proof_obligation path0 "train0/leave/FIS/in@prime" 0
 
-result19 :: Text
-result19 = T.unlines 
+result19 :: Output
+result19 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result19.txt"
+    T.unlines 
     [ "; train0/leave/FIS/loc@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2537,8 +2542,9 @@ result19 = T.unlines
 case19 :: IO Text
 case19 = proof_obligation path0 "train0/leave/FIS/loc@prime" 0
 
-result4 :: Text
-result4 = T.unlines 
+result4 :: Output
+result4 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result4.txt"
+    T.unlines 
     [ "; train0/leave/SCH/grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3071,8 +3077,9 @@ result4 = T.unlines
 case4 :: IO Text
 case4 = proof_obligation path0 "train0/leave/SCH/grd0" 0
 
-result5 :: Text
-result5 = T.unlines 
+result5 :: Output
+result5 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result5.txt"
+    T.unlines 
     [ "; train0/tr0/TR/WFIS/t/t@prime"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3607,8 +3614,9 @@ result5 = T.unlines
 case5 :: IO Text
 case5 = proof_obligation path0 "train0/tr0/TR/WFIS/t/t@prime" 0
 
-result23 :: Text
-result23 = T.unlines 
+result23 :: Output
+result23 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result23.txt"
+    T.unlines 
     [ "; train0/tr0/TR/leave/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4142,8 +4150,9 @@ result23 = T.unlines
 case23 :: IO Text
 case23 = proof_obligation path0 "train0/tr0/TR/leave/EN" 0
 
-result24 :: Text
-result24 = T.unlines 
+result24 :: Output
+result24 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result24.txt"
+    T.unlines 
     [ "; train0/tr0/TR/leave/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4690,8 +4699,9 @@ case24 :: IO Text
 case24 = proof_obligation path0 "train0/tr0/TR/leave/NEG" 0
 
 
-result12 :: Text
-result12 = T.unlines 
+result12 :: Output
+result12 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result12.txt"
+    T.unlines 
     [ "; train0/leave/INV/inv2"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -5237,8 +5247,9 @@ case12 = raw_proof_obligation path0 "train0/leave/INV/inv2" 0
     --------------------
     -- Error handling --
     --------------------
-result7 :: Text
-result7 = T.unlines 
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result7.txt"
+    T.unlines 
     [ "error 54:4:"
     , "    unrecognized term: t" 
     ]
@@ -5249,8 +5260,9 @@ path7 = [path|Tests/train-station-err0.tex|]
 case7 :: IO Text
 case7 = find_errors path7
 
-result8 :: Text
-result8 = T.unlines 
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result8.txt"
+    T.unlines 
     [ "error 43:1:"
     , "    event 'leave' is undeclared"
     ]
@@ -5261,8 +5273,9 @@ path8 = [path|Tests/train-station-err1.tex|]
 case8 :: IO Text
 case8 = find_errors path8
 
-result9 :: Text
-result9 = T.unlines
+result9 :: Output
+result9 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result9.txt"
+    T.unlines
     [ "error 52:1:"
     , "    event 'leave' is undeclared" 
     ]
@@ -5273,8 +5286,9 @@ path9 = [path|Tests/train-station-err2.tex|]
 case9 :: IO Text
 case9 = find_errors path9
 
-result10 :: Text
-result10 = T.unlines 
+result10 :: Output
+result10 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result10.txt"
+    T.unlines 
     [ "error 56:1:"
     , "    event 'leave' is undeclared" 
     ]
@@ -5285,8 +5299,9 @@ path10 = [path|Tests/train-station-err3.tex|]
 case10 :: IO Text
 case10 = find_errors path10
 
-result11 :: Text
-result11 = T.unlines 
+result11 :: Output
+result11 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result11.txt"
+    T.unlines 
     [ "error 60:1:"
     , "    event 'leave' is undeclared" 
     ]
@@ -5300,8 +5315,9 @@ case11 = find_errors path11
 path13 :: FilePath
 path13 = [path|Tests/train-station-err5.tex|]
 
-result13 :: Text
-result13 = T.unlines
+result13 :: Output
+result13 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result13.txt"
+    T.unlines
     [ "error 176:5:"
     , "    unrecognized term: t0"
     , "Perhaps you meant:"
@@ -5380,8 +5396,9 @@ case13 = find_errors path13
 path14 :: FilePath
 path14 = [path|Tests/train-station-err6.tex|]
 
-result14 :: Text
-result14 = T.unlines
+result14 :: Output
+result14 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result14.txt"
+    T.unlines
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2"
     , "  o  train0/INV/WD"
@@ -5457,8 +5474,9 @@ case14 = verify path14 0
 path15 :: FilePath
 path15 = [path|Tests/train-station-err7.tex|]
 
-result15 :: Text
-result15 = T.unlines
+result15 :: Output
+result15 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result15.txt"
+    T.unlines
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2"
     , "  o  train0/INV/WD"
@@ -5540,8 +5558,9 @@ case15 = verify path15 0
 path16 :: FilePath
 path16 = [path|Tests/train-station-t2.tex|]
 
-result16 :: Text
-result16 = T.unlines 
+result16 :: Output
+result16 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result16.txt"
+    T.unlines 
     [ "  o  train0/INIT/INV/inv1"
     , "  o  train0/INIT/INV/inv2"
     , "  o  train0/INV/WD"
@@ -5642,8 +5661,9 @@ case16 = verify path16 0
 path17 :: FilePath
 path17 = [path|Tests/train-station-err8.tex|]
 
-result17 :: Text
-result17 = T.unlines 
+result17 :: Output
+result17 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result17.txt"
+    T.unlines 
         [  "error 75:4:\n    type of empty-fun is ill-defined: \\pfun [\\TRAIN,_a]"
         ,  ""
         ,  "error 75:4:\n    type of empty-fun is ill-defined: \\pfun [\\TRAIN,_b]"
@@ -5657,8 +5677,9 @@ case17 = find_errors path17
 path22 :: FilePath
 path22 = [path|Tests/train-station-err11.tex|]
 
-result22 :: Text
-result22 = T.unlines 
+result22 :: Output
+result22 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result22.txt"
+    T.unlines 
         [  "error 48:1:\n    event(s) leave have indices and require witnesses"
         ]
 
@@ -5668,8 +5689,9 @@ case22 = find_errors path22
 path18 :: FilePath
 path18 = [path|Tests/train-station-err9.tex|]
 
-result18 :: Text
-result18 = T.unlines 
+result18 :: Output
+result18 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result18.txt"
+    T.unlines 
         [  "error 68:3:\n    expression has type incompatible with its expected type:"
         ,  "  expression: (dom loc)"
         ,  "  actual type: \\set [\\TRAIN]"
@@ -5700,8 +5722,9 @@ path21 = [path|Tests/train-station-err10.tex|]
 case21 :: IO Text
 case21 = find_errors path21
 
-result21 :: Text
-result21 = T.unlines
+result21 :: Output
+result21 = readFileLn' "expected/Language/UnitB/Parser/TrainStation/result21.txt"
+    T.unlines
     [ "Theory imported multiple times"
     , "error 130:1:"
     , "\tsets"

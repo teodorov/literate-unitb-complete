@@ -2,7 +2,6 @@ module Language.UnitB.Parser.Tests.TerminationDetection where
 
 import Language.UnitB.Parser.Tests.Suite
 
-import           Data.Text (Text)
 import qualified Data.Text as T
 
 import Test.UnitTest
@@ -22,8 +21,9 @@ path0 = [path|Tests/termination detection/main.tex|]
 case0 :: IO POResult
 case0 = verify path0 0
 
-result0 :: Text
-result0 = T.unlines
+result0 :: Output
+result0 = readFileLn' "expected/Language/UnitB/Parser/TerminationDetection/result0.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/activate/INV/m0:inv0"
     , "  o  m0/stop/INV/m0:inv0"
@@ -33,8 +33,9 @@ result0 = T.unlines
 case1 :: IO POResult
 case1 = verify path0 1
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/TerminationDetection/result1.txt"
+    T.unlines
     [ "  o  m1/INIT/INV/m1:inv0"
     , "  o  m1/INV/WD"
     , "  o  m1/LIVE/m1:prog0/ensure/SAF/WD/lhs"
@@ -63,8 +64,9 @@ result1 = T.unlines
 case2 :: IO POResult
 case2 = verify path0 2
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/TerminationDetection/result2.txt"
+    T.unlines
     [ "  o  m2/INIT/INV/m2:inv0"
     , "  o  m2/INV/WD"
     , "  o  m2/LIVE/m2:prog1/ensure/SAF/WD/lhs"
@@ -107,8 +109,9 @@ result2 = T.unlines
 case3 :: IO POResult
 case3 = verify path0 3
 
-result3 :: Text
-result3 = T.unlines
+result3 :: Output
+result3 = readFileLn' "expected/Language/UnitB/Parser/TerminationDetection/result3.txt"
+    T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INV/WD"
@@ -143,8 +146,9 @@ path1 = [path|Tests/termination detection/main.tex|]
 case4 :: IO POResult
 case4 = verify path1 3
 
-result4 :: Text
-result4 = T.unlines
+result4 :: Output
+result4 = readFileLn' "expected/Language/UnitB/Parser/TerminationDetection/result4.txt"
+    T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INV/WD"

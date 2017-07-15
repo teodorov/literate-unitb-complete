@@ -1,0 +1,7 @@
+  o  train_m0/INIT/INV/J0
+  o  train_m0/TR0/TR/WFIS/t/t@prime
+  o  train_m0/TR0/TR/leave/EN
+  o  train_m0/TR0/TR/leave/NEG
+  o  train_m0/enter/INV/J0
+  o  train_m0/leave/INV/J0
+passed 6 / 6

@@ -1,0 +1,2 @@
+error 238:24:
+    Parameter mismatch. Expecting 1 type parameters, received 0.

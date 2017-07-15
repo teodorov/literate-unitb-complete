@@ -1,0 +1,5 @@
+  o  m/enter/FIS/in@prime/goal
+  o  m/enter/FIS/in@prime/hypotheses
+  o  m/enter/FIS/in@prime/relation
+  o  m/enter/FIS/in@prime/step 1
+passed 4 / 4

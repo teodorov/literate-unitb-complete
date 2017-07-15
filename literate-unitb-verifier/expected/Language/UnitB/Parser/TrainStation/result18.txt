@@ -1,0 +1,23 @@
+error 68:3:
+    expression has type incompatible with its expected type:
+  expression: (dom loc)
+  actual type: \set [\TRAIN]
+  expected type: \Bool 
+
+error 73:3:
+    expression has type incompatible with its expected type:
+  expression: (union in (mk-set t))
+  actual type: \set [\TRAIN]
+  expected type: \Bool 
+
+error 118:3:
+    expression has type incompatible with its expected type:
+  expression: t
+  actual type: \TRAIN
+  expected type: \Bool 
+
+error 123:3:
+    expression has type incompatible with its expected type:
+  expression: empty-set
+  actual type: \set [_a]
+  expected type: \Bool 

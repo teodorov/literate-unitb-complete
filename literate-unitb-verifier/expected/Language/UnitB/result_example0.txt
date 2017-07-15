@@ -1,0 +1,7 @@
+  o  m0/INIT/INV/J0
+  o  m0/SKIP/CO/CO0
+  o  m0/TR0/TR/evt/EN
+  o  m0/TR0/TR/evt/NEG
+  o  m0/evt/CO/CO0
+  o  m0/evt/INV/J0
+passed 6 / 6

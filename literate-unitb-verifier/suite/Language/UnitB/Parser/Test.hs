@@ -25,6 +25,7 @@ import qualified Language.UnitB.Parser.VarScope as VSc
 import qualified Language.UnitB.Parser.MachineSpec as MSpec 
 import qualified Language.UnitB.Parser.Tests.GarbageCollector as Gar
 import qualified Language.UnitB.Parser.Tests.Parser as Parser
+import           Language.UnitB.Parser.Tests.Suite (readFileLn')
 import qualified Language.UnitB.Parser.Tests.TerminationDetection as Term
 import qualified Language.UnitB.Parser.Phase.Test as PhTest
 import Language.UnitB.Parser.Tests.Suite (find_errors)
@@ -85,8 +86,9 @@ test = test_cases
             VSc.run_tests
         ]
 
-result1 :: Text
-result1 = T.unlines 
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/result1.txt"
+    T.unlines 
     [ "  o  m/enter/FIS/in@prime/goal"
     , "  o  m/enter/FIS/in@prime/hypotheses"
     , "  o  m/enter/FIS/in@prime/relation"
@@ -107,8 +109,9 @@ case1 = do
         Left x -> return $ show_err x
         x -> return $ pack $ show x
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/result2.txt"
+    T.unlines
     [ "error 23:12:"
     , "    predicate is undefined: 'a1'"
     ]

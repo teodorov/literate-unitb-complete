@@ -1,0 +1,2 @@
+error 60:1:
+    event 'leave' is undeclared

@@ -1,0 +1,23 @@
+  o  m1/INIT/INV/m1:inv0
+  o  m1/INV/WD
+  o  m1/LIVE/m1:prog0/ensure/SAF/WD/lhs
+  o  m1/LIVE/m1:prog0/ensure/TR/WD
+  o  m1/LIVE/m1:prog0/ensure/TR/detect/EN
+  o  m1/LIVE/m1:prog0/ensure/TR/detect/NEG
+  o  m1/activate/INV/m1:inv0
+  o  m1/activate/SAF/LIVE/m1:prog0/ensure
+  o  m1/activate/SAF/m1:saf0
+  o  m1/activate/SCH/q/p
+  o  m1/activate/WD/GRD
+  o  m1/detect/INV/m1:inv0
+  o  m1/detect/SAF/LIVE/m1:prog0/ensure
+  o  m1/detect/SAF/m1:saf0
+  o  m1/detect/SCH/m1:grd0
+  o  m1/detect/WD/C_SCH
+  o  m1/detect/WD/GRD
+  o  m1/m1:prog0/PROG/WD/lhs
+  o  m1/m1:saf0/SAF/WD/lhs
+  o  m1/stop/INV/m1:inv0
+  o  m1/stop/SAF/LIVE/m1:prog0/ensure
+  o  m1/stop/SAF/m1:saf0
+passed 22 / 22

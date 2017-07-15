@@ -1,0 +1,8 @@
+  o  m1/handle/C_SCH/weaken/m1:sch0
+ xxx m1/handle/C_SCH/weaken/m1:sch1
+  o  m1/handle/GRD/str/m0:grd0
+  o  m1/handle/GRD/str/m0:sch0
+  o  m1/handle/IWFIS/r
+ xxx m1/handle/IWFIS/v
+ xxx m1/handle/IWWD/handle
+passed 4 / 7

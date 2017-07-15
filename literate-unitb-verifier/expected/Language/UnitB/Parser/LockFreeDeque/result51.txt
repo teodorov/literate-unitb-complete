@@ -1,0 +1,2 @@
+error 633:1:
+    goal m1:prog2 is not a valid progress property

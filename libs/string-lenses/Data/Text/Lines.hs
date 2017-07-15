@@ -22,4 +22,7 @@ traverseLines = asLines . traverse
 lines' :: Text -> NonEmpty Text
 lines' = unpacked Ln.lines'
 
+lines :: Text -> NonEmpty Text
+lines = unpacked Ln.lines
+
 

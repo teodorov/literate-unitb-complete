@@ -27,18 +27,22 @@ import GHC.Stack
 
 import Prelude
 
+import           Pipes as P
+import           Pipes.Safe as P (runSafeT)
+import qualified Pipes.Prelude as P
+
 import System.IO
 
 import Test.UnitTest
 
 import Text.Printf.TH
 
-data POCase = POCase Text (IO (Text, M.Map Label Sequent)) Text
+data POCase = POCase Text (IO (Text, M.Map Label Sequent)) Output
 
 poCase :: Pre
        => Text 
        -> IO (Text, M.Map Label Sequent) 
-       -> Text
+       -> Output
        -> TestCase
 poCase n test res = WithLineInfo (?loc) $ Other $ POCase n test res
 
@@ -69,21 +73,27 @@ instance IsTestCase POCase where
                 , routine = cmd
                 , outcome = res
                 , _mcallStack = cs
-                , _displayA = id
+                , _displayA = P.each . T.lines
                 , _displayE = id
-                , _criterion = id
+                , _criterion = P.each . T.lines
+                , _matches = checkEq
                 }
     nameOf f (POCase n test res) = (\n' -> POCase n' test res) <$> f n
 
-print_po :: M.Map Label Sequent -> CallStack -> Text -> Text -> Text -> M ()
+print_po :: M.Map Label Sequent 
+         -> CallStack 
+         -> Text 
+         -> Output
+         -> Output
+         -> M ()
 print_po pos cs name actual expected = do
     n <- get
     liftIO $ do
-        let ma = f actual
-            me = f expected
-            f :: Text -> M.Map Text Bool
-            f xs = M.map (== "  o  ") $ M.fromList $ map (swap . T.splitAt 5) $ T.lines xs
-            mr = M.keys $ M.filter not $ M.unionWith (==) (me `M.intersection` ma) ma
+        let f :: Output -> IO (M.Map Text Bool)
+            f xs = M.map (== "  o  ") . M.fromList . map (swap . T.splitAt 5) <$> runSafeT (P.toListM xs)
+        ma <- f actual
+        me <- f expected
+        let mr = M.keys $ M.filter not $ M.unionWith (==) (me `M.intersection` ma) ma
         forM_ (zip [0 :: Int ..] mr) $ \(i,po) -> do
             if label po `M.member` pos then do
                 withFile ([s|po-%d-%d.z3|] n i) WriteMode $ \h -> do

@@ -1,0 +1,21 @@
+Theory imported multiple times
+error 38:1:
+	sets
+
+error 88:1:
+	sets
+
+error 444:1:
+	sets
+
+error 445:1:
+	sets
+
+
+Theory imported multiple times
+error 89:1:
+	functions
+
+error 446:1:
+	functions
+

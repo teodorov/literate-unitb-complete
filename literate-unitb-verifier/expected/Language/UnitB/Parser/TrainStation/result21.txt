@@ -1,0 +1,10 @@
+Theory imported multiple times
+error 130:1:
+	sets
+
+error 131:1:
+	sets
+
+error 132:1:
+	sets
+

@@ -19,12 +19,16 @@ module Test.UnitTest
     , logNothing, PrintLog
     , path
     , clear_results
-    , allLeaves )
+    , allLeaves
+    , P.yield
+    , checkEq
+    , Output
+    , T.readFileLn )
 where
 
     -- Libraries
 import Control.Applicative
-import Control.Concurrent
+import Control.Concurrent hiding (yield)
 import Control.Concurrent.SSem
 import Control.Concurrent.STM
 import Control.DeepSeq
@@ -32,6 +36,7 @@ import Control.Exception
 import Control.Exception.Lens
 import Control.Lens hiding ((<.>))
 import Control.Monad
+import Control.Monad.Catch (MonadMask)
 import Control.Monad.Loops
 import Control.Monad.Reader
 import Control.Monad.RWS
@@ -46,9 +51,10 @@ import qualified Data.List.NonEmpty as NE
 import           Data.String.Indentation
 import           Data.Text.Lines 
 import           Data.Text as Text (unpack,Text)
-import qualified Data.Text as T
+import qualified Data.Text as T hiding (lines)
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as Lazy
+import qualified Data.Text.Lines as T
 import           Data.Tuple
 import           Data.Typeable
 
@@ -59,6 +65,11 @@ import GHC.SrcLoc
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
+
+import           Pipes as P
+import qualified Pipes.Prelude as P
+import qualified Pipes.Prelude.Text as T
+import           Pipes.Safe as P (SafeT,runSafeP,runSafeT)
 
 import Prelude
 
@@ -73,12 +84,14 @@ import Test.QuickCheck.Report
 
 import Text.Printf.TH
 
+type Output = Producer Text (SafeT IO) ()
+
 data TestCase = 
       forall a . (Show a, Eq a, Typeable a, NFData a) => Case Text (IO a) a
     | forall a . (Show a, Eq a, Typeable a, NFData a) 
         => CalcCase Text (IO a) (IO a) 
-    | TextCase Text (IO Text) Text
-    | LineSetCase Text (IO Text) Text
+    | TextCase Text (IO Text) Output
+    | LineSetCase Text (IO Text) Output
     | Suite CallStack Text [TestCase]
     | WithLineInfo CallStack TestCase
     | QuickCheckProps Text (forall a. (PropName -> Property -> IO (a,Result)) -> IO ([a],Bool))
@@ -90,12 +103,12 @@ stringCase :: Pre
            -> String
            -> TestCase
 stringCase n test res = WithLineInfo (?loc) $ 
-        TextCase (T.pack n) (T.pack <$> test) (T.pack res)
+        TextCase (T.pack n) (T.pack <$> test) (yield $ T.pack res)
 
 textCase :: Pre
          => Text 
          -> IO Text 
-         -> Text
+         -> Output
          -> TestCase
 textCase n test res = WithLineInfo (?loc) $ TextCase n test res
 
@@ -105,6 +118,14 @@ aCase :: (Pre,Eq a,Show a,Typeable a,NFData a)
       -> a
       -> TestCase
 aCase n test res = WithLineInfo (?loc) $ Case n test res
+
+checkEq :: (MonadIO m,MonadMask m,Eq a)
+        => Producer a (SafeT m) ()
+        -> Producer a (SafeT m) ()
+        -> m Bool
+checkEq xs ys = runSafeT $ P.and $ P.zipWith (==) (endMarker xs) (endMarker ys)
+    where
+        endMarker p = (p >-> P.map Just) >> yield Nothing
 
 class Typeable c => IsTestCase c where
     makeCase :: Maybe CallStack -> c -> ReaderT Args IO UnitTest
@@ -121,6 +142,7 @@ instance IsTestCase TestCase where
                         , _displayA = disp
                         , _displayE = disp
                         , _criterion = id
+                        , _matches = \x y -> return $ x == y
                         }
     makeCase cs (CalcCase x y z) = do 
             r <- lift z
@@ -132,19 +154,21 @@ instance IsTestCase TestCase where
                 , _displayA = disp
                 , _displayE = disp
                 , _criterion = id
+                , _matches  = \x y -> return $ x == y
                 }
     makeCase cs (TextCase x y z) = return UT 
                             { name = x
                             , routine = (,logNothing) <$> y
                             , outcome = z
                             , _mcallStack = cs
-                            , _displayA = id
+                            , _displayA = P.each . T.lines
                             , _displayE = id
-                            , _criterion = id
+                            , _criterion = P.each . T.lines
+                            , _matches = checkEq
                             }
     makeCase cs (LineSetCase x y z) = makeCase cs $ textCase x 
                                 ((asLines %~ NE.sort) <$> y) 
-                                (z & asLines %~ NE.sort)
+                                (lift (P.toListM z) >>= mapM_ yield . sort)
     makeCase cs (QuickCheckProps n prop) = do
             args <- ask
             let formatResult x = (x & _1.traverse %~ T.pack ,logNothing)
@@ -153,9 +177,10 @@ instance IsTestCase TestCase where
                 , routine = formatResult <$> prop (quickCheckWithResult' args) 
                 , outcome = True
                 , _mcallStack = cs
-                , _displayA = T.intercalate "\n" . fst
-                , _displayE = const ""
+                , _displayA = P.each . fst
+                , _displayE = const $ yield ""
                 , _criterion = snd
+                , _matches  = \x y -> return $ x == y
                 }
     makeCase cs (Other c) = makeCase cs c
     nameOf f (WithLineInfo x0 c) = WithLineInfo x0 <$> nameOf f c
@@ -207,7 +232,10 @@ callStackLineInfo cs = reverse $ map f $ filter ((__FILE__ /=) . srcLocFile) $ m
         f c = [st|%s:%d:%d|] (srcLocFile c) (srcLocStartLine c) (srcLocStartCol c)
 
 
-new_failure :: CallStack -> Text -> Text -> Text -> M ()
+new_failure :: CallStack -> Text 
+            -> Output
+            -> Output
+            -> M ()
 new_failure cs name actual expected = do
     b <- liftIO $ readMVar log_failures
     if b then do
@@ -216,12 +244,12 @@ new_failure cs name actual expected = do
             T.hPutStrLn h $ "; " <> name
             forM_ (callStackLineInfo cs) $ T.hPutStrLn h . ("; " <>)
             T.hPutStrLn h "; END HEADER"
-            T.hPutStrLn h actual
+            P.runEffect $ runSafeP $ actual >-> T.toHandleLn h
         liftIO $ withFile ([s|expected-%d.txt|] n) WriteMode $ \h -> do
             T.hPutStrLn h $ "; " <> name
             forM_ (callStackLineInfo cs) $ T.hPutStrLn h . ("; " <>)
             T.hPutStrLn h "; END HEADER"
-            T.hPutStrLn h expected
+            P.runEffect $ runSafeP $ expected >-> T.toHandleLn h
     else return ()
 
 test_cases :: Pre => Text -> [TestCase] -> TestCase
@@ -230,16 +258,20 @@ test_cases = Suite ?loc
 logNothing :: PrintLog
 logNothing = const $ const $ const $ const $ return ()
 
-type PrintLog = CallStack -> Text -> Text -> Text -> M ()
+type PrintLog = CallStack -> Text 
+                          -> Output
+                          -> Output
+                          -> M ()
 
-data UnitTest = forall a b. (Eq a,NFData b) => UT 
+data UnitTest = forall a b. (NFData b) => UT 
     { name :: Text
     , routine :: IO (b, PrintLog)
     , outcome :: a
     , _mcallStack :: Maybe CallStack
-    , _displayA :: b -> Text
-    , _displayE :: a -> Text
+    , _displayA :: b -> Output
+    , _displayE :: a -> Output
     , _criterion :: b -> a
+    , _matches :: a -> a -> IO Bool
     -- , _source :: FilePath
     }
     | Node { _callStack :: CallStack, name :: Text, _children :: [UnitTest] }
@@ -283,8 +315,12 @@ run_test_cases_with xs opts = do
         x <- fmap (uncurry (==)) <$> atomically b
         either throw return x
 
-disp :: (Typeable a, Show a) => a -> Text
-disp x = fromMaybe (reindentText $ T.pack $ show x) (cast x <|> fmap T.pack (cast x) <|> fmap Lazy.toStrict (cast x))
+disp :: (Typeable a, Show a, Monad m) => a -> Producer Text m ()
+disp x = P.each $ T.lines x'
+    where
+        fromShow = reindentText $ T.pack $ show x
+        fromCast = cast x <|> fmap T.pack (cast x) <|> fmap Lazy.toStrict (cast x)
+        x' = fromMaybe fromShow fromCast
 
 putLn :: Text -> M ()
 putLn xs = do
@@ -296,15 +332,16 @@ test_suite_string :: CallStack
                   -> M (STM (Either SomeException (Int,Int)))
 test_suite_string cs' ut = do
         case ut of
-          (UT title test expected mli dispA dispE cri) -> forkTest $ do
+          (UT title test expected mli dispA dispE cri checkEq) -> forkTest $ do
             let cs = fromMaybe cs' mli
             putLn ("+- " <> title)
             r <- liftIO $ catch 
                 (Right <$> (liftIO . evaluate . force =<< test)) 
                 (\e -> return $ Left $ T.pack $ show (e :: SomeException))
             case r of
-                Right (r,printLog) -> 
-                    if (cri r == expected)
+                Right (r,printLog) -> do
+                    eq <- liftIO $ checkEq (cri r) expected
+                    if eq
                     then return (1,1)
                     else do
                         take_failure_number
@@ -316,7 +353,7 @@ test_suite_string cs' ut = do
                 Left m -> do
                     tell [Right $ "   Exception:  \n" <> m]
                     take_failure_number
-                    new_failure cs title m (dispE expected)
+                    new_failure cs title (P.each $ T.lines m) (dispE expected)
                     putLn "*** FAILED ***"
                     forM_ (callStackLineInfo cs) $ tell . (:[]) . Right
                     return (0,1)

@@ -1,0 +1,69 @@
+error 176:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 178:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 180:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 182:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 186:34:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 251:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 253:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 256:7:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 261:6:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 264:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 267:5:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 269:6:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 272:6:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)
+
+error 274:6:
+    unrecognized term: t0
+Perhaps you meant:
+t (variable)

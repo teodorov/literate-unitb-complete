@@ -36,16 +36,20 @@ import qualified Data.List.NonEmpty as NE
 import Data.Map as M hiding (lookup,(!))
 import Data.Monoid
 import           Data.Text (Text,pack)
-import qualified Data.Text as T
+import qualified Data.Text    as T
+import qualified Data.Text.IO as T
 import Data.Time
 
+import Pipes.Prelude.Text as P
 import Prelude hiding (lookup)
 import PseudoMacros
 
 import System.Directory
+import System.FilePath
 import System.IO.Unsafe
 import System.Process
 
+import Test.UnitTest
 import Text.Printf.TH
 
 import Utilities.Syntactic
@@ -290,3 +294,12 @@ edit :: FilePath -> IO ()
 edit str = do
     _ <- readProcess "edit" [] str
     return ()
+
+readFileLn' :: FilePath 
+            -> (output -> Text) 
+            -> output
+            -> Output
+readFileLn' fp unl xs = do
+        liftIO $ createDirectoryIfMissing True $ takeDirectory fp
+        liftIO $ T.writeFile fp (unl xs)
+        P.readFileLn fp

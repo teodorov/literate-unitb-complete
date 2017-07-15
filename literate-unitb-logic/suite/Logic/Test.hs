@@ -12,7 +12,7 @@ import Logic.Names as Names
 import Logic.Proof
 import Logic.Proof.Monad hiding (vars)
 import Logic.QuasiQuote hiding (var)
-import Logic.Test.Stable
+-- import Logic.Test.Stable
 import Logic.Theory
 import Logic.Theories
 import Logic.WellDefinedness
@@ -330,18 +330,8 @@ result7 :: ExprP
         (x,_) = var "x" train
         empty_set_of_train = funApp (mk_fun' [train] "empty-set" [] $ set_type train) []
 
-result8 :: Text
-result8 = T.unlines
-    [ "(and p q)"
-    , "p"
-    , "(and (or (and p q) p q (= 7 87)) q)"
-    , "(and p q)"
-    , "p"
-    , "q"
-    , "(= 7 87)"
-    , "q"
-    , "(= 7 87)"
-    ]
+result8 :: Output
+result8 = readFileLn [path|suite/expected/Logic/result8.txt|]
 
 case8 :: IO Text
 case8 = return $ T.unlines $ map pretty_print' $ disjuncts e'
@@ -396,6 +386,9 @@ case10 = return $ z3_code $ _goal $ runSequent' $ do
         assume "v2: v1[x:=7]" $ v2 .=. zrec_update v1 (x ## 7)
         check $ v1 .=. v2
 
+result10 :: Output
+result10 = readFileLn [path|suite/expected/Logic/result10.txt|]
+
 case11 :: IO Text
 case11 = return $ z3_code $ _goal $ runSequent' $ do
         include set_theory
@@ -411,6 +404,9 @@ case11 = return $ z3_code $ _goal $ runSequent' $ do
         assume "expr: { v2 \\in ['x : {7}, 'b : (all:\\set[ \\Bool])] }" $ v2 `zelem`
                     mk_zrecord_set (x ## zmk_set 7 >> b ## zcast (set_type bool) zset_all)
         check $ v1 .=. v2
+
+result11 :: Output
+result11 = readFileLn [path|suite/expected/Logic/result11.txt|]
 
 case12 :: IO Validity
 case12 = discharge ("case12") $ _goal $ runSequent' $ do

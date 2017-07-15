@@ -1,11 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.UnitB.Parser.Tests.LockFreeDeque.Stable where
 
-import           Data.Text (Text)
 import qualified Data.Text as T
 
-result0 :: Text
-result0 = T.unlines
+import Language.UnitB.Parser.Tests.Suite
+
+import Test.UnitTest
+
+result0 :: Output
+result0 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result0.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/m0:pop:left/FIS/p@prime"
@@ -25,8 +29,9 @@ result0 = T.unlines
     , "passed 16 / 16"
     ]
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result1.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/m0:pop:left/FIS/p@prime"
     , "  o  m0/m0:pop:left/FIS/q@prime"
@@ -49,8 +54,9 @@ result1 = T.unlines
     , "passed 17 / 19"
     ]
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result2.txt"
+    T.unlines
     [ "Multiple expressions with the label m0:inv0"
     , "error 42:1:"
     , "\tinvariant"
@@ -68,8 +74,9 @@ result2 = T.unlines
     , ""
     ]
 
-result3 :: Text
-result3 = T.unlines
+result3 :: Output
+result3 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result3.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/m0:pop:left/FIS/p@prime"
@@ -103,8 +110,9 @@ result3 = T.unlines
     , "passed 28 / 30"
     ]
 
-result4 :: Text
-result4 = T.unlines
+result4 :: Output
+result4 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result4.txt"
+    T.unlines
     [ "  o  m1/INIT/INV/m1:inv0"
     , "  o  m1/INIT/INV/m1:inv1"
     , "  o  m1/LIVE/m1:prog0/ensure/SAF/WD/lhs"
@@ -199,8 +207,9 @@ result4 = T.unlines
     ]
 
     -- enablement non-empty
-result5 :: Text
-result5 = T.unlines 
+result5 :: Output
+result5 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result5.txt"
+    T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -838,8 +847,9 @@ result5 = T.unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/EN"
     ]
 
-result6 :: Text
-result6 = T.unlines 
+result6 :: Output
+result6 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result6.txt"
+    T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/EN"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1477,8 +1487,9 @@ result6 = T.unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/EN"
     ]
 
-result7 :: Text
-result7 = T.unlines 
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result7.txt"
+    T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2487,8 +2498,9 @@ result7 = T.unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:empty/NEG"
     ]
 
-result8 :: Text
-result8 = T.unlines 
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result8.txt"
+    T.unlines 
     [ "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -3501,8 +3513,9 @@ result8 = T.unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/m0:pop:left:non:empty/NEG"
     ]
 
-result9 :: Text
-result9 = T.unlines
+result9 :: Output
+result9 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result9.txt"
+    T.unlines
     [ "; m1/LIVE/m1:prog3/ensure/TR/leadsto"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4165,8 +4178,9 @@ result9 = T.unlines
     , "; m1/LIVE/m1:prog3/ensure/TR/leadsto"
     ]
 
-result10 :: Text
-result10 = T.unlines
+result10 :: Output
+result10 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result10.txt"
+    T.unlines
     [ "Multiple refinement of progress property m1:prog3"
     , "error 223:5:"
     , "\tm1:prog3"
@@ -4176,8 +4190,9 @@ result10 = T.unlines
     , ""
     ]
 
-result11 :: Text
-result11 = T.unlines
+result11 :: Output
+result11 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result11.txt"
+    T.unlines
     [ "error 223:5:"
     , "    A witness is needed for r in event 'm0:pop:left:empty'"
     , ""
@@ -4185,29 +4200,34 @@ result11 = T.unlines
     , "    A witness is needed for r in event 'm0:pop:left:non:empty'"
     ]
 
-result12 :: Text
-result12 = T.unlines
+result12 :: Output
+result12 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result12.txt"
+    T.unlines
     [ "passed 0 / 0"
     ]
 
-result13 :: Text
-result13 = T.unlines
+result13 :: Output
+result13 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result13.txt"
+    T.unlines
     [ "passed 0 / 0"
     ]
 
-result17 :: Text
-result17 = T.unlines
+result17 :: Output
+result17 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result17.txt"
+    T.unlines
     [ "error 60:12:"
     , "    expecting more arguments"
     ]
 
-result18 :: Text
-result18 = T.concat
+result18 :: Output
+result18 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result18.txt"
+    T.concat
     [ "no errors"
     ]
 
-result19 :: Text
-result19 = T.unlines
+result19 :: Output
+result19 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result19.txt"
+    T.unlines
     [ "; m1/resp:pop:left/F_SCH/replace/eqv"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4786,8 +4806,9 @@ result19 = T.unlines
     , "; m1/resp:pop:left/F_SCH/replace/eqv"
     ]
 
-result20 :: Text
-result20 = T.unlines
+result20 :: Output
+result20 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result20.txt"
+    T.unlines
     [ "  o  m0/LIVE/prog0/ensure/TR/handle/EN"
     , "  o  m0/LIVE/prog0/ensure/TR/handle/NEG"
     , "  o  m0/LIVE/prog1/ensure/TR/handle/EN"
@@ -4805,8 +4826,9 @@ result20 = T.unlines
     , "passed 14 / 14"
     ]
 
-result23 :: Text
-result23 = T.unlines
+result23 :: Output
+result23 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result23.txt"
+    T.unlines
     [ "; m1/handle/C_SCH/delay/0/prog/m1:prog1/lhs"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -4904,8 +4926,9 @@ result23 = T.unlines
     , "; m1/handle/C_SCH/delay/0/prog/m1:prog1/lhs"
     ]
 
-result22 :: Text
-result22 = T.unlines
+result22 :: Output
+result22 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result22.txt"
+    T.unlines
     [ "; m1/handle/C_SCH/delay/0/prog/m1:prog1/rhs/m1:sch0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -5000,8 +5023,9 @@ result22 = T.unlines
     , "; m1/handle/C_SCH/delay/0/prog/m1:prog1/rhs/m1:sch0"
     ]
 
-result24 :: Text
-result24 = T.unlines
+result24 :: Output
+result24 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result24.txt"
+    T.unlines
     [ "  o  m1/handle/C_SCH/weaken/m1:sch0"
     , " xxx m1/handle/C_SCH/weaken/m1:sch1"
     , "  o  m1/handle/GRD/str/m0:grd0"
@@ -5012,13 +5036,15 @@ result24 = T.unlines
     , "passed 4 / 7"
     ]
 
-result25 :: Text
-result25 = T.unlines
+result25 :: Output
+result25 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result25.txt"
+    T.unlines
     [ "passed 0 / 0"
     ]
 
-result26 :: Text
-result26 = T.unlines
+result26 :: Output
+result26 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result26.txt"
+    T.unlines
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INIT/INV/m3:inv2"
@@ -5113,8 +5139,9 @@ result26 = T.unlines
     , "passed 91 / 91"
     ]
 
-result27 :: Text
-result27 = T.unlines
+result27 :: Output
+result27 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result27.txt"
+    T.unlines
     [ "  o  m5/INIT/FIS/LH"
     , "  o  m5/INIT/FIS/RH"
     , "  o  m5/INIT/FIS/insL"
@@ -5659,8 +5686,9 @@ result27 = T.unlines
     , "passed 527 / 541"
     ]
 
-result28 :: Text
-result28 = T.unlines
+result28 :: Output
+result28 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result28.txt"
+    T.unlines
     [ "; m5/INV/WD"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -8677,8 +8705,9 @@ result28 = T.unlines
     , "; m5/INV/WD"
     ]
 
-result29 :: Text
-result29 = T.unlines
+result29 :: Output
+result29 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result29.txt"
+    T.unlines
     [ "; m5/handle:pushR/C_SCH/weaken"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -11129,8 +11158,9 @@ result29 = T.unlines
     , "; m5/handle:pushR/C_SCH/weaken"
     ]
 
-result30 :: Text
-result30 = T.unlines
+result30 :: Output
+result30 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result30.txt"
+    T.unlines
     [ "; m5/handle:pushR/C_SCH/weaken/saf/add:popL/SAF/handle:pushR:empty"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -13634,8 +13664,9 @@ result30 = T.unlines
     , "; m5/handle:pushR/C_SCH/weaken/saf/add:popL/SAF/handle:pushR:empty"
     ]
 
-result31 :: Text
-result31 = T.unlines
+result31 :: Output
+result31 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result31.txt"
+    T.unlines
     [ "; m5/INIT/FIS/item"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -15333,8 +15364,9 @@ result31 = T.unlines
     , "; m5/INIT/FIS/item"
     ]
 
-result32 :: Text
-result32 = T.unlines
+result32 :: Output
+result32 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result32.txt"
+    T.unlines
     [ "; m0/add:popL/SCH/m0:grd0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -15511,14 +15543,16 @@ result32 = T.unlines
     , "; m0/add:popL/SCH/m0:grd0"
     ]
 
-result33 :: Text
-result33 = T.unlines
+result33 :: Output
+result33 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result33.txt"
+    T.unlines
     [ "  o  m0/add:popL/SCH/m0:grd0"
     , "passed 1 / 1"
     ]
 
-result34 :: Text
-result34 = T.unlines
+result34 :: Output
+result34 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result34.txt"
+    T.unlines
     [ "; m1/read:LH/SKIP/EQL/ver"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -15994,15 +16028,17 @@ result34 = T.unlines
     , "; m1/read:LH/SKIP/EQL/ver"
     ]
  
-result35 :: Text 
-result35 = T.unlines
+result35 :: Output
+result35 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result35.txt"
+    T.unlines
     [ "  o  m1/hdl:popL:more/C_SCH/delay/0/prog/m1:prog0/rhs/m1:sch0"
     , "passed 1 / 1"
     ]
 
 
-result37 :: Text
-result37 = T.unlines
+result37 :: Output
+result37 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result37.txt"
+    T.unlines
     [ "; m1/hdl:popL:more/GRD/str/m0:sch0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -16820,8 +16856,9 @@ result37 = T.unlines
     , "; m1/hdl:popL:more/GRD/str/m0:sch0"
     ]
 
-result39 :: Text
-result39 = T.unlines
+result39 :: Output
+result39 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result39.txt"
+    T.unlines
     [ "; m1/hdl:popL:more/WFIS/v"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -17662,8 +17699,9 @@ result39 = T.unlines
     , "; m1/hdl:popL:more/WFIS/v"
     ]
 
-result43 :: Text
-result43 = T.unlines
+result43 :: Output
+result43 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result43.txt"
+    T.unlines
     [ "; m1/hdl:popL:more/C_SCH/weaken/m1:sch2"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -18483,8 +18521,9 @@ result43 = T.unlines
     , "; m1/hdl:popL:more/C_SCH/weaken/m1:sch2"
     ]
 
-result49 :: Text
-result49 = T.unlines
+result49 :: Output
+result49 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result49.txt"
+    T.unlines
     [ "; m2/read:LH/GRD/str"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -19295,8 +19334,9 @@ result49 = T.unlines
     , "; m2/read:LH/GRD/str"
     ]
 
-result52 :: Text
-result52 = T.unlines
+result52 :: Output
+result52 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result52.txt"
+    T.unlines
     [ "; m2/read:LH/SAF/LIVE/m2:prog0/ensure"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -20140,8 +20180,9 @@ result52 = T.unlines
     , "; m2/read:LH/SAF/LIVE/m2:prog0/ensure"
     ]
 
-result53 :: Text
-result53 = T.unlines
+result53 :: Output
+result53 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result53.txt"
+    T.unlines
     [ "; m1/INIT/FIS/sl$trash"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

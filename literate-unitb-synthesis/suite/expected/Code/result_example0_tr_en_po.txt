@@ -1,0 +1,6 @@
+ sort: pfun [a,b], set [a]
+ x: Int
+ y: Int
+ (= x (* 2 y))
+|----
+ (=> (= x 0) (= x y))

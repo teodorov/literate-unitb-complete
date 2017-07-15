@@ -36,8 +36,9 @@ path0 = [path|Tests/garbage collector/main.tex|]
 case0 :: IO POResult
 case0 = verify path0 0
 
-result0 :: Text
-result0 = T.unlines
+result0 :: Output
+result0 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result0.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/m0:inv0"
     , "  o  m0/INIT/INV/m0:inv1"
     , "  o  m0/INIT/INV/m0:inv2"
@@ -54,8 +55,9 @@ result0 = T.unlines
 case1 :: IO POResult
 case1 = verify path0 1
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result1.txt"
+    T.unlines
     [ "  o  m1/LIVE/m1:prog0/ensure/TR/WFIS/p/p@prime"
     , "  o  m1/LIVE/m1:prog0/ensure/TR/free/EN"
     , "  o  m1/LIVE/m1:prog0/ensure/TR/free/NEG"
@@ -94,8 +96,9 @@ result1 = T.unlines
 case2 :: IO POResult
 case2 = verify path0 2
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result2.txt"
+    T.unlines
     [ "  o  m2/INIT/INV/m2:inv0"
     , "  o  m2/add/INV/m2:inv0"
     , "  o  m2/add/SAF/m2:saf0"
@@ -118,8 +121,9 @@ result2 = T.unlines
 case3 :: IO Text
 case3 = proof_obligation_stripped path0 "m1/THM/thm0/main goal/assertion/lmm0/step 5" 1
 
-result3 :: Text
-result3 = T.unlines
+result3 :: Output
+result3 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result3.txt"
+    T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 5"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -533,8 +537,9 @@ case4 = do
     either id (T.unlines . L.map (pack . show . (each %~ render)) . keys . (^.syntacticThm.monotonicity)) 
         <$> sequent path0 "m1/THM/thm0/main goal/assertion/lmm0/step 5" 1
 
-result4 :: Text
-result4 = T.unlines
+result4 :: Output
+result4 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result4.txt"
+    T.unlines
     [ "(\"<=\",\"+\")"
     , "(\"<=\",\"-\")"
     , "(\"=>\",\"<=\")"
@@ -558,8 +563,9 @@ case5 = do
     return $ T.unlines $ L.map (pack . show . (render *** render)) $ keys 
         $ relation_theory^.syntacticThm.monotonicity
 
-result5 :: Text
-result5 = T.unlines
+result5 :: Output
+result5 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result5.txt"
+    T.unlines
     [ "(\"subset\",\"seq\")"
     , "(\"subset\",\"star\")"
     ]
@@ -569,8 +575,9 @@ case6 = do
     proof_obligation_stripped path0 
         "m1/THM/thm0/main goal/assertion/lmm0/step 6" 1
 
-result6 :: Text
-result6 = T.unlines
+result6 :: Output
+result6 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result6.txt"
+    T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 6"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -982,8 +989,9 @@ result6 = T.unlines
 case7 :: IO Text
 case7 = proof_obligation_stripped path0 "m1/THM/thm0/main goal/assertion/lmm0/step 3" 1
 
-result7 :: Text
-result7 = T.unlines
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result7.txt"
+    T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 3"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1401,8 +1409,9 @@ result7 = T.unlines
 case8 :: IO Text
 case8 = proof_obligation_stripped path0 "m1/THM/thm0/main goal/assertion/lmm0/step 4" 1
 
-result8 :: Text
-result8 = T.unlines
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/GarbageCollector/result8.txt"
+    T.unlines
     [ "; m1/THM/thm0/main goal/assertion/lmm0/step 4"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

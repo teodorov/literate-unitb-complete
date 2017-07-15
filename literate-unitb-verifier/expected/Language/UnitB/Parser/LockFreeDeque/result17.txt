@@ -1,0 +1,2 @@
+error 60:12:
+    expecting more arguments

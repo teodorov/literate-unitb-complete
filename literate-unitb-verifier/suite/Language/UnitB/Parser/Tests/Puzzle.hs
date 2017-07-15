@@ -24,14 +24,14 @@ test_case = test_cases
         "The king and his advisors puzzle"
         [ poCase "puzzle, m0" case0 result0
         , poCase "puzzle, m1" case1 result1
-        , aCase "puzzle, proof obligation" case2 result2
-        , aCase "puzzle, visit enablement, PO" case4 result4
-        , aCase "puzzle, visit negation, PO" case5 result5
+        , textCase "puzzle, proof obligation" case2 result2
+        , textCase "puzzle, visit enablement, PO" case4 result4
+        , textCase "puzzle, visit negation, PO" case5 result5
         -- , aCase "puzzle, remove default with weakento" case6 result6
         , poCase "puzzle, m2" case7 result7
         -- , poCase "puzzle, m3" case8 result8
-        , aCase "puzzle m3, wd of sums" case9 result9
-        , aCase "puzzle m3, proofs with sums" case10 result10
+        , textCase "puzzle m3, wd of sums" case9 result9
+        , textCase "puzzle m3, proofs with sums" case10 result10
         , poCase "puzzle, m4" case11 result11
         , aCase "puzzle, deleted variables, m3" case12 result12
         , aCase "puzzle, deleted variables, m4" case13 result13
@@ -59,8 +59,9 @@ path0 = [path|Tests/puzzle/puzzle.tex|]
 case0 :: IO (Text, Map Label Sequent)
 case0 = verify path0 0
 
-result0 :: Text
-result0 = T.unlines
+result0 :: Output
+result0 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result0.txt"
+    T.unlines
     [ "  o  m0/LIVE/prog0/ensure/TR/term/NEG"
     , "passed 1 / 1"
     ]
@@ -68,8 +69,9 @@ result0 = T.unlines
 case1 :: IO (Text, Map Label Sequent)
 case1 = verify path0 1
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result1.txt"
+    T.unlines
     [ "  o  m1/INIT/INV/inv0"
     , "  o  m1/LIVE/prog3/ensure/TR/WFIS/p/p@prime"
     , "  o  m1/LIVE/prog3/ensure/TR/visit/NEG"
@@ -94,8 +96,9 @@ result1 = T.unlines
 case2 :: IO Text
 case2 = proof_obligation path0 "m1/prog1/LIVE/induction/rhs" 1
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result2.txt"
+    T.unlines
     [ "; m1/prog1/LIVE/induction/rhs"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -211,8 +214,9 @@ result2 = T.unlines
 case4 :: IO Text
 case4 = proof_obligation path0 "m1/LIVE/prog3/ensure/TR/visit/EN" 1
 
-result4 :: Text
-result4 = T.unlines
+result4 :: Output
+result4 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result4.txt"
+    T.unlines
     [ "invalid label: m1/LIVE/prog3/ensure/TR/visit/EN"
     , "m1/INIT/INV/inv0"
     , "m1/LIVE/prog3/ensure/TR/WFIS/p/p@prime"
@@ -237,8 +241,9 @@ result4 = T.unlines
 case5 :: IO Text
 case5 = proof_obligation path0 "m1/LIVE/prog3/ensure/TR/visit/NEG" 1
 
-result5 :: Text
-result5 = T.unlines
+result5 :: Output
+result5 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result5.txt"
+    T.unlines
     [ "; m1/LIVE/prog3/ensure/TR/visit/NEG"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -442,8 +447,9 @@ result5 = T.unlines
 case7 :: IO (Text, Map Label Sequent)
 case7 = verify path0 2
 
-result7 :: Text
-result7 = T.unlines
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result7.txt"
+    T.unlines
     [ "  o  m2/INIT/INV/inv1"
     , "  o  m2/INIT/INV/inv2"
     , "  o  m2/LIVE/prog10/ensure/TR/count/EN"
@@ -507,8 +513,9 @@ result7 = T.unlines
 case8 :: IO (Text, Map Label Sequent)
 case8 = verify path0 3
 
-result8 :: Text
-result8 = T.unlines 
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result8.txt"
+    T.unlines 
     [ "  o  m3/INIT/INV/m3:inv0"
     , "  o  m3/INIT/INV/m3:inv1"
     , "  o  m3/INIT/INV/m3:inv2"
@@ -581,8 +588,9 @@ result8 = T.unlines
 case9 :: IO Text
 case9 = proof_obligation path0 "m3/INV/WD" 3
 
-result9 :: Text
-result9 = T.unlines
+result9 :: Output
+result9 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result9.txt"
+    T.unlines
     [ "; m3/INV/WD"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -813,8 +821,9 @@ result9 = T.unlines
 case10 :: IO Text
 case10 = proof_obligation path0 "m3/INIT/INV/m3:inv1" 3
 
-result10 :: Text
-result10 = T.unlines
+result10 :: Output
+result10 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result10.txt"
+    T.unlines
     [ "; m3/INIT/INV/m3:inv1"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -947,8 +956,9 @@ result10 = T.unlines
 case11 :: IO (Text, Map Label Sequent)
 case11 = verify path0 4
 
-result11 :: Text
-result11 = T.unlines
+result11 :: Output
+result11 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result11.txt"
+    T.unlines
     [ "passed 0 / 0"
     ]
 
@@ -984,8 +994,9 @@ path14 = [path|Tests/puzzle/puzzle-err0.tex|]
 case14 :: IO Text
 case14 = find_errors path14
 
-result14 :: Text
-result14 = T.unlines
+result14 :: Output
+result14 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result14.txt"
+    T.unlines
         [ "error 225:24:"
         , "    unrecognized term: cs"
         , "Perhaps you meant:"
@@ -1001,8 +1012,9 @@ path15 = [path|Tests/puzzle/puzzle-err1.tex|]
 case15 :: IO Text
 case15 = find_errors path15
 
-result15 :: Text
-result15 = T.unlines
+result15 :: Output
+result15 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result15.txt"
+    T.unlines
     [ "In 'm3', event 'count', action 'act0' refers to deleted symbols"
     , "error 116:4:"
     , "\tdeleted variable 'cs'"
@@ -1081,8 +1093,9 @@ result17 = Right ( S.fromList ["m3:act0","m3:act1"]
 case18 :: IO Text
 case18 = proof_obligation path0 "m3/count/SIM/act0" 3
 
-result18 :: Text
-result18 = T.unlines
+result18 :: Output
+result18 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result18.txt"
+    T.unlines
     [ "; m3/count/SIM/act0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1333,8 +1346,9 @@ result18 = T.unlines
 case20 :: IO Text
 case20 = proof_obligation path0 "m3/visit/INV/m3:inv0" 3
 
-result20 :: Text
-result20 = T.unlines
+result20 :: Output
+result20 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result20.txt"
+    T.unlines
     [ "; m3/visit/INV/m3:inv0"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1636,8 +1650,9 @@ result20 = T.unlines
 case19 :: IO Text
 case19 = proof_obligation path0 "m3/INIT/SIM/in2" 3
 
-result19 :: Text
-result19 = T.unlines
+result19 :: Output
+result19 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result19.txt"
+    T.unlines
     [ "; m3/INIT/SIM/in2"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1751,8 +1766,9 @@ path21 = [path|Tests/puzzle/puzzle-err2.tex|]
 case21 :: IO Text
 case21 = find_errors path21
 
-result21 :: Text
-result21 = T.unlines
+result21 :: Output
+result21 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result21.txt"
+    T.unlines
     [ "In 'm3', event 'flick', coarse schedule 'sch1' refers to deleted symbols"
     , "error 101:4:"
     , "\tdeleted variable 'ts'"
@@ -1822,8 +1838,9 @@ path22 = [path|Tests/puzzle/puzzle-err3.tex|]
 case22 :: IO Text
 case22 = find_errors path22
 
-result22 :: Text
-result22 = T.unlines
+result22 :: Output
+result22 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result22.txt"
+    T.unlines
     [ "error 227:2:\n    'c' is not a disappearing variable or a new index"
     ]
 
@@ -1833,8 +1850,9 @@ path23 = [path|Tests/puzzle/puzzle-err4.tex|]
 case23 :: IO Text
 case23 = find_errors path23
 
-result23 :: Text
-result23 = T.unlines
+result23 :: Output
+result23 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result23.txt"
+    T.unlines
     [ "error 227:2:\n    deleted variable \'xyz\' does not exist"
     ]
 
@@ -1856,8 +1874,9 @@ path25 = [path|Tests/puzzle/puzzle-err5.tex|]
 case25 :: IO Text
 case25 = find_errors path25
 
-result25 :: Text
-result25 = T.unlines
+result25 :: Output
+result25 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result25.txt"
+    T.unlines
     [ "In 'm3', event 'flick', coarse schedule 'sch1' refers to deleted symbols"
     , "error 101:4:"
     , "\tdeleted variable 'ts'"
@@ -1913,8 +1932,9 @@ result27 = Right ( S.fromList ["grd0","grd1","sch0","sch1","sch2"]
 case28 :: IO Text
 case28 = find_errors "Tests/puzzle/puzzle-err7.tex"
 
-result28 :: Text
-result28 = T.unlines
+result28 :: Output
+result28 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result28.txt"
+    T.unlines
     [ "error 238:24:"
     , "    Parameter mismatch. Expecting 1 type parameters, received 0."
     ]
@@ -1922,8 +1942,9 @@ result28 = T.unlines
 case29 :: IO Text
 case29 = proof_obligation path0 "m3/THM/WD" 3
 
-result29 :: Text
-result29 = T.unlines
+result29 :: Output
+result29 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result29.txt"
+    T.unlines
     [ "; m3/THM/WD"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -2150,8 +2171,9 @@ path30 = [path|Tests/puzzle/puzzle-err8.tex|]
 case30 :: IO Text
 case30 = find_errors path30
 
-result30 :: Text
-result30 = T.unlines
+result30 :: Output
+result30 = readFileLn' "expected/Language/UnitB/Parser/Puzzle/result30.txt"
+    T.unlines
     [ "Multiple expressions with the label grd0"
     , "error 53:2:"
     , "\tguard (event 'term')"

@@ -1,0 +1,2 @@
+  o  m0/LIVE/prog0/ensure/TR/term/NEG
+passed 1 / 1

@@ -1,0 +1,33 @@
+  o  m1/LIVE/m1:prog0/ensure/TR/WFIS/p/p@prime
+  o  m1/LIVE/m1:prog0/ensure/TR/free/EN
+  o  m1/LIVE/m1:prog0/ensure/TR/free/NEG
+  o  m1/THM/thm0/assertion/WD/E/easy
+  o  m1/THM/thm0/assertion/WD/rr/easy
+  o  m1/THM/thm0/main goal/assertion/lmm0/goal
+  o  m1/THM/thm0/main goal/assertion/lmm0/hypotheses
+  o  m1/THM/thm0/main goal/assertion/lmm0/relation
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 1
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 2
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 3
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 4
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 5
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 6
+  o  m1/THM/thm0/main goal/assertion/lmm0/step 7
+ xxx m1/THM/thm0/main goal/main goal/goal
+  o  m1/THM/thm0/main goal/main goal/hypotheses
+  o  m1/THM/thm0/main goal/main goal/relation
+  o  m1/THM/thm0/main goal/main goal/step 1
+  o  m1/THM/thm0/main goal/main goal/step 2
+  o  m1/THM/thm0/main goal/main goal/step 3
+  o  m1/THM/thm0/main goal/new assumption
+  o  m1/add/SAF/LIVE/m1:prog0/ensure
+  o  m1/add/SCH/p
+  o  m1/add/SCH/q
+  o  m1/alloc/SAF/LIVE/m1:prog0/ensure
+  o  m1/delete/SAF/LIVE/m1:prog0/ensure
+  o  m1/delete/SCH/p
+  o  m1/free/C_SCH/weaken/m1:sch0
+  o  m1/free/C_SCH/weaken/m1:sch1
+  o  m1/free/SAF/LIVE/m1:prog0/ensure
+  o  m1/free/SCH/m0:grd0
+passed 31 / 32

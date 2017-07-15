@@ -28,18 +28,19 @@ import Utilities.Syntactic
 test_case :: TestCase
 test_case = test_cases 
         "Documentation generation" 
-        [ aCase "m2, event m1:moveout" case0 result0
-        , aCase "m3, event m1:moveout" case1 result1
-        , aCase "safety properties of m2" case2 result2
-        , aCase "progress properties of m2" case3 result3
+        [ textCase "m2, event m1:moveout" case0 result0
+        , textCase "m3, event m1:moveout" case1 result1
+        , textCase "safety properties of m2" case2 result2
+        , textCase "progress properties of m2" case3 result3
         , aCase "File structure" case4 result4
         , textCase "Root machine" case5 result5
-        , aCase "definitions of m2" case6 result6
-        , aCase "assumptions of m2" case7 result7
+        , textCase "definitions of m2" case6 result6
+        , textCase "assumptions of m2" case7 result7
         ]
 
-result0 :: Text
-result0 = T.unlines
+result0 :: Output
+result0 = readFileLn' "expected/Documentation/result0.txt"
+    T.unlines
     [ "\\noindent \\ref{m1:moveout} $[t]$ \\textbf{event}"
     , "\\begin{block}"
     , "  \\item   \\textbf{refines}"
@@ -85,8 +86,9 @@ case0 = makeReport $ do
 path0 :: FilePath
 path0 = [path|Tests/train-station-set.tex|]
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Documentation/result1.txt"
+    T.unlines
     [ "\\noindent \\ref{m1:moveout} $[t]$ \\textbf{event}"
     , "\\begin{block}"
     , "  \\item   \\textbf{refines}"
@@ -140,8 +142,9 @@ case1 = makeReport $ do
     return $ getListing $
             event_summary' m lbl evt
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Documentation/result2.txt"
+    T.unlines
     [ "\\textbf{safety}"
     , "\\begin{block}"
     , "  \\item[ \\eqref{m2:saf1} ]{$t \\in in \\land loc.t = ext \\textbf{\\quad unless \\quad} \\neg ext \\in \\ran. loc$} %"
@@ -155,8 +158,9 @@ case2 = makeReport $ do
     return $ getListing $
         safety_sum p
 
-result3 :: Text
-result3 = T.unlines
+result3 :: Output
+result3 = readFileLn' "expected/Documentation/result3.txt"
+    T.unlines
     [ "\\textbf{progress}"
     , "\\begin{block}"
     , "  \\item[ \\eqref{m2:prog0} ]{$\\true \\quad \\mapsto\\quad \\neg plf \\subseteq \\ran.loc$} %"
@@ -250,8 +254,9 @@ case5 = makeReport $ do
     let fs = execMockFileSystem $ produce_summaries "dir/file.ext" s
     return $ fromMaybe "documentation file not found" $ (fs^.content')^?files.ix "dir/file/machine_m3.tex".traverse
 
-result5 :: Text
-result5 = T.unlines 
+result5 :: Output
+result5 = readFileLn' "expected/Documentation/result5.txt"
+    T.unlines 
     [ "%!TEX root=../file.ext"
     , "\\begin{block}"
     , "  \\item   \\textbf{machine} m3"
@@ -305,8 +310,9 @@ result5 = T.unlines
 path6 :: FilePath
 path6 = [path|Tests/lock-free deque/main12.tex|]
 
-result6 :: Text
-result6 = T.unlines
+result6 :: Output
+result6 = readFileLn' "expected/Documentation/result6.txt"
+    T.unlines
     [ "\\textbf{definitions}"
     , "\\begin{block}"
     , "  \\item[] {$Req \\3\\triangleq [ 'req : \\REQ ]$} %"
@@ -319,8 +325,9 @@ case6 = makeReport $ do
     return $ getListing $
         defs_sum m
 
-result7 :: Text
-result7 = T.unlines
+result7 :: Output
+result7 = readFileLn' "expected/Documentation/result7.txt"
+    T.unlines
     [ "\\textbf{assumptions}"
     , "\\begin{block}"
     , "  \\item[ \\eqref{asm0} ]{$\\neg ext \\in plf \\1\\land \\neg ext = ent$} %"

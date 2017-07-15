@@ -1,0 +1,8 @@
+  o  m0/m0:enter/FIS/in@prime
+  o  m0/m0:leave/FIS/in@prime
+  o  m0/m0:prog0/LIVE/discharge/tr/lhs
+  o  m0/m0:prog0/LIVE/discharge/tr/rhs
+  o  m0/m0:tr0/TR/WFIS/t/t@prime
+  o  m0/m0:tr0/TR/m0:leave/EN
+  o  m0/m0:tr0/TR/m0:leave/NEG
+passed 7 / 7

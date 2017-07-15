@@ -64,13 +64,14 @@ part3 = test_cases
             , (textCase "test 10, error: cyclic proof" (find_errors path10) result10)
             , (textCase   "test 11, intermediate goals of monotonic \
                               \simplification" case11 result11)
-            , (aCase "test 12, bound variable with ambiguous type"
+            , (textCase "test 12, bound variable with ambiguous type"
                 case12 result12)
             , textCase "test 13, inv6, PO" case13 result13
             ]
 
-result0 :: Text
-result0 = T.unlines 
+result0 :: Output
+result0 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result0.txt"
+    T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -110,8 +111,9 @@ result0 = T.unlines
 path0 :: FilePath
 path0 = [path|Tests/cubes-t0.tex|]
 
-result1 :: Text
-result1 = T.unlines
+result1 :: Output
+result1 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result1.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -162,8 +164,9 @@ result1 = T.unlines
 path1 :: FilePath
 path1 = [path|Tests/cubes-t1.tex|]
 
-result2 :: Text
-result2 = T.unlines
+result2 :: Output
+result2 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result2.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -224,8 +227,9 @@ result2 = T.unlines
 path2 :: FilePath
 path2 = [path|Tests/cubes-t2.tex|]
 
-result3 :: Text
-result3 = T.unlines
+result3 :: Output
+result3 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result3.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -358,8 +362,9 @@ case5 = runEitherT (do
 case6 :: IO (Text, Map Label Sequent)
 case6 = verify path6 0
 
-result6 :: Text
-result6 = T.unlines
+result6 :: Output
+result6 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result6.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -446,8 +451,9 @@ path6 = [path|Tests/cubes-t5.tex|]
 case7 :: IO (Text, Map Label Sequent)
 case7 = verify path7 0
 
-result7 :: Text
-result7 = T.unlines
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result7.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -537,8 +543,9 @@ path7 = [path|Tests/cubes-t4.tex|]
 case8 :: IO (Text, Map Label Sequent)
 case8 = verify path8 0
 
-result8 :: Text
-result8 = T.unlines
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result8.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -624,8 +631,9 @@ result8 = T.unlines
 path8 :: FilePath
 path8 = [path|Tests/cubes-t7.tex|]
 
-result9 :: Text
-result9 = T.unlines
+result9 :: Output
+result9 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result9.txt"
+    T.unlines
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -714,8 +722,9 @@ path9 = [path|Tests/cubes-t8.tex|]
 path10 :: FilePath
 path10 = [path|Tests/cubes-t9.tex|]
 
-result10 :: Text
-result10 = T.unlines
+result10 :: Output
+result10 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result10.txt"
+    T.unlines
     [ "A cycle exists in the liveness proof"
     , "error 339:1:"
     , "\tProgress property prog0 (refined in m0)"
@@ -742,8 +751,9 @@ case11 = do
         --         return cmd
         --     x -> return $ show x
 
-result11 :: Text
-result11 = T.unlines 
+result11 :: Output
+result11 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result11.txt"
+    T.unlines 
     [ "; m0/evt/INV/inv5/main goal/step 4"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -1077,8 +1087,9 @@ result11 = T.unlines
 path12 :: FilePath
 path12 = [path|Tests/cubes-t10.tex|]
 
-result12 :: Text
-result12 = T.unlines 
+result12 :: Output
+result12 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result12.txt"
+    T.unlines 
         [  "error 274:3:\n    type of j is ill-defined: _a"
         ]
 
@@ -1088,8 +1099,9 @@ case12 = find_errors path12
 case13 :: IO Text
 case13 = proof_obligation path3 "m0/evt/INV/inv6" 0
 
-result13 :: Text
-result13 = T.unlines
+result13 :: Output
+result13 = readFileLn' "expected/Language/UnitB/Parser/Lambdas/result13.txt"
+    T.unlines
     [ "; m0/evt/INV/inv6"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"

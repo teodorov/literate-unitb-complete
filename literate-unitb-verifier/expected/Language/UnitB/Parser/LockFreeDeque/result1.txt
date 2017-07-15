@@ -1,0 +1,20 @@
+  o  m0/INIT/INV/m0:inv0
+  o  m0/m0:pop:left/FIS/p@prime
+  o  m0/m0:pop:left/FIS/q@prime
+  o  m0/m0:pop:left/FIS/qe@prime
+  o  m0/m0:pop:left/INV/m0:inv0
+  o  m0/m0:pop:left/SCH
+  o  m0/m0:pop:right/FIS/p@prime
+  o  m0/m0:pop:right/FIS/q@prime
+  o  m0/m0:pop:right/FIS/qe@prime
+  o  m0/m0:pop:right/INV/m0:inv0
+  o  m0/m0:pop:right/SCH
+  o  m0/m0:push:left/FIS/p@prime
+  o  m0/m0:push:left/FIS/q@prime
+  o  m0/m0:push:left/FIS/qe@prime
+ xxx m0/m0:push:left/INV/m0:inv0
+  o  m0/m0:push:right/FIS/p@prime
+  o  m0/m0:push:right/FIS/q@prime
+  o  m0/m0:push:right/FIS/qe@prime
+ xxx m0/m0:push:right/INV/m0:inv0
+passed 17 / 19

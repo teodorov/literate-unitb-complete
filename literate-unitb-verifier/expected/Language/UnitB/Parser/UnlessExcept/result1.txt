@@ -1,0 +1,8 @@
+  o  m1/evt0/FIS/f@prime
+ xxx m1/evt0/SAF/saf1
+ xxx m1/evt0/WD/ACT/m0:act0
+  o  m1/evt1/FIS/f@prime
+  o  m1/evt1/SAF/saf1
+ xxx m1/evt1/WD/ACT/m0:act0
+ xxx m1/saf1/SAF/WD/lhs
+passed 3 / 7

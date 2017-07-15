@@ -1,0 +1,2 @@
+error 52:1:
+    event 'leave' is undeclared

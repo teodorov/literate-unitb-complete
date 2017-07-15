@@ -82,9 +82,9 @@ test = test_cases
                 case20 result20
             , aCase "test 21, new index witness"
                 case21 result21
-            , aCase "test 22, new index proof obligation part a"
+            , textCase "test 22, new index proof obligation part a"
                 case22 result22
-            , aCase "test 23, new index proof obligation part b"
+            , textCase "test 23, new index proof obligation part b"
                 case23 result23
             , poCase "test 24, scoping in index witness feasibility"
                 case24 result24
@@ -352,8 +352,9 @@ case37 = proof_obligation path36 "m1/hdl:popL:more/GRD/str/m0:sch0" 1
 case38 :: IO POResult
 case38 = verifyOnly path36 "m1/hdl:popL:more/GRD/str/m0:sch0" 1
 
-result38 :: Text
-result38 = T.unlines
+result38 :: Output
+result38 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result38.txt"
+    T.unlines
     [ "  o  m1/hdl:popL:more/GRD/str/m0:sch0"
     , "passed 1 / 1"
     ]
@@ -364,8 +365,9 @@ case39 = proof_obligation path36 "m1/hdl:popL:more/WFIS/v" 1
 case40 :: IO POResult
 case40 = verifyOnly path36 "m1/hdl:popL:more/WFIS/v" 1
 
-result40 :: Text
-result40 = T.unlines
+result40 :: Output
+result40 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result40.txt"
+    T.unlines
     [ "  o  m1/hdl:popL:more/WFIS/v"
     , "passed 1 / 1"
     ]
@@ -373,8 +375,9 @@ result40 = T.unlines
 case41 :: IO POResult
 case41 = verifyOnly path36 "m1/ext:popL:more/INV/m1:inv7" 1
 
-result41 :: Text
-result41 = T.unlines
+result41 :: Output
+result41 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result41.txt"
+    T.unlines
     [ "  o  m1/ext:popL:more/INV/m1:inv7"
     , "passed 1 / 1"
     ]
@@ -385,8 +388,9 @@ path42 = [path|Tests/pop-left-t3.tex|]
 case42 :: IO POResult
 case42 = verifyOnly path42 "m1/hdl:popL:more/C_SCH/weaken/m1:sch2" 1
 
-result42 :: Text
-result42 = T.unlines
+result42 :: Output
+result42 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result42.txt"
+    T.unlines
     [ "  o  m1/hdl:popL:more/C_SCH/weaken/m1:sch2"
     , "passed 1 / 1"
     ]
@@ -400,8 +404,9 @@ path44 = [path|Tests/pop-left-t5.tex|]
 case44 :: IO Text
 case44 = fmap (either id id) . runEitherT $ T.unlines . foldMap (L.map prettyText.M.keys) <$> all_proof_obligations' path44 
 
-result44 :: Text
-result44 = ""
+result44 :: Output
+result44 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result44.txt"
+    id ""
 
 path45 :: FilePath
 path45 = [path|Tests/pop-left-t6.tex|]
@@ -409,8 +414,9 @@ path45 = [path|Tests/pop-left-t6.tex|]
 case45 :: IO Text
 case45 = find_errors path45 
 
-result45 :: Text
-result45 = T.unlines
+result45 :: Output
+result45 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result45.txt"
+    T.unlines
     [ "Multiple expressions with the label m0:sch0"
     , "error 484:1:"
     , "\tdeleted coarse schedule (event 'hdl:popL:more')"
@@ -434,8 +440,9 @@ path46 = [path|Tests/pop-left-t7.tex|]
 case46 :: IO Text
 case46 = find_errors path46
 
-result46 :: Text
-result46 = T.unlines
+result46 :: Output
+result46 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result46.txt"
+    T.unlines
     [ "The events merged into read:LH (hdl:popL:empty,read:LH) do not all have an action labelled m0:act0"
     , "error 111:3:"
     , "\tEvent hdl:popL:empty, action m0:act0"
@@ -453,8 +460,9 @@ path47 = [path|Tests/pop-left-t8.tex|]
 case47 :: IO Text
 case47 = find_errors path47
 
-result47 :: Text
-result47 = T.unlines
+result47 :: Output
+result47 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result47.txt"
+    T.unlines
     [ "error 615:3:"
     , "    event 'hdl:popL:empty' is undeclared"
     ]
@@ -465,8 +473,9 @@ path48 = [path|Tests/pop-left-t9.tex|]
 case48 :: IO Text
 case48 = find_errors path48
 
-result48 :: Text
-result48 = T.unlines
+result48 :: Output
+result48 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result48.txt"
+    T.unlines
     [ "error 615:3:"
     , "    event 'hdl:popL:empty' is undeclared"
     ]
@@ -483,8 +492,9 @@ path50 = [path|Tests/pop-left-t11.tex|]
 case50 :: IO Text
 case50 = find_errors path50
 
-result50 :: Text
-result50 = T.unlines
+result50 :: Output
+result50 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result50.txt"
+    T.unlines
     [ "error 641:1:"
     , "    goal m1:prog1 is not a valid progress property"
     ]
@@ -495,8 +505,9 @@ path51 = [path|Tests/pop-left-t12.tex|]
 case51 :: IO Text
 case51 = find_errors path51
 
-result51 :: Text
-result51 = T.unlines
+result51 :: Output
+result51 = readFileLn' "expected/Language/UnitB/Parser/LockFreeDeque/result51.txt"
+    T.unlines
     [ "error 633:1:"
     , "    goal m1:prog2 is not a valid progress property"
     ]

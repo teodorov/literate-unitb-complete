@@ -115,8 +115,9 @@ path6    = [path|Tests/integers.tex|]
 case6 :: IO (Either [Error] [RawMachineAST])
 case6    = (traverse.traverse %~ fmap getExpr.view' syntax) <$> parse path6
 
-result7 :: Text
-result7 = T.unlines 
+result7 :: Output
+result7 = readFileLn' "expected/Language/UnitB/Parser/Cubes/result7.txt"
+    T.unlines 
     [ "  o  m0/INIT/INV/inv0"
     , "  o  m0/INIT/INV/inv1"
     , "  o  m0/INIT/INV/inv2"
@@ -158,8 +159,9 @@ case7 = do
 path8 :: FilePath
 path8   = [path|Tests/integers_t8.tex|]
 
-result8 :: Text
-result8 = T.unlines
+result8 :: Output
+result8 = readFileLn' "expected/Language/UnitB/Parser/Cubes/result8.txt"
+    T.unlines
     [ "; m0/INIT/FIS/x"
     , "(set-option :auto-config false)"
     , "(set-option :smt.timeout 3000)"
@@ -185,8 +187,9 @@ case8 :: IO Text
 case8 = do
         proof_obligation path8 "m0/INIT/FIS/x" 0
 
-result9 :: Text
-result9 = T.unlines  
+result9 :: Output
+result9 = readFileLn' "expected/Language/UnitB/Parser/Cubes/result9.txt"
+    T.unlines  
     [ "m0/evt/INV/inv0:"
     , "(= (^ n' 3) a')"
     , "----"
@@ -231,8 +234,9 @@ proof_kind (Definition _ _ _) = "definition"
 path10 :: FilePath
 path10   = [path|Tests/integers_t10.tex|]
 
-result10 :: Text
-result10 = T.unlines 
+result10 :: Output
+result10 = readFileLn' "expected/Language/UnitB/Parser/Cubes/result10.txt"
+    T.unlines 
     [ "error 31:21:"
     , "    type error: a calculation must include at least one reasoning step"
     ]

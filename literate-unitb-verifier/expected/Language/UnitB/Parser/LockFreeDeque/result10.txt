@@ -1,0 +1,7 @@
+Multiple refinement of progress property m1:prog3
+error 223:5:
+	m1:prog3
+
+error 255:1:
+	m1:prog3
+

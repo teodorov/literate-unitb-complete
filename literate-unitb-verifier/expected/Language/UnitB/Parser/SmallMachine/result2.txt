@@ -1,0 +1,11 @@
+  o  m0/INIT/INV/inv0
+  o  m0/INIT/INV/inv1
+  o  m0/inc/FIS/x@prime
+  o  m0/inc/FIS/y@prime
+  o  m0/inc/INV/inv0
+  o  m0/inc/INV/inv1
+ xxx m0/prog0/LIVE/add
+ xxx m0/tr0/TR/inc/EN
+  o  m0/tr0/TR/inc/NEG
+  o  m0/tr0/TR/leadsto/rhs
+passed 8 / 10
