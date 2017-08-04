@@ -60,7 +60,7 @@ library
   default-extensions:    TypeFamilies, QuasiQuotes, TemplateHaskell, GeneralizedNewtypeDeriving, TupleSections, FlexibleContexts
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.8 && <5, lens >=4.12 && <4.16, tagged >=0.8 && <0.9, QuickCheck >=2.8 && <2.10, data-ordlist, containers >= 0.4 && < 0.6, serialize-instances, generic-instances
+  build-depends:       base >=4.8 && <5, lens >=4.12 && <4.16, tagged >=0.8 && <0.9, QuickCheck >=2.8 && <2.11, data-ordlist, containers >= 0.4 && < 0.6, serialize-instances, generic-instances
   
   ghc-options: -W -fwarn-missing-signatures 
          -fwarn-incomplete-uni-patterns
