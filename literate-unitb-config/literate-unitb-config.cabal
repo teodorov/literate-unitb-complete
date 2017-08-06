@@ -23,7 +23,7 @@ library
   exposed-modules:     Z3.Version, Data.Bidirectional, Utilities.Config
   -- other-modules:       
   default-extensions:    LambdaCase, QuasiQuotes, TupleSections, FlexibleInstances, DeriveFunctor, RankNTypes, TemplateHaskell, DeriveGeneric
-  build-depends:       base >=4.7 && <5, lens >=4.12 && <4.16, transformers >=0.4 && <0.6, MissingH >=1.3 && <1.5, aeson, yaml, directory >=1.2 && <1.4, filepath >=1.4 && <1.5, process >=1.2 && <1.6, control-invariants, th-printf, containers, either, deepseq, pretty-printable
+  build-depends:       base >=4.7 && <5, lens >=4.12 && <4.16, transformers >=0.4 && <0.6, MissingH >=1.3 && <1.5, aeson, yaml >=0.8.16, directory >=1.2 && <1.4, filepath >=1.4 && <1.5, process >=1.2 && <1.6, control-invariants, th-printf, containers, either, deepseq, pretty-printable
   hs-source-dirs:      .
   default-language:    Haskell2010
 
