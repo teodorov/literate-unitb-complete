@@ -5,7 +5,8 @@ import Control.DeepSeq
 import Control.Exception
 import Control.Lens as L
 
-import Data.ConfigFile hiding (set)
+import Data.Yaml (encode)
+import qualified Data.ByteString as B
 import Data.Maybe
 import Data.Monoid
 
@@ -48,12 +49,11 @@ rewriteConfig f = do
     _ <- evaluate $ force z3_config
     putStrLn "options were:"
     print z3_config
-    (fn,cp) <- getConfigFile
-    _ <- evaluate cp
-    let c' = f $ cp^.config
+    fn <- getConfigFile
+    let c' = f z3_config
     homeSetting <- homeSettingPath
     createDirectoryIfMissing False homeSetting
-    writeFile fn $ to_string $ cp & config .~ c'
+    B.writeFile fn $ encode c'
     putStrLn "set the options to:"
     print c'
 

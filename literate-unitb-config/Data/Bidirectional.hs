@@ -3,7 +3,6 @@ module Data.Bidirectional where
 import Control.Lens hiding (set)
 import Control.Monad
 
-import Data.ConfigFile
 import Data.Either.Combinators
 import Data.Map as M
 import Data.Maybe
@@ -30,13 +29,17 @@ prismOf :: s
         -> Prism' s a
 prismOf def (BiParser f g) = prism' (\x -> f x def) g
 
+-- traverseOf :: BiParser Identity a s a
+--            -> Traversal' s a
+-- traverseOf = _
+
 class Document a where
     makeNode :: String -> String -> a -> a
     lookupDoc :: String -> a -> Maybe String
 
-instance Document ConfigParser where
-    makeNode k x c = fromRight' $ set c "DEFAULT" k x
-    lookupDoc x m = rightToMaybe $ get m "DEFAULT" x 
+-- instance Document ConfigParser where
+--     makeNode k x c = fromRight' $ set c "DEFAULT" k x
+--     lookupDoc x m = rightToMaybe $ get m "DEFAULT" x
 
 instance Document (Map String String) where
     makeNode = M.insert

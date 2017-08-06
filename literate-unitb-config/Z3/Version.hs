@@ -1,21 +1,23 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings, RecordWildCards #-}
 module Z3.Version where
 
 import Control.DeepSeq
-import Control.Lens
+import Control.Lens hiding ((.=))
 import Control.Monad
 import Control.Monad.Trans.Maybe
 import Control.Precondition
 
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:?), (.!=),
+                  ToJSON, toJSON, object, (.=))
 import Data.Bidirectional
 import Data.Char
 import Data.List as L
 import Data.List.Utils as L
-import Data.ConfigFile
+import Data.Yaml.Config (loadYamlSettings, useEnv)
 
 import GHC.Generics
 
-import System.Directory
+import System.Directory (doesFileExist)
 import System.Environment
 import System.FilePath
 import System.Process
@@ -39,6 +41,21 @@ instance NFData Z3Config where
 instance PrettyRecord Z3Config where
 instance PrettyPrintable Z3Config where
     pretty = prettyRecord
+
+instance FromJSON Z3Config where
+    parseJSON = withObject "Z3Config" $ \c -> Z3Config
+        <$> c .:? "z3_path"         .!= "z3"
+        <*> c .:? "timeout"         .!= 20
+        <*> c .:? "default_timeout" .!= 3000
+        <*> c .:? "capacity"        .!= 32
+
+instance ToJSON Z3Config where
+    toJSON Z3Config{..} = object [
+        "z3_path"         .= _z3Path,
+        "timeout"         .= _z3Timeout,
+        "default_timeout" .= _z3DefaultTimeout,
+        "capacity"        .= _capacity
+        ]
 
 check_z3_bin :: IO Bool
 check_z3_bin = do
@@ -81,12 +98,12 @@ z3_installed = do
     z3_bin <- doesFileExist z3_path
     return $ or (z3_bin : xs)
 
-config :: Lens' ConfigParser Z3Config
-config = lensOf $ Z3Config 
-        <$> fieldWith "z3" "z3_path" (view z3Path)
-        <*> fieldWith' 20 "timeout" (view z3Timeout)
-        <*> fieldWith' 3000 "default_timeout" (view z3DefaultTimeout)
-        <*> fieldWith' 32 "capacity" (view capacity)
+-- config :: Lens' ConfigParser Z3Config
+-- config = lensOf $ Z3Config
+--         <$> fieldWith "z3" "z3_path" (view z3Path)
+--         <*> fieldWith' 20 "timeout" (view z3Timeout)
+--         <*> fieldWith' 3000 "default_timeout" (view z3DefaultTimeout)
+--         <*> fieldWith' 32 "capacity" (view capacity)
 
 doesFileExist' :: FilePath -> IO (Maybe FilePath)
 doesFileExist' fn = do
@@ -105,9 +122,9 @@ defaultConfigPath = do
     return $ home </> configFileName
 
 configFileName :: FilePath
-configFileName = "z3_config.conf"
+configFileName = "z3_config.yml"
 
-getConfigFile :: IO (FilePath,ConfigParser)
+getConfigFile :: IO FilePath
 getConfigFile = do
     path <- getExecutablePath
     def  <- defaultConfigPath
@@ -117,13 +134,13 @@ getConfigFile = do
             , path </> fn 
             , def ]
         >>= \case
-            Just fn' -> (fn',) . fromRight emptyCP <$> readfile emptyCP fn'
-            Nothing  -> return $ (def,emptyCP)
+            Just fn' -> return fn'
+            Nothing  -> return def
 
 z3_config :: Z3Config
 z3_config = unsafePerformIO $ do
-    cp <- snd <$> getConfigFile
-    return $ cp^.config
+    fn <- getConfigFile
+    loadYamlSettings [fn] [] useEnv
 
 z3_path :: String
 z3_path = z3_config^.z3Path
