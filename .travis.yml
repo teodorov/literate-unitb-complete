@@ -315,6 +315,7 @@ before_install:
 - z3 -h
 # 
 - Z3_CONFIG="$HOME/Literate Unit-B"
+- mkdir "$Z3_CONFIG" || echo ""
 - touch "$Z3_CONFIG/z3_config.yml"
 - echo "capacity: 8" >> "$Z3_CONFIG/z3_config.yml"
 - echo "timeout: 30" >> "$Z3_CONFIG/z3_config.yml"
