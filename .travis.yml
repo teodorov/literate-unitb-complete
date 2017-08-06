@@ -313,13 +313,6 @@ before_install:
   fi
 - export PATH="$HOME/z3:$PATH"
 - z3 -h
-# 
-- Z3_CONFIG="$HOME/Literate Unit-B"
-- mkdir -p "$Z3_CONFIG" || echo "mkdir failed"
-- rm "$Z3_CONFIG/z3_config.yml" || echo "rm failed"
-- echo "capacity: 8" > "$Z3_CONFIG/z3_config.yml"
-- echo "timeout: 30" >> "$Z3_CONFIG/z3_config.yml"
-- cat "$Z3_CONFIG/z3_config.yml"
 # Deploy anti-timeout weapon
 - mkdir $HOME/scripts || echo ""
 - export PATH="$HOME/scripts:$PATH"
