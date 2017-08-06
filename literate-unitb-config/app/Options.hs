@@ -74,4 +74,4 @@ main = execParser opts >>= apply
     where
         opts = info ( helper <*> commandLineOpts )
                 $   fullDesc
-                 <> header  "unitb-setting - customize the preferences for verifier"
+                 <> header  "unitb-config - customize the preferences for verifier"
