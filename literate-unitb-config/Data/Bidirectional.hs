@@ -5,7 +5,6 @@ import Control.Monad
 
 import Data.Either.Combinators
 import Data.HashMap.Strict as H
-import Data.Map as M
 import Data.Maybe
 import Data.Text (pack)
 import Data.Yaml (Object, ToJSON, FromJSON,
@@ -24,6 +23,7 @@ instance (Applicative f) => Applicative (BiParser f a b) where
 
 -- instance Profunctor (BiParser a) where
 --     dimap f g (BiParser p q) = BiParser (_.p) (fmap g.q.f)
+
 lensOf :: BiParser Identity a s a
        -> Lens' s a
 lensOf (BiParser f g) = lens (runIdentity . g) (\x i -> f i x)
@@ -33,9 +33,12 @@ prismOf :: s
         -> Prism' s a
 prismOf def (BiParser f g) = prism' (\x -> f x def) g
 
--- traverseOf :: BiParser Identity a s a
---            -> Traversal' s a
--- traverseOf = _
+traverseOf :: s
+           -> BiParser Identity a s a
+           -> Traversal' s a
+traverseOf def (BiParser f g) h x =
+    (\i -> f i def) <$> h (runIdentity $ g x)
+    -- f <$> h (runIdentity $ g x) <*> pure def
 
 class Document a where
     makeNode :: (ToJSON b) => String -> b -> a -> a
@@ -47,33 +50,21 @@ instance Document Object where
         v <- H.lookup (pack k) m
         parseMaybe parseJSON v
 
-instance Document (Map String String) where
-    makeNode = M.insert
-    lookupDoc = M.lookup
-
 field :: (Document doc,ToJSON a,FromJSON a)
        => String -> (b -> a)
        -> BiParser Maybe b doc a
 field k f = BiParser (makeNode k . f) (lookupDoc k)
 
 fieldWith :: (Document doc,Applicative f,Eq a,ToJSON a,FromJSON a)
-           => a -> String -> (c -> a)
+           => String -> a -> (c -> a)
            -> BiParser f c doc a
-fieldWith def k f = BiParser
+fieldWith k def f = BiParser
             (\x doc -> 
                     let x' = f x in
                     if x' == fromMaybe def (lookupDoc k doc) 
                         then doc
                         else makeNode k x' doc ) 
             (pure.fromMaybe def.lookupDoc k)
-            -- (pure def)
-    -- withDefault x . field' k
-
--- withDefault :: Applicative f 
---             => a 
---             -> BiParser Maybe c b a 
---             -> BiParser f c b a
--- withDefault x (BiParser f g) = BiParser f (pure . fromMaybe x . g)
 
 optionally :: Applicative f
            => BiParser Maybe c b a 

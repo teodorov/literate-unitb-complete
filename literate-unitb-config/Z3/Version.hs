@@ -84,10 +84,10 @@ z3_installed = do
 
 config :: Lens' Object Z3Config
 config = lensOf $ Z3Config 
-        <$> fieldWith "z3" "z3_path" (view z3Path)
-        <*> fieldWith 20 "timeout" (view z3Timeout)
-        <*> fieldWith 3000 "default_timeout" (view z3DefaultTimeout)
-        <*> fieldWith 32 "capacity" (view capacity)
+        <$> fieldWith "z3_path"         "z3" (view z3Path)
+        <*> fieldWith "timeout"         20   (view z3Timeout)
+        <*> fieldWith "default_timeout" 3000 (view z3DefaultTimeout)
+        <*> fieldWith "capacity"        32   (view capacity)
 
 doesFileExist' :: FilePath -> IO (Maybe FilePath)
 doesFileExist' fn = do
