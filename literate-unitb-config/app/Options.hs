@@ -5,9 +5,9 @@ import Control.DeepSeq
 import Control.Exception
 import Control.Lens as L
 
-import Data.ConfigFile hiding (set)
 import Data.Maybe
 import Data.Monoid
+import Data.Yaml (encodeFile)
 
 import Options.Applicative 
 
@@ -53,7 +53,7 @@ rewriteConfig f = do
     let c' = f $ cp^.config
     homeSetting <- homeSettingPath
     createDirectoryIfMissing False homeSetting
-    writeFile fn $ to_string $ cp & config .~ c'
+    encodeFile fn $ cp & config .~ c'
     putStrLn "set the options to:"
     print c'
 

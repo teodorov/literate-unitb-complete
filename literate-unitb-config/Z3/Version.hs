@@ -9,9 +9,10 @@ import Control.Precondition
 
 import Data.Bidirectional
 import Data.Char
+import Data.HashMap.Strict (empty)
 import Data.List as L
 import Data.List.Utils as L
-import Data.ConfigFile
+import Data.Yaml (Object, decodeFileEither)
 
 import GHC.Generics
 
@@ -81,7 +82,7 @@ z3_installed = do
     z3_bin <- doesFileExist z3_path
     return $ or (z3_bin : xs)
 
-config :: Lens' ConfigParser Z3Config
+config :: Lens' Object Z3Config
 config = lensOf $ Z3Config 
         <$> fieldWith "z3" "z3_path" (view z3Path)
         <*> fieldWith' 20 "timeout" (view z3Timeout)
@@ -105,9 +106,9 @@ defaultConfigPath = do
     return $ home </> configFileName
 
 configFileName :: FilePath
-configFileName = "z3_config.conf"
+configFileName = "z3_config.yml"
 
-getConfigFile :: IO (FilePath,ConfigParser)
+getConfigFile :: IO (FilePath, Object)
 getConfigFile = do
     path <- getExecutablePath
     def  <- defaultConfigPath
@@ -117,8 +118,8 @@ getConfigFile = do
             , path </> fn 
             , def ]
         >>= \case
-            Just fn' -> (fn',) . fromRight emptyCP <$> readfile emptyCP fn'
-            Nothing  -> return $ (def,emptyCP)
+            Just fn' -> (fn',) . fromRight empty <$> decodeFileEither fn'
+            Nothing  -> return $ (def, empty)
 
 z3_config :: Z3Config
 z3_config = unsafePerformIO $ do

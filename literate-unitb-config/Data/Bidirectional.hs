@@ -3,10 +3,12 @@ module Data.Bidirectional where
 import Control.Lens hiding (set)
 import Control.Monad
 
-import Data.ConfigFile
 import Data.Either.Combinators
+import Data.HashMap.Strict as H
 import Data.Map as M
 import Data.Maybe
+import Data.Yaml (Object, toJSON, parseJSON, parseMaybe)
+import Data.Text (pack)
 
 import Text.Read hiding (get)
 
@@ -30,13 +32,19 @@ prismOf :: s
         -> Prism' s a
 prismOf def (BiParser f g) = prism' (\x -> f x def) g
 
+-- traverseOf :: BiParser Identity a s a
+--            -> Traversal' s a
+-- traverseOf = _
+
 class Document a where
     makeNode :: String -> String -> a -> a
     lookupDoc :: String -> a -> Maybe String
 
-instance Document ConfigParser where
-    makeNode k x c = fromRight' $ set c "DEFAULT" k x
-    lookupDoc x m = rightToMaybe $ get m "DEFAULT" x 
+instance Document Object where
+    makeNode k x = H.insert (pack k) (toJSON x)
+    lookupDoc k m = do
+        v <- H.lookup (pack k) m
+        parseMaybe parseJSON v
 
 instance Document (Map String String) where
     makeNode = M.insert
