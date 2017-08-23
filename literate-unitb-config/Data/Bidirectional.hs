@@ -47,13 +47,13 @@ instance Document Object where
         parseMaybe parseJSON v
 
 field :: (Document doc,ToJSON a,FromJSON a)
-       => String -> (b -> a)
-       -> BiParser Maybe b doc a
+      => String -> (b -> a)
+      -> BiParser Maybe b doc a
 field k f = BiParser (makeNode k . f) (lookupDoc k)
 
 fieldWith :: (Document doc,Applicative f,Eq a,ToJSON a,FromJSON a)
-           => String -> a -> (c -> a)
-           -> BiParser f c doc a
+          => String -> a -> (c -> a)
+          -> BiParser f c doc a
 fieldWith k def f = BiParser
             (\x doc -> 
                     let x' = f x in
