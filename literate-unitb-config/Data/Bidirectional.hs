@@ -21,9 +21,6 @@ instance (Applicative f) => Applicative (BiParser f a b) where
         (\x -> f0 x . f1 x) 
         (\x -> g0 x <*> g1 x)
 
--- instance Profunctor (BiParser a) where
---     dimap f g (BiParser p q) = BiParser (_.p) (fmap g.q.f)
-
 lensOf :: BiParser Identity a s a
        -> Lens' s a
 lensOf (BiParser f g) = lens (runIdentity . g) (\x i -> f i x)
@@ -38,7 +35,6 @@ traverseOf :: s
            -> Traversal' s a
 traverseOf def (BiParser f g) h x =
     (\i -> f i def) <$> h (runIdentity $ g x)
-    -- f <$> h (runIdentity $ g x) <*> pure def
 
 class Document a where
     makeNode :: (ToJSON b) => String -> b -> a -> a
